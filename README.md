@@ -4,23 +4,17 @@
 
 ---
 
-## 🖥️ Tela Inicial (Dashboard Industrial)
+## 🖥️ Workspace Overview
 
-O ProEng apresenta um painel central moderno com navegação fluida e carrossel dinâmico de funcionalidades.
-
-![Welcome Screen](proeng/resources/screenshots/welcome_dark.png)
-
----
-
-## 🎨 Temas Dinâmicos (Dark & Light)
-
-O ProEng oferece dois modos visuais otimizados para diferentes ambientes de trabalho. A alternância é instantânea e altera todo o ecossistema da aplicação.
+O ProEng oferece uma experiência de trabalho fluida com temas dinâmicos e navegação integrada entre múltiplos módulos técnicos.
 
 | 🌑 Dark Industrial (Padrão) | ☀️ Light Blue (Clássico) |
 | :---: | :---: |
 | ![Dark Theme](proeng/resources/screenshots/welcome_dark.png) | ![Light Theme](proeng/resources/screenshots/welcome_light.png) |
 
 ---
+
+## 📦 Executável (Windows)
 
 Você pode baixar a versão mais recente pronta para uso (sem necessidade de Python instalado):
 
@@ -31,60 +25,40 @@ Você pode baixar a versão mais recente pronta para uso (sem necessidade de Pyt
 
 ---
 
-## 🖼️ Galeria de Módulos
+## 🖼️ Galeria Técnica de Módulos
 
-Confira a interface de cada ferramenta da suíte em alta definição:
+Confira a comparação entre os temas em cada ferramenta da suíte:
 
-### 🏭 PFD Flowsheet
-Diagramas de fluxo de processo com 12 pontos de conexão e tubulações inteligentes.
-![Flowsheet](proeng/resources/screenshots/flowsheet_dark.png)
-
-### 📋 Gerador EAP/WBS
-Estrutura Analítica do Projeto com numeração automática e layout dinâmico.
-![EAP](proeng/resources/screenshots/eap_dark.png)
-
-### 🔀 BPMN Modeler
-Modelagem profissional de processos de negócio com Pools e Lanes.
-![BPMN](proeng/resources/screenshots/bpmn_dark.png)
-
-### 📝 PM Canvas
-Planejamento estratégico de alto nível utilizando a metodologia Finocchio.
-![Canvas](proeng/resources/screenshots/canvas_dark.png)
-
-### 🐟 Diagrama de Ishikawa
-Análise estruturada de causa e efeito (6M) para resolução de falhas.
-![Ishikawa](proeng/resources/screenshots/ishikawa_dark.png)
-
-### 🎯 Plano de Ação 5W2H
-Matriz de execução ágil para controle total de prazos e responsáveis.
-![5W2H](proeng/resources/screenshots/w5h2_dark.png)
+| Módulo | 🌑 Tema Escuro | ☀️ Tema Claro |
+| :--- | :---: | :---: |
+| **🏭 PFD Flowsheet** | ![F_Dark](proeng/resources/screenshots/flowsheet_dark.png) | ![F_Light](proeng/resources/screenshots/flowsheet_light.png) |
+| **📋 Gerador EAP/WBS** | ![E_Dark](proeng/resources/screenshots/eap_dark.png) | ![E_Light](proeng/resources/screenshots/eap_light.png) |
+| **🔀 BPMN Modeler** | ![B_Dark](proeng/resources/screenshots/bpmn_dark.png) | ![B_Light](proeng/resources/screenshots/bpmn_light.png) |
+| **📝 PM Canvas**    | ![C_Dark](proeng/resources/screenshots/canvas_dark.png) | ![C_Light](proeng/resources/screenshots/canvas_light.png) |
+| **🐟 Ishikawa**     | ![I_Dark](proeng/resources/screenshots/ishikawa_dark.png) | ![I_Light](proeng/resources/screenshots/ishikawa_light.png) |
+| **🎯 Plano 5W2H**   | ![W_Dark](proeng/resources/screenshots/w5h2_dark.png) | ![W_Light](proeng/resources/screenshots/w5h2_light.png) |
 
 ---
 
-## 🛠️ Módulos Detalhados
+## 🛠️ Funcionalidades Detalhadas
 
-### 🏭 PFD Flowsheet
-A ferramenta mais robusta da suíte, otimizada para modelagem de processos químicos e industriais.
-- **Conectividade Multi-Porta**: 12 pontos de conexão por equipamento (3 por lado) para roteamento complexo.
-- **Terminais Dinâmicos**: Crie alimentações e saídas instantâneas arrastando tubulações para o vazio.
-- **Roteamento Inteligente**: Tubulações ortogonais ("em L") automatizadas para saídas de topo e fundo.
-- **Biblioteca de 26+ Ícones**: Bombas, Reatores, Torres de Destilação e Trocadores de Calor.
+### 🏭 PFD Flowsheet (Diagrama de Fluxo)
+A ferramenta mais robusta da suíte, otimizada para modelagem industrial.
+- **Conectividade de Alta Densidade**: 12 pontos de conexão por equipamento.
+- **Terminais Dinâmicos**: Alimentações e saídas criadas instantaneamente.
+- **Roteamento Inteligente**: Tubulações ortogonais ("em L") automatizadas.
+- **Aesthetics**: Cabeças de seta afiadas e identificação de correntes rente aos tubos.
 
-### 🔀 BPMN Modeler
-- **Pools & Lanes**: Organização de responsabilidades em raias configuráveis.
-- **Fluxos Lógicos**: Eventos de início/fim, gateways de decisão e tarefas procedimentais.
-
-### 📋 Gerador EAP/WBS
-- **Numeração Automática**: Geração de códigos WBS (1.1, 1.1.1, etc.).
-- **Layout Inteligente**: Auto-ajuste de nós para diagramas equilibrados.
+### 🔀 BPMN & 📋 EAP
+- **BPMN**: Pools & Lanes com organização de responsabilidades profissionais.
+- **EAP**: Estrutura Analítica com numeração WBS automática e layout dinâmico.
 
 ---
 
 ## 🚀 Como Executar (Ambiente de Desenvolvimento)
 
 ### 1. Pré-requisitos
-- **Python 3.9+** instalado.
-- Gerenciador de pacotes **pip**.
+- **Python 3.9+** e **pip**.
 
 ### 2. Instalação
 ```bash
@@ -98,10 +72,9 @@ python main.py
 
 ## 💎 Diferenciais Técnicos
 
-- **Arquitetura Modular**: Módulos independentes e independentes.
-- **Renderização Vectorial**: `QGraphicsView` para zoom infinito e alta fidelidade.
-- **Exportação Profissional**: Gere arquivos **PNG** de alta resolução ou **PDF** em A3/A4.
-- **Persistência JSON**: Projetos leves e fáceis de compartilhar.
+- **Arquitetura Modular**: Módulos independentes e escaláveis.
+- **Renderização Vectorial**: Alta fidelidade e zoom sem perda de qualidade.
+- **Exportação Profissional**: Gere **PNG** de alta resolução ou **PDF** em A3/A4.
 
 ---
 
