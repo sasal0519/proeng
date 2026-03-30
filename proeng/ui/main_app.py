@@ -1121,5 +1121,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     w = MainApp()
-    w.show()
+    w.showMaximized()
     sys.exit(app.exec_())

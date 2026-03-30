@@ -4,7 +4,13 @@
 
 ---
 
-## 📦 Executável (Windows)
+## 🖥️ Tela Inicial (Dashboard Industrial)
+
+O ProEng apresenta um painel central moderno com navegação fluida e carrossel dinâmico de funcionalidades.
+
+![Welcome Screen](proeng/resources/screenshots/welcome_dark.png)
+
+---
 
 Você pode baixar a versão mais recente pronta para uso (sem necessidade de Python instalado):
 

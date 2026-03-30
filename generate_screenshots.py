@@ -21,8 +21,8 @@ def capture_widget(widget, filename):
     widget.show()
     QApplication.processEvents()
     
-    # Standard size for screenshots
-    widget.resize(1200, 800)
+    # Standard size for HD screenshots
+    widget.resize(1920, 1080)
     QApplication.processEvents()
     
     # Force fitting for graphics-based widgets
