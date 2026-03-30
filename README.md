@@ -12,6 +12,16 @@ O ProEng apresenta um painel central moderno com navegação fluida e carrossel 
 
 ---
 
+## 🎨 Temas Dinâmicos (Dark & Light)
+
+O ProEng oferece dois modos visuais otimizados para diferentes ambientes de trabalho. A alternância é instantânea e altera todo o ecossistema da aplicação.
+
+| 🌑 Dark Industrial (Padrão) | ☀️ Light Blue (Clássico) |
+| :---: | :---: |
+| ![Dark Theme](proeng/resources/screenshots/welcome_dark.png) | ![Light Theme](proeng/resources/screenshots/welcome_light.png) |
+
+---
+
 Você pode baixar a versão mais recente pronta para uso (sem necessidade de Python instalado):
 
 🚀 **[Baixar ProEng v1.1.0 (Windows)](https://github.com/sasal0519/proeng/releases)**
