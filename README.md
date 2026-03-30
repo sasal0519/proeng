@@ -4,90 +4,94 @@
 
 ---
 
-## 🖼️ Visual Showcase
+## 📦 Executável (Windows)
 
-A interface do ProEng foi desenhada para oferecer máxima clareza e produtividade, com suporte total a temas **Dark Industrial** e **Light Blue**.
+Você pode baixar a versão mais recente pronta para uso (sem necessidade de Python instalado):
 
-| 🌑 Tema Escuro (Focado em Precisão) | ☀️ Tema Claro (Focado em Documentação) |
-| :---: | :---: |
-| ![Dark Mode](proeng/resources/screenshots/flowsheet_dark.png) | ![Light Mode](proeng/resources/screenshots/flowsheet_light.png) |
+🚀 **[Baixar ProEng v1.0.0 (Windows)](https://github.com/sasal0519/proeng/releases)**
+
+- ✨ **Portable**: Não requer instalação, basta extrair e rodar.
+- 🎨 **Interface Nativa**: Ícone customizado e suporte total a temas.
 
 ---
 
-## 🛠️ Módulos Integrados
+## 🖼️ Galeria de Módulos
 
-### 🏭 PFD Flowsheet (Diagrama de Fluxo de Processo)
+Confira a interface de cada ferramenta da suíte em alta definição:
+
+### 🏭 PFD Flowsheet
+Diagramas de fluxo de processo com 12 pontos de conexão e tubulações inteligentes.
+![Flowsheet](proeng/resources/screenshots/flowsheet_dark.png)
+
+### 📋 Gerador EAP/WBS
+Estrutura Analítica do Projeto com numeração automática e layout dinâmico.
+![EAP](proeng/resources/screenshots/eap_dark.png)
+
+### 🔀 BPMN Modeler
+Modelagem profissional de processos de negócio com Pools e Lanes.
+![BPMN](proeng/resources/screenshots/bpmn_dark.png)
+
+### 📝 PM Canvas
+Planejamento estratégico de alto nível utilizando a metodologia Finocchio.
+![Canvas](proeng/resources/screenshots/canvas_dark.png)
+
+### 🐟 Diagrama de Ishikawa
+Análise estruturada de causa e efeito (6M) para resolução de falhas.
+![Ishikawa](proeng/resources/screenshots/ishikawa_dark.png)
+
+### 🎯 Plano de Ação 5W2H
+Matriz de execução ágil para controle total de prazos e responsáveis.
+![5W2H](proeng/resources/screenshots/w5h2_dark.png)
+
+---
+
+## 🛠️ Módulos Detalhados
+
+### 🏭 PFD Flowsheet
 A ferramenta mais robusta da suíte, otimizada para modelagem de processos químicos e industriais.
 - **Conectividade Multi-Porta**: 12 pontos de conexão por equipamento (3 por lado) para roteamento complexo.
 - **Terminais Dinâmicos**: Crie alimentações e saídas instantâneas arrastando tubulações para o vazio.
 - **Roteamento Inteligente**: Tubulações ortogonais ("em L") automatizadas para saídas de topo e fundo.
-- **Biblioteca de 26+ Ícones**: Bombas, Reatores, Torres de Destilação, Trocadores de Calor, Válvulas e muito mais.
-- **Identificação de Correntes**: Rótulos de texto que se mantêm fixos e alinhados às tubulações.
+- **Biblioteca de 26+ Ícones**: Bombas, Reatores, Torres de Destilação e Trocadores de Calor.
 
-### 🔀 BPMN Modeler (Modelagem de Negócios)
-Padronização de processos conforme a norma BPMN 2.0.
-- **Pools & Lanes**: Organização de responsabilidades em raias verticais e horizontais.
+### 🔀 BPMN Modeler
+- **Pools & Lanes**: Organização de responsabilidades em raias configuráveis.
 - **Fluxos Lógicos**: Eventos de início/fim, gateways de decisão e tarefas procedimentais.
-- **Exportação Profissional**: Gere diagramas limpos para manuais de SOP (Procedimento Operacional Padrão).
 
-### 📋 Gerador EAP/WBS (Estrutura Analítica do Projeto)
-Descomponha o escopo do seu projeto de forma visual e hierárquica.
-- **Numeração Automática**: Geração automática de códigos WBS (1.1, 1.1.1, etc.).
-- **Layout Inteligente**: Auto-ajuste de nós para manter o diagrama sempre equilibrado.
-- **Gestão de Pacotes de Trabalho**: Identificação clara de entregáveis.
-
-### 🐟 Diagrama de Ishikawa (Espinha de Peixe)
-Análise estruturada de causa raiz para controle de qualidade.
-- **Metodologia 6M**: Categorias pré-definidas (Método, Máquina, Medida, Meio-Ambiente, Mão-de-Obra, Material).
-- **Brainstorming Visual**: Adição dinâmica de causas secundárias e terciárias.
-
-### 📝 PM Canvas & 🎯 Plano 5W2H
-Ferramentas de planejamento estratégico e execução.
-- **Canvas de Projeto**: Grade completa (Finocchio) para visão estratégica em uma página.
-- **Matriz 5W2H**: Plano de ação detalhado (Who, What, Where, When, Why, How, How Much).
+### 📋 Gerador EAP/WBS
+- **Numeração Automática**: Geração de códigos WBS (1.1, 1.1.1, etc.).
+- **Layout Inteligente**: Auto-ajuste de nós para diagramas equilibrados.
 
 ---
 
 ## 🚀 Como Executar (Ambiente de Desenvolvimento)
 
-Para rodar a suíte ProEng em sua máquina local, siga os passos abaixo:
-
 ### 1. Pré-requisitos
 - **Python 3.9+** instalado.
 - Gerenciador de pacotes **pip**.
 
-### 2. Instalação das Dependências
-Clone o repositório e instale as bibliotecas necessárias:
+### 2. Instalação
 ```bash
 git clone https://github.com/sasal0519/proeng.git
 cd proeng
 pip install -r requirements.txt
-```
-
-### 3. Rodando a Aplicação
-```bash
 python main.py
-```
-
-Você também pode testar módulos específicos individualmente:
-```bash
-python -m proeng.modules.flowsheet
 ```
 
 ---
 
 ## 💎 Diferenciais Técnicos
 
-- **Arquitetura Modular**: Cada módulo funciona de forma independente, facilitando a manutenção e expansão.
-- **Renderização Vectorial**: O motor gráfico baseado em `QGraphicsView` garante zoom infinito sem perda de qualidade.
-- **Exportação Flexível**: Gere arquivos **PNG** em alta resolução ou documentos **PDF** prontos para impressão em A3/A4.
-- **Persistência JSON**: Projetos salvos em formato leve e legível para fácil compartilhamento.
+- **Arquitetura Modular**: Módulos independentes e independentes.
+- **Renderização Vectorial**: `QGraphicsView` para zoom infinito e alta fidelidade.
+- **Exportação Profissional**: Gere arquivos **PNG** de alta resolução ou **PDF** em A3/A4.
+- **Persistência JSON**: Projetos leves e fáceis de compartilhar.
 
 ---
 
 ## 📜 Licença
 
-Este projeto está licenciado sob a **MIT License** — consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+MIT License — veja [LICENSE](LICENSE) para detalhes.
 
 ---
 
