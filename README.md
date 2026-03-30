@@ -6,7 +6,7 @@
 
 ## 🖥️ Workspace Overview
 
-O ProEng oferece uma experiência de trabalho fluida com temas dinâmicos e navegação integrada entre múltiplos módulos técnicos.
+O ProEng oferece uma experiência de trabalho fluida com temas dinâmicos e navegação integrada entre múltiplos módulos técnicos em resolução **Full HD**.
 
 | 🌑 Dark Industrial (Padrão) | ☀️ Light Blue (Clássico) |
 | :---: | :---: |
@@ -27,8 +27,6 @@ Você pode baixar a versão mais recente pronta para uso (sem necessidade de Pyt
 
 ## 🖼️ Galeria Técnica de Módulos
 
-Confira a comparação entre os temas em cada ferramenta da suíte:
-
 | Módulo | 🌑 Tema Escuro | ☀️ Tema Claro |
 | :--- | :---: | :---: |
 | **🏭 PFD Flowsheet** | ![F_Dark](proeng/resources/screenshots/flowsheet_dark.png) | ![F_Light](proeng/resources/screenshots/flowsheet_light.png) |
@@ -43,15 +41,33 @@ Confira a comparação entre os temas em cada ferramenta da suíte:
 ## 🛠️ Funcionalidades Detalhadas
 
 ### 🏭 PFD Flowsheet (Diagrama de Fluxo)
-A ferramenta mais robusta da suíte, otimizada para modelagem industrial.
-- **Conectividade de Alta Densidade**: 12 pontos de conexão por equipamento.
-- **Terminais Dinâmicos**: Alimentações e saídas criadas instantaneamente.
-- **Roteamento Inteligente**: Tubulações ortogonais ("em L") automatizadas.
-- **Aesthetics**: Cabeças de seta afiadas e identificação de correntes rente aos tubos.
+A ferramenta mais robusta da suíte, otimizada para modelagem de processos industriais.
+- **Conectividade Profissional**: 12 portas por equipamento (3 por lado) para roteamento de alta densidade.
+- **Terminais Dinâmicos**: Crie alimentações e saídas instantâneas arrastando tubulações para o vazio.
+- **Roteamento Inteligente**: Tubulações ortogonais ("em L") automatizadas para saídas de topo e fundo.
+- **Aesthetics**: Cabeças de seta afiadas e identificação de correntes coladas rente aos tubos.
 
-### 🔀 BPMN & 📋 EAP
-- **BPMN**: Pools & Lanes com organização de responsabilidades profissionais.
-- **EAP**: Estrutura Analítica com numeração WBS automática e layout dinâmico.
+### 🔀 BPMN Modeler & 📋 Gerador EAP
+- **BPMN**: Modelagem de processos com Pools, Lanes, Eventos e Gateways lógicos profissionais.
+- **EAP/WBS**: Estrutura Analítica com numeração automática de níveis e layout dinâmico balanceado.
+
+### 📝 Project Model Canvas (PM Canvas)
+Planejamento estratégico de alto nível utilizando a metodologia de José Finocchio Jr.
+- **Gestão de Stakeholders**: Blocos dedicados para Clientes, Equipe e Fatores Externos.
+- **Cronograma & Custos**: Definição rápida de marcos temporais e restrições financeiras.
+- **Interface Intuitiva**: Adição de cartões (Post-its digitais) com cores dinâmicas por seção.
+
+### 🐟 Diagrama de Ishikawa (6M)
+Análise estruturada de causa raiz utilizando a metodologia Espinha de Peixe.
+- **Categorização 6M**: Método, Máquina, Medida, Meio-Ambiente, Mão-de-Obra e Material.
+- **Detalhamento Hierárquico**: Suporte nativo para causas secundárias e terciárias organizadas visualmente.
+- **Visualização de Problema**: Foco centralizado na definição clara do efeito a ser analisado.
+
+### 🎯 Plano de Ação 5W2H
+Matriz de execução ágil para controle total de projetos e ações corretivas.
+- **Checklist 5W2H**: O Que, Por Que, Quem, Onde, Quando, Como e Quanto Custa.
+- **Hierarquia de Ações**: Organização de ações em árvore para visualização de dependências.
+- **Gestão de Responsáveis**: Atribuição clara de tarefas e prazos em cada bloco do plano.
 
 ---
 
@@ -72,9 +88,9 @@ python main.py
 
 ## 💎 Diferenciais Técnicos
 
-- **Arquitetura Modular**: Módulos independentes e escaláveis.
-- **Renderização Vectorial**: Alta fidelidade e zoom sem perda de qualidade.
-- **Exportação Profissional**: Gere **PNG** de alta resolução ou **PDF** em A3/A4.
+- **Arquitetura Modular**: Módulos desacoplados que facilitam a escala e manutenção.
+- **Renderização Vectorial**: Motor `QGraphicsView` para zoom infinito e alta fidelidade.
+- **Exportação Industrial**: Gere arquivos **PNG** em alta resolução (3x scale) ou **PDF** em A3/A4.
 
 ---
 
