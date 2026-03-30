@@ -135,20 +135,7 @@ class AddLaneItem(QGraphicsRectItem):
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
             e.accept()
-            self.callback()
-
-    def contextMenuEvent(self, e):
-        menu = QMenu()
-        t = T()
-        menu.setStyleSheet(f"""
-            QMenu {{ background-color: {t["bg_card"]}; color: {t["text"]}; border: 1px solid {t["accent"]};
-                    font-family: 'Segoe UI'; font-size: 13px; font-weight: bold; padding: 5px; }}
-            QMenu::item {{ padding: 8px 30px; border-radius: 4px; }}
-            QMenu::item:selected {{ background-color: {t["accent"]}; color: #FFFFFF; }}
-        """)
-        m_lane = menu.addAction("⊞ Adicionar Nova Baia")
-        action = menu.exec_(e.screenPos())
-        if action == m_lane:
+            # Clique esquerdo agora adiciona uma baia diretamente
             self.lane_callback()
 
     def paint(self, painter, option, widget=None):
@@ -162,7 +149,7 @@ class AddLaneItem(QGraphicsRectItem):
         painter.setPen(QColor(t["accent_bright"] if self.hovered else t["text_dim"]))
         font = QFont("Segoe UI", max(7, int(11 * self.zoom)), QFont.Bold)
         painter.setFont(font)
-        painter.drawText(self.rect(), Qt.AlignCenter, "➕ Adicionar Item em Baia  |  ⊞ Nova Baia (Clique Direito)")
+        painter.drawText(self.rect(), Qt.AlignCenter, "⊞ Clique aqui para Adicionar Nova Baia (Setor)")
 
 
 class BPMNAutoNode(QGraphicsItem):
@@ -283,13 +270,6 @@ class BPMNAutoNode(QGraphicsItem):
         else:
             painter.drawText(r, Qt.AlignCenter, display_text)
 
-        if self._hovered:
-            painter.setFont(self._font_btn)
-            self._draw_btn(painter, QRectF(self._w, self._h/2 - hbs, bs, bs), "+", C_BTN_ADD)
-            self._draw_btn(painter, QRectF(self._w/2 - hbs, self._h, bs, bs), "+", C_BTN_SIB)
-            if self.node_id != 1:
-                self._draw_btn(painter, QRectF(-bs, -bs, bs, bs), "−", C_BTN_DEL)
-
     def _draw_btn(self, painter, rect, label, color):
         painter.setBrush(QBrush(QColor(color)))
         painter.setPen(QPen(QColor("#FF6666"), 1))
@@ -303,17 +283,6 @@ class BPMNAutoNode(QGraphicsItem):
     def mousePressEvent(self, event):
         if event.button() != Qt.LeftButton: return
         event.accept()
-        if self._hovered:
-            bs = 16 * self.zoom; hbs = bs / 2
-            btn_child   = QRectF(self._w, self._h/2 - hbs, bs, bs)
-            btn_sibling = QRectF(self._w/2 - hbs, self._h, bs, bs)
-            btn_delete  = QRectF(-bs, -bs, bs, bs)
-            if btn_child.contains(event.pos()):
-                QTimer.singleShot(0, lambda: self.signals.add_child.emit(self.node_id)); return
-            if btn_sibling.contains(event.pos()):
-                QTimer.singleShot(0, lambda: self.signals.add_sibling.emit(self.node_id)); return
-            if self.node_id != 1 and btn_delete.contains(event.pos()):
-                QTimer.singleShot(0, lambda: self.signals.delete_node.emit(self.node_id)); return
         QTimer.singleShot(0, lambda: self.signals.edit_start.emit(self.node_id))
 
     def mouseDoubleClickEvent(self, event):
@@ -322,20 +291,33 @@ class BPMNAutoNode(QGraphicsItem):
 
     def contextMenuEvent(self, event):
         menu = QMenu()
+        t_m = T()
         menu.setStyleSheet(f"""
-            QMenu {{ background-color: {C_BG_NODE}; color: {C_TEXT_MAIN}; border: 1px solid {C_BORDER};
+            QMenu {{ background-color: {t_m["bg_card"]}; color: {t_m["text"]}; border: 1px solid {t_m["accent"]};
                     font-family: 'Segoe UI'; font-size: 13px; font-weight: bold; padding: 5px; }}
             QMenu::item {{ padding: 8px 30px; border-radius: 4px; }}
-            QMenu::item:selected {{ background-color: {C_BORDER}; color: #FFFFFF; }}
+            QMenu::item:selected {{ background-color: {t_m["accent"]}; color: #FFFFFF; }}
         """)
-        m_up    = menu.addAction("⬆ Mover para Baia de Cima")
-        m_down  = menu.addAction("⬇ Mover para Baia de Baixo")
+        
+        m_add = menu.addMenu("➕ Adicionar Próxima Etapa")
+        m_add.addAction("Nesta mesma baia").triggered.connect(lambda: self.signals.add_child.emit(self.node_id))
+        m_add.addAction("Em outra baia...").triggered.connect(lambda: self.signals.add_root.emit(-self.node_id)) # Negativo indica conexão interdisciplinar
+        
+        m_link = menu.addAction("🔗 Interligar com outro Elemento")
         menu.addSeparator()
-        m_shape = menu.addAction("🔄 Mudar Formato do Elemento")
-        action  = menu.exec_(event.screenPos())
-        if action == m_up:    self.signals.move_lane.emit(self.node_id, -1)
-        elif action == m_down: self.signals.move_lane.emit(self.node_id,  1)
+        
+        m_lane = menu.addMenu("↕ Mover entre Baias")
+        m_lane.addAction("⬆ Subir de Baia").triggered.connect(lambda: self.signals.move_lane.emit(self.node_id, -1))
+        m_lane.addAction("⬇ Descer de Baia").triggered.connect(lambda: self.signals.move_lane.emit(self.node_id, 1))
+        
+        m_shape = menu.addAction("🔄 Mudar Formato")
+        menu.addSeparator()
+        m_del = menu.addAction("🗑 Excluir Elemento")
+        
+        action = menu.exec_(event.screenPos())
+        if action == m_link:  self.signals.link_to.emit(self.node_id)
         elif action == m_shape: self.signals.change_shape.emit(self.node_id)
+        elif action == m_del:   self.signals.delete_node.emit(self.node_id)
 
 
 class BPMNFloatingEditor(QLineEdit):
@@ -562,12 +544,27 @@ class BPMNAutoWidget(QWidget):
             QTimer.singleShot(60, lambda: self._on_edit_start(new_id))
 
     def _on_add_root(self, lane_idx):
+        parent_id = None
+        if lane_idx < 0: # Caso de "Em outra baia..." via menu de contexto de um nó
+            parent_id = abs(lane_idx)
+            lane_choices = [f"Baia {i+1}: {name}" for i, name in enumerate(self.lanes)]
+            lane_item, ok = QInputDialog.getItem(self, "Selecionar Baia de Destino",
+                                                "Para qual baia deseja enviar o fluxo?", lane_choices, 0, False)
+            if not ok: return
+            lane_idx = lane_choices.index(lane_item)
+
         shape = self._choose_shape()
         if not shape: return
         new_id = self.next_id; self.next_id += 1
-        self.nodes[new_id] = {"text": "", "shape": shape, "level": 0, "lane": lane_idx, "children": [], "parent": None}
+        self.nodes[new_id] = {"text": "", "shape": shape, "level": 0, "lane": lane_idx, "children": [], "parent": parent_id}
+        
+        if parent_id is not None:
+             # Ajustar nível para ser depois do pai
+             self.nodes[new_id]["level"] = self.nodes[parent_id]["level"] + 1
+             self.nodes[parent_id]["children"].append(new_id)
+
         self.draw_diagram()
-        if shape == "Tarefa": QTimer.singleShot(60, lambda: self._on_edit_start(new_id))
+        if "Tarefa" in shape: QTimer.singleShot(60, lambda: self._on_edit_start(new_id))
 
     def _on_link_to(self, node_id):
         choices = []
@@ -770,51 +767,64 @@ class BPMNAutoWidget(QWidget):
     def _draw_connections(self, node_id):
         px, py = self.node_positions[node_id]
         pw, _  = self.node_dimensions[node_id]
-        p1 = QPointF(px + pw / 2, py)
+        t = T()
         
+        # Conexões hierárquicas (filhos)
+        pen = QPen(QColor(t["line"]), max(1, int(2 * self.zoom)), Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+        for cid in self.nodes[node_id]["children"]:
+            if cid not in self.node_positions: continue
+            cx, cy = self.node_positions[cid]
+            cw, _  = self.node_dimensions[cid]
+            
+            p1 = QPointF(px + pw / 2, py)
+            p2 = QPointF(cx - cw / 2, cy)
+            
+            path = QPainterPath()
+            path.moveTo(p1)
+            
+            # Se estão em raias diferentes, faz o roteamento em "S"
+            if self.nodes[node_id]["lane"] != self.nodes[cid]["lane"]:
+                mid_x = px + pw/2 + 40*self.zoom
+                path.lineTo(mid_x, py)
+                path.lineTo(mid_x, cy)
+            else:
+                mid_x = (p1.x() + p2.x()) / 2
+                path.lineTo(mid_x, py)
+                path.lineTo(mid_x, cy)
+            
+            path.lineTo(p2)
+            self._scene_items.append(self.scene.addPath(path, pen))
+            
+            arrow_size = 10 * self.zoom
+            poly = QPolygonF([p2, QPointF(p2.x() - arrow_size, p2.y() - arrow_size/2),
+                              QPointF(p2.x() - arrow_size, p2.y() + arrow_size/2)])
+            self._scene_items.append(self.scene.addPolygon(poly, QPen(Qt.NoPen), QBrush(QColor(t["line"]))))
+            self._draw_connections(cid)
+
+        # Conexões cruzadas (links manuais)
         if "cross_links" in self.nodes[node_id]:
-            pen_cross = QPen(QColor(T()["accent_bright"]), max(1.5, int(2 * self.zoom)), Qt.DashLine, Qt.RoundCap, Qt.RoundJoin)
+            pen_cross = QPen(QColor(t["accent_bright"]), max(1.5, int(2 * self.zoom)), Qt.DashLine, Qt.RoundCap, Qt.RoundJoin)
             for cid in self.nodes[node_id]["cross_links"]:
                 if cid not in self.node_positions: continue
                 cx, cy = self.node_positions[cid]
                 cw, _  = self.node_dimensions[cid]
-                # Distancia entre eles
-                p2 = QPointF(cx - cw/2, cy) if cx > px else QPointF(cx + cw/2, cy)
+                
+                p1_c = QPointF(px, py + self.node_dimensions[node_id][1]/2) if cy > py else QPointF(px, py - self.node_dimensions[node_id][1]/2)
+                p2_c = QPointF(cx, cy - self.node_dimensions[cid][1]/2) if cy > py else QPointF(cx, cy + self.node_dimensions[cid][1]/2)
                 
                 path = QPainterPath()
-                path.moveTo(p1)
-                mid_x = (p1.x() + p2.x()) / 2
-                path.lineTo(mid_x, p1.y())
-                path.lineTo(mid_x, p2.y())
-                path.lineTo(p2)
+                path.moveTo(p1_c)
+                mid_y = (p1_c.y() + p2_c.y()) / 2
+                path.lineTo(p1_c.x(), mid_y)
+                path.lineTo(p2_c.x(), mid_y)
+                path.lineTo(p2_c)
                 self._scene_items.append(self.scene.addPath(path, pen_cross))
 
                 arrow_size = 8 * self.zoom
-                dir_x = -1 if cx > px else 1
-                poly = QPolygonF([p2, QPointF(p2.x() + arrow_size*dir_x, p2.y() - arrow_size/2), QPointF(p2.x() + arrow_size*dir_x, p2.y() + arrow_size/2)])
-                self._scene_items.append(self.scene.addPolygon(poly, QPen(Qt.NoPen), QBrush(QColor(T()["accent_bright"]))))
-
-        filhos = self.nodes[node_id]["children"]
-        if not filhos: return
-        pw, _  = self.node_dimensions[node_id]
-        p1 = QPointF(px + pw / 2, py)
-        pen = QPen(QColor(C_LINE), max(1, int(2 * self.zoom)), Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
-        for cid in filhos:
-            cx, cy = self.node_positions[cid]
-            cw, _  = self.node_dimensions[cid]
-            p2 = QPointF(cx - cw / 2, cy)
-            mid_x = (p1.x() + p2.x()) / 2
-            path = QPainterPath()
-            path.moveTo(p1)
-            path.lineTo(mid_x, p1.y())
-            path.lineTo(mid_x, p2.y())
-            path.lineTo(p2)
-            self._scene_items.append(self.scene.addPath(path, pen))
-            arrow_size = 10 * self.zoom
-            poly = QPolygonF([p2, QPointF(p2.x() - arrow_size, p2.y() - arrow_size/2),
-                              QPointF(p2.x() - arrow_size, p2.y() + arrow_size/2)])
-            self._scene_items.append(self.scene.addPolygon(poly, QPen(Qt.NoPen), QBrush(QColor(C_LINE))))
-            self._draw_connections(cid)
+                dir_y = -1 if cy < py else 1
+                poly = QPolygonF([p2_c, QPointF(p2_c.x() - arrow_size/2, p2_c.y() - arrow_size*dir_y), 
+                                  QPointF(p2_c.x() + arrow_size/2, p2_c.y() - arrow_size*dir_y)])
+                self._scene_items.append(self.scene.addPolygon(poly, QPen(Qt.NoPen), QBrush(QColor(t["accent_bright"]))))
 
     def _draw_nodes(self):
         for nid, (x, y) in self.node_positions.items():
