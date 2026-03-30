@@ -14,7 +14,7 @@ O ProEng apresenta um painel central moderno com navegação fluida e carrossel 
 
 Você pode baixar a versão mais recente pronta para uso (sem necessidade de Python instalado):
 
-🚀 **[Baixar ProEng v1.0.0 (Windows)](https://github.com/sasal0519/proeng/releases)**
+🚀 **[Baixar ProEng v1.1.0 (Windows)](https://github.com/sasal0519/proeng/releases)**
 
 - ✨ **Portable**: Não requer instalação, basta extrair e rodar.
 - 🎨 **Interface Nativa**: Ícone customizado e suporte total a temas.
