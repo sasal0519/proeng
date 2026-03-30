@@ -38,7 +38,7 @@
 
 ## 🚀 Download Executável (Windows)
 
-Você pode baixar a versão mais recente pronta para uso na aba de **[Releases]([https://github.com/salomf/proeng/releases](https://github.com/sasal0519/proeng/releases))**. 
+Você pode baixar a versão mais recente pronta para uso na aba de **[Releases](https://github.com/sasal0519/proeng/releases/tag/1.0))**. 
 - Não requer instalação.
 - Ícone personalizado e interface embutida.
 
