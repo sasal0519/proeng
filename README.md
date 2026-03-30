@@ -13,6 +13,29 @@
 | 🐟 | **Ishikawa** | Diagrama Espinha de Peixe — Análise de Causa e Efeito (6M) |
 | 🎯 | **Plano 5W2H** | Gestão de Ações com distribuição automática |
 
+## 🖼️ Galeria Visual
+
+### Tela Inicial (Seleção de Módulos)
+![Tela Inicial](docs/screenshots/TELA%20INICIAL.PNG)
+
+---
+
+### Módulos em Detalhes
+
+| 🏭 Fluxograma (Flowsheet) | 📋 Estrutura Analítica (EAP) |
+| :---: | :---: |
+| ![Flowsheet](docs/screenshots/01_Flowsheet.png) | ![EAP](docs/screenshots/02_EAP.png) |
+
+| 🔀 Modelagem BPMN | 📝 Project Canvas |
+| :---: | :---: |
+| ![BPMN](docs/screenshots/03_BPMN.png) | ![Canvas](docs/screenshots/04_Canvas.png) |
+
+| 🐟 Diagrama de Ishikawa | 🎯 Plano de Ação 5W2H |
+| :---: | :---: |
+| ![Ishikawa](docs/screenshots/05_Ishikawa.png) | ![5W2H](docs/screenshots/06_W5H2.png) |
+
+---
+
 ## 🚀 Download Executável (Windows)
 
 Você pode baixar a versão mais recente pronta para uso na aba de **[Releases](https://github.com/salomf/proeng/releases)**. 
