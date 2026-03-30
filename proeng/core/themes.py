@@ -24,31 +24,31 @@ from PyQt5.QtCore import (
 THEMES = {
     "dark": {
         "name":          "dark",
-        "bg_app":        "#0D0D0D",
-        "bg_card":       "#1A0A0A",
-        "bg_card2":      "#2A0F0F",
-        "accent":        "#CC2222",
-        "accent_bright": "#E03535",
-        "accent_dim":    "#8B2020",
-        "text":          "#FAE8E8",
-        "text_dim":      "#8B6060",
-        "text_muted":    "#4A2A2A",
-        "line":          "#E03535",
-        "line_eap":      "#8B2020",
-        "btn_add":       "#1A5C1A",
-        "btn_sib":       "#1A3A6B",
-        "btn_del":       "#8B1515",
-        "node_bg":       "#000000",
-        "node_border":   "#555555",
-        "node_text":     "#FFFFFF",
-        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #0D0D0D,stop:0.5 #160606,stop:1 #0D0D0D)",
-        "toolbar_sep":   "rgba(204,34,34,0.28)",
-        "toolbar_btn":   "rgba(26,10,10,0.9)",
-        "toolbar_btn_h": "rgba(204,34,34,0.22)",
-        "sig_bg_l":      "rgba(20,5,5,0)",
-        "sig_bg_r":      "rgba(30,8,8,220)",
-        "sig_border":    "rgba(204,34,34,60)",
-        "sig_text":      "rgba(139,96,96,200)",
+        "bg_app":        "#161922",     # Grafite profundo azulado
+        "bg_card":       "#222636",     # Slate azulado suave
+        "bg_card2":      "#2F3349",     # Slate médio para hover
+        "accent":        "#7367F0",     # Indigo moderno (menos agressivo que vermelho)
+        "accent_bright": "#9E95F5",     # Indigo brilhante
+        "accent_dim":    "#484481",     # Indigo desbotado / Bordas
+        "text":          "#D0D2D6",     # Off-white suave
+        "text_dim":      "#B4B7BD",     # Slate claro
+        "text_muted":    "#676D7D",     # Slate escuro
+        "line":          "#7367F0",
+        "line_eap":      "#484481",
+        "btn_add":       "#28C76F",     # Verde esmeralda moderno
+        "btn_sib":       "#00CFE8",     # Ciano vibrante
+        "btn_del":       "#EA5455",     # Coral suave para deleção
+        "node_bg":       "#161922",
+        "node_border":   "#484481",
+        "node_text":     "#D0D2D6",
+        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #161922,stop:0.5 #222636,stop:1 #161922)",
+        "toolbar_sep":   "rgba(115,103,240,0.25)",
+        "toolbar_btn":   "rgba(34,38,54,0.95)",
+        "toolbar_btn_h": "rgba(115,103,240,0.15)",
+        "sig_bg_l":      "rgba(22,25,34,0)",
+        "sig_bg_r":      "rgba(47,51,73,225)",
+        "sig_border":    "rgba(115,103,240,50)",
+        "sig_text":      "rgba(180,183,189,180)",
     },
     "light": {
         # ── Paleta Azul Celeste & Branco Moderno ─────────────────────

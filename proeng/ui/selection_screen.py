@@ -6,7 +6,8 @@ from PyQt5.QtWidgets import (
     QPushButton, QMessageBox, QGraphicsView, QGraphicsScene, QGraphicsItem,
     QListWidget, QListWidgetItem, QSplitter, QGraphicsPathItem, QMenu,
     QListView, QLineEdit, QLabel, QStackedWidget, QTextEdit,
-    QGraphicsRectItem, QInputDialog, QFileDialog, QSizePolicy
+    QGraphicsRectItem, QInputDialog, QFileDialog, QSizePolicy,
+    QScrollArea, QFrame
 )
 from PyQt5.QtGui import (
     QPen, QBrush, QColor, QPainter, QPalette, QCursor, QPolygonF,
@@ -16,6 +17,7 @@ from PyQt5.QtCore import (
     Qt, QRectF, QPointF, QMimeData, QByteArray, QDataStream,
     QIODevice, QSize, QPoint, QTimer, pyqtSignal, QObject, QSizeF
 )
+from PyQt5.QtWidgets import QScrollArea, QFrame
 
 from proeng.core.themes import T, THEMES, _ACTIVE
 from proeng.ui.nav_bar import ThemeToggle
@@ -138,6 +140,89 @@ class SignatureOverlay(QWidget):
 
 
 
+
+class GalleryItem(QFrame):
+    def __init__(self, title, module_key):
+        super().__init__()
+        self.title = title
+        self.module_key = module_key
+        self.setFixedSize(280, 180)
+        self._hover = False
+        self.setCursor(Qt.PointingHandCursor)
+        self._img_label = QLabel(self)
+        self._img_label.setScaledContents(True)
+        self._img_label.setFixedSize(240, 130)
+        self._img_label.move(20, 10)
+        
+        self._title_label = QLabel(title, self)
+        self._title_label.setAlignment(Qt.AlignCenter)
+        self._title_label.setFixedWidth(280)
+        self._title_label.move(0, 150)
+        self._refresh_img()
+
+    def _refresh_img(self):
+        t = T()
+        theme_name = t["name"]
+        img_path = f"proeng/resources/screenshots/{self.module_key}_{theme_name}.png"
+        import os
+        if os.path.exists(img_path):
+            self._img_label.setPixmap(QPixmap(img_path))
+        else:
+            self._img_label.setText("No Preview")
+        
+        self._title_label.setStyleSheet(f"color: {t['text']}; font-weight: bold; font-size: 11px;")
+        self.update_style()
+
+    def update_style(self):
+        t = T()
+        border = t["accent"] if self._hover else t["accent_dim"]
+        bg = t["bg_card2"] if self._hover else t["bg_card"]
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {bg};
+                border: 2px solid {border};
+                border-radius: 12px;
+            }}
+        """)
+
+    def enterEvent(self, e): self._hover = True; self.update_style()
+    def leaveEvent(self, e): self._hover = False; self.update_style()
+
+
+class ScreenshotGallery(QScrollArea):
+    def __init__(self):
+        super().__init__()
+        self.setWidgetResizable(True)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setFixedHeight(190)
+        self.setFrameShape(QFrame.NoFrame)
+        self.setStyleSheet("background: transparent;")
+        
+        self.container = QWidget()
+        self.container.setStyleSheet("background: transparent;")
+        self.layout_g = QHBoxLayout(self.container)
+        self.layout_g.setContentsMargins(10, 0, 10, 0)
+        self.layout_g.setSpacing(20)
+        
+        self.items = [
+            GalleryItem("Fluxograma PFD", "flowsheet"),
+            GalleryItem("EAP do Projeto", "eap"),
+            GalleryItem("Processo BPMN", "bpmn"),
+            GalleryItem("Project Canvas", "canvas"),
+            GalleryItem("Ishikawa (6M)", "ishikawa"),
+            GalleryItem("Plano 5W2H", "w5h2"),
+        ]
+        for item in self.items:
+            self.layout_g.addWidget(item)
+            
+        self.setWidget(self.container)
+
+    def refresh(self):
+        for item in self.items:
+            item._refresh_img()
+
+
 class SelectionScreen(QWidget):
     def __init__(self, on_select, on_theme_toggle):
         super().__init__()
@@ -214,6 +299,16 @@ class SelectionScreen(QWidget):
         self._sub.setAlignment(Qt.AlignCenter)
         self._sub.setWordWrap(True)
         lay.addWidget(self._sub)
+        lay.addSpacing(24)
+
+        # Galeria de Screenshots
+        self._gallery_title = QLabel("✦ GALERIA DE EXEMPLOS REAIS ✦")
+        self._gallery_title.setAlignment(Qt.AlignCenter)
+        lay.addWidget(self._gallery_title)
+        lay.addSpacing(8)
+        
+        self._gallery = ScreenshotGallery()
+        lay.addWidget(self._gallery)
         lay.addSpacing(32)
 
         # Cards 2×2
@@ -325,6 +420,11 @@ class SelectionScreen(QWidget):
             f" font-size: 12px; background: transparent; }}"
         )
 
+        self._gallery_title.setStyleSheet(
+            f"QLabel {{ color: {t['accent_bright']}; font-family: 'Consolas';"
+            f" font-size: 10px; font-weight: bold; background: transparent; }}"
+        )
+
         # Feature pills
         pill_s = (
             f"QLabel {{ color: {t['text_dim']}; font-family: 'Segoe UI'; font-size: 10px;"
@@ -336,6 +436,7 @@ class SelectionScreen(QWidget):
 
     def _refresh(self):
         self._apply_styles()
+        self._gallery.refresh()
         for c in self._cards:
             c.update()
         # Force full repaint of the whole widget tree

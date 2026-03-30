@@ -18,11 +18,12 @@ from PyQt5.QtCore import (
 )
 
 from proeng.core.themes import T
+from proeng.core.utils import _export_view
 
 #   TOOLBAR UNIFICADA (usada por todos os módulos)
 # ═══════════════════════════════════════════════════════════════════
 
-def _make_toolbar(title_text, view_getter, zoom_in_fn, zoom_out_fn, reset_fn, parent):
+def _make_toolbar(title_text, view_getter, zoom_in_fn, zoom_out_fn, reset_fn, parent, help_text=None):
     t = T()
     toolbar = QWidget()
     toolbar.setFixedHeight(48)
@@ -94,6 +95,23 @@ def _make_toolbar(title_text, view_getter, zoom_in_fn, zoom_out_fn, reset_fn, pa
         b.setToolTip(f"Exportar como {key.upper()}")
         b.clicked.connect(lambda _, k=key: _export_view(view_getter(), k, parent))
         lay.addWidget(b)
+
+    if help_text:
+        sep_h = QWidget(); sep_h.setFixedSize(1, 26)
+        sep_h.setStyleSheet(f"background: {t['toolbar_sep']};")
+        lay.addWidget(sep_h)
+        btn_h = QPushButton("❓ Ajuda")
+        has_help_s = f"""
+            QPushButton {{
+                background: {t["toolbar_bg"]}; color: {t["text"]};
+                border: 1px solid {t["accent"]}; border-radius: 6px; padding: 5px 12px;
+                font-family: 'Segoe UI'; font-size: 11px; font-weight: bold;
+            }}
+            QPushButton:hover {{ background: {t["accent"]}; color: white; }}
+        """
+        btn_h.setStyleSheet(has_help_s)
+        btn_h.clicked.connect(lambda: QMessageBox.information(parent, "Ajuda: " + title_text.split("—")[0].strip(), help_text))
+        lay.addWidget(btn_h)
 
     return toolbar
 

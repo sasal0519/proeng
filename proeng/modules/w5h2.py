@@ -93,12 +93,28 @@ class W5H2Node(QGraphicsItem):
         self.setZValue(10)
 
     def _calc_size(self):
-        sample = self.text if self.text else "Escrever..."
-        fm = QFontMetrics(self._font)
-        text_rect = fm.boundingRect(0, 0, int(self.base_w - 20*self.zoom), 1000, Qt.AlignCenter | Qt.TextWordWrap, sample)
+        sample = self.text if self.text else "✎ Preencher"
         
-        self.w = max(self.base_w, text_rect.width() + 30*self.zoom)
-        self.h = max(self.base_h, text_rect.height() + 40*self.zoom)
+        # 1. Calcula a largura do Título/Cabeçalho (Header)
+        header_font = QFont("Consolas", int(9 * self.zoom), QFont.Bold)
+        fm_header = QFontMetrics(header_font)
+        header_w = (fm_header.horizontalAdvance(self.type_data["t"]) if hasattr(fm_header, 'horizontalAdvance') else fm_header.width(self.type_data["t"])) + 40 * self.zoom
+        
+        # 2. Calcula a largura e altura do Texto Interno
+        fm_text = QFontMetrics(self._font)
+        
+        # O texto interno precisa de um espaço mínimo. 
+        # A largura começa restrita pela base, ou pelo header, o que for maior.
+        base_available_w = max(self.base_w, header_w) - 20 * self.zoom
+        
+        text_rect = fm_text.boundingRect(0, 0, int(base_available_w), 5000, Qt.AlignCenter | Qt.TextWordWrap, sample)
+        
+        # Se o texto for apenas uma palavra muito longa que excede o available_w, text_rect.width() será maior que available_w
+        text_w = text_rect.width() + 30 * self.zoom
+        
+        # 3. Define w e h finais garantindo que nada estoure
+        self.w = max(self.base_w, header_w, text_w)
+        self.h = max(self.base_h, text_rect.height() + 40 * self.zoom)
 
     def boundingRect(self):
         m = 15 * self.zoom
@@ -116,7 +132,8 @@ class W5H2Node(QGraphicsItem):
         painter.setPen(QPen(QColor(border_color), max(1, int(2 * self.zoom))))
         painter.drawRoundedRect(r, 6, 6)
 
-        header_h = 20 * self.zoom
+        # 1. Aumenta a parte colorida (cabeçalho)
+        header_h = 28 * self.zoom
         header_rect = QRectF(0, 0, self.w, header_h)
         path = QPainterPath()
         path.addRoundedRect(header_rect, 6, 6)
@@ -126,13 +143,18 @@ class W5H2Node(QGraphicsItem):
         painter.drawPath(path)
         
         painter.setPen(QColor("#000000" if self.node_type in ["WHY", "WHEN", "WHERE"] else "#FFFFFF"))
-        painter.setFont(QFont("Consolas", int(9 * self.zoom), QFont.Bold))
-        painter.drawText(header_rect, Qt.AlignCenter, self.type_data["t"])
+        painter.setFont(QFont("Consolas", int(10 * self.zoom), QFont.Bold))
+        # Move levemente o texto do cabeçalho um pouco para cima dentro da barra (offset vertical)
+        header_text_rect = QRectF(0, -2 * self.zoom, self.w, header_h)
+        painter.drawText(header_text_rect, Qt.AlignCenter, self.type_data["t"])
 
         painter.setPen(QColor(t["text"]) if self.text else QColor(t["text_dim"]))
         painter.setFont(self._font)
-        text_rect = QRectF(10*self.zoom, header_h + 5*self.zoom, self.w - 20*self.zoom, self.h - header_h - 10*self.zoom)
-        painter.drawText(text_rect, Qt.AlignCenter | Qt.TextWordWrap, self.text if self.text else "✎ Preencher")
+        
+        # 2. Posiciona o texto principal mais para cima, colado ao cabeçalho (com padding)
+        text_rect = QRectF(10 * self.zoom, header_h + 8 * self.zoom, self.w - 20 * self.zoom, self.h - header_h - 16 * self.zoom)
+        # Usa AlignTop para colar o texto no alto
+        painter.drawText(text_rect, Qt.AlignTop | Qt.AlignHCenter | Qt.TextWordWrap, self.text if self.text else "✎ Preencher")
 
         if self.hovered:
             btn_s = 24 * self.zoom
@@ -324,18 +346,40 @@ class _W5H2Module(QWidget):
         self._inner = W5H2Widget()
         # Oculta toolbar interna original
         _hide_inner_toolbar(self._inner)
+        self.help_text = (
+            "• Adicione uma nova Ação clicando no botão (+) vermelho.\n"
+            "• Clique duas vezes nas caixas (WHAT, WHO, WHEN...) para preencher os detalhes.\n"
+            "• O balão ajusta seu tamanho automaticamente ao seu texto.\n"
+            "• Use o menu 'Exibir' para controlar o Zoom do plano."
+        )
         layout = QVBoxLayout(self); layout.setContentsMargins(0,0,0,0); layout.setSpacing(0)
-        tb = _make_toolbar("🎯  Plano de Ação 5W2H — Gestão de Atividades Autofluxo",
-                           lambda: self._inner.view,
-                           self._inner.zoom_in,
-                           self._inner.zoom_out,
-                           self._inner.reset_zoom, self)
-        layout.addWidget(tb)
         layout.addWidget(self._inner)
 
+    def reset_zoom(self): self._inner.reset_zoom()
+    def zoom_in(self): self._inner.zoom_in()
+    def zoom_out(self): self._inner.zoom_out()
 
 
 
+
+
+    def get_state(self):
+        return {
+            "nodes": self._inner.nodes,
+            "next_id": self._inner.next_id
+        }
+
+    def set_state(self, state):
+        if not state: return
+        nodes = {}
+        for k, v in state.get("nodes", {}).items():
+            try: k_int = int(k)
+            except: k_int = k
+            nodes[k_int] = v
+        
+        self._inner.nodes = nodes if nodes else {1: {"text": "Novo Projeto / Meta", "type": "ROOT", "parent": None, "children": []}}
+        self._inner.next_id = state.get("next_id", 2)
+        self._inner._draw_diagram()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

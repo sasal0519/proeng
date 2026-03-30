@@ -1,105 +1,94 @@
-# ProEng — Suíte de Ferramentas de Engenharia
+# ⚙️ ProEng — Engenharia & Gestão Industrial
 
-> Aplicação desktop **open source** construída com Python 3 e PyQt5 para engenheiros e gestores de projetos.
-
-## Módulos Disponíveis
-
-| Ícone | Módulo | Descrição |
-|-------|--------|-----------|
-| 🏭 | **PFD Flowsheet** | Diagrama de processo industrial com 26+ equipamentos e tubulações |
-| 📋 | **Gerador EAP** | Estrutura Analítica do Projeto com numeração WBS automática |
-| 🔀 | **BPMN Modeler** | Pools, Lanes e fluxos de processo no padrão BPMN 2.0 |
-| 📝 | **PM Canvas** | Project Model Canvas — Grade Finocchio completa |
-| 🐟 | **Ishikawa** | Diagrama Espinha de Peixe — Análise de Causa e Efeito (6M) |
-| 🎯 | **Plano 5W2H** | Gestão de Ações com distribuição automática |
-
-## 🖼️ Galeria Visual
-
-### Tela Inicial (Seleção de Módulos)
-![Tela Inicial](docs/screenshots/TELA%20INICIAL.PNG)
+> **ProEng** é uma suíte desktop de alto desempenho construída em **Python 3** e **PyQt5**, projetada especificamente para engenheiros, gestores de projetos e analistas de processos. Uma solução modular que une diagramação técnica, planejamento estratégico e gestão ágil em uma única interface moderna.
 
 ---
 
-### Módulos em Detalhes
+## 🖼️ Visual Showcase
 
-| 🏭 Fluxograma (Flowsheet) | 📋 Estrutura Analítica (EAP) |
+A interface do ProEng foi desenhada para oferecer máxima clareza e produtividade, com suporte total a temas **Dark Industrial** e **Light Blue**.
+
+| 🌑 Tema Escuro (Focado em Precisão) | ☀️ Tema Claro (Focado em Documentação) |
 | :---: | :---: |
-| ![Flowsheet](docs/screenshots/01_Flowsheet.png) | ![EAP](docs/screenshots/02_EAP.png) |
-
-| 🔀 Modelagem BPMN | 📝 Project Canvas |
-| :---: | :---: |
-| ![BPMN](docs/screenshots/03_BPMN.png) | ![Canvas](docs/screenshots/04_Canvas.png) |
-
-| 🐟 Diagrama de Ishikawa | 🎯 Plano de Ação 5W2H |
-| :---: | :---: |
-| ![Ishikawa](docs/screenshots/05_Ishikawa.png) | ![5W2H](docs/screenshots/06_W5H2.png) |
+| ![Dark Mode](proeng/resources/screenshots/flowsheet_dark.png) | ![Light Mode](proeng/resources/screenshots/flowsheet_light.png) |
 
 ---
 
-## 🚀 Download Executável (Windows)
+## 🛠️ Módulos Integrados
 
-Você pode baixar a versão mais recente pronta para uso na aba de **[Releases](https://github.com/sasal0519/proeng/releases/tag/1.0))**. 
-- Não requer instalação.
-- Ícone personalizado e interface embutida.
+### 🏭 PFD Flowsheet (Diagrama de Fluxo de Processo)
+A ferramenta mais robusta da suíte, otimizada para modelagem de processos químicos e industriais.
+- **Conectividade Multi-Porta**: 12 pontos de conexão por equipamento (3 por lado) para roteamento complexo.
+- **Terminais Dinâmicos**: Crie alimentações e saídas instantâneas arrastando tubulações para o vazio.
+- **Roteamento Inteligente**: Tubulações ortogonais ("em L") automatizadas para saídas de topo e fundo.
+- **Biblioteca de 26+ Ícones**: Bombas, Reatores, Torres de Destilação, Trocadores de Calor, Válvulas e muito mais.
+- **Identificação de Correntes**: Rótulos de texto que se mantêm fixos e alinhados às tubulações.
+
+### 🔀 BPMN Modeler (Modelagem de Negócios)
+Padronização de processos conforme a norma BPMN 2.0.
+- **Pools & Lanes**: Organização de responsabilidades em raias verticais e horizontais.
+- **Fluxos Lógicos**: Eventos de início/fim, gateways de decisão e tarefas procedimentais.
+- **Exportação Profissional**: Gere diagramas limpos para manuais de SOP (Procedimento Operacional Padrão).
+
+### 📋 Gerador EAP/WBS (Estrutura Analítica do Projeto)
+Descomponha o escopo do seu projeto de forma visual e hierárquica.
+- **Numeração Automática**: Geração automática de códigos WBS (1.1, 1.1.1, etc.).
+- **Layout Inteligente**: Auto-ajuste de nós para manter o diagrama sempre equilibrado.
+- **Gestão de Pacotes de Trabalho**: Identificação clara de entregáveis.
+
+### 🐟 Diagrama de Ishikawa (Espinha de Peixe)
+Análise estruturada de causa raiz para controle de qualidade.
+- **Metodologia 6M**: Categorias pré-definidas (Método, Máquina, Medida, Meio-Ambiente, Mão-de-Obra, Material).
+- **Brainstorming Visual**: Adição dinâmica de causas secundárias e terciárias.
+
+### 📝 PM Canvas & 🎯 Plano 5W2H
+Ferramentas de planejamento estratégico e execução.
+- **Canvas de Projeto**: Grade completa (Finocchio) para visão estratégica em uma página.
+- **Matriz 5W2H**: Plano de ação detalhado (Who, What, Where, When, Why, How, How Much).
 
 ---
 
-## 🛠️ O que foi feito (Recentes)
+## 🚀 Como Executar (Ambiente de Desenvolvimento)
 
-Recentemente, a aplicação passou por uma grande refatoração e melhorias técnicas:
+Para rodar a suíte ProEng em sua máquina local, siga os passos abaixo:
 
-### 1. **Modularização Profissional**
-- O código monolítico foi dividido em um pacote Python estruturado (`proeng/core`, `proeng/modules`, `proeng/ui`).
-- Cada módulo agora pode ser executado de forma independente para testes rápidos.
+### 1. Pré-requisitos
+- **Python 3.9+** instalado.
+- Gerenciador de pacotes **pip**.
 
-### 2. **Refatoração da Interface (UI/UX)**
-- **Navegação Unificada**: Implementação de uma `NavBar` global com botão de retorno ao menu e alternância de tema.
-- **Sistema de Temas Dinâmico**: Correção e otimização da troca entre temas *Dark* e *Light* em tempo real.
-- **Identidade Visual**: Adição de um novo ícone customizado de alta qualidade para a marca ProEng.
-
-### 3. **Correções e Estabilidade**
-- Resolução de erros críticos de importação (`NameError`, `ImportError`).
-- Padronização de nomes de variáveis globais de estilo (`C_TEXT`, `_ACTIVE_THEME`).
-- Ajuste na lógica de ocultação de toolbars internas para evitar menus duplicados.
-
-### 4. **Automação e DevOps**
-- **Executável (PyInstaller)**: Criação de script de build automatizado com ícone embutido.
-- **Galeria Automática**: Desenvolvimento de script de captura de screenshots (`screenshot_modules.py`) para documentação.
-
----
-
-## Instalação (Desenvolvedores)
-
+### 2. Instalação das Dependências
+Clone o repositório e instale as bibliotecas necessárias:
 ```bash
-git clone https://github.com/SEU_USUARIO/proeng.git
+git clone https://github.com/sasal0519/proeng.git
 cd proeng
 pip install -r requirements.txt
+```
+
+### 3. Rodando a Aplicação
+```bash
 python main.py
 ```
 
-## Requisitos
-
-- Python 3.9+
-- PyQt5 >= 5.15
-
-## Executando um Módulo Individualmente
-
+Você também pode testar módulos específicos individualmente:
 ```bash
-python -m proeng.modules.eap
-python -m proeng.modules.bpmn
-python -m proeng.modules.ishikawa
+python -m proeng.modules.flowsheet
 ```
 
-## Temas
+---
 
-A suíte suporta dois temas visuais acessíveis pelo botão na barra de navegação:
-- 🌑 **Dark Industrial** (padrão)
-- ☀️ **Light Blue**
+## 💎 Diferenciais Técnicos
 
-## Licença
+- **Arquitetura Modular**: Cada módulo funciona de forma independente, facilitando a manutenção e expansão.
+- **Renderização Vectorial**: O motor gráfico baseado em `QGraphicsView` garante zoom infinito sem perda de qualidade.
+- **Exportação Flexível**: Gere arquivos **PNG** em alta resolução ou documentos **PDF** prontos para impressão em A3/A4.
+- **Persistência JSON**: Projetos salvos em formato leve e legível para fácil compartilhamento.
 
-MIT License — veja [LICENSE](LICENSE) para detalhes.
+---
 
-## Contribuindo
+## 📜 Licença
 
-Pull requests são bem-vindos! Veja [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) para entender a arquitetura do projeto.
+Este projeto está licenciado sob a **MIT License** — consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+---
+
+*Desenvolvido com ❤️ pela comunidade ProEng.*

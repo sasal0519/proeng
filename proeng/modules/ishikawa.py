@@ -430,17 +430,51 @@ class _IshikawaModule(QWidget):
     def __init__(self):
         super().__init__()
         self._inner = IshikawaWidget()
+        _hide_inner_toolbar(self._inner)
+        self.help_text = (
+            "• Passe o mouse sobre as categorias e use o botão (+) para adicionar sub-causas ou (-) para excluir.\n"
+            "• Clique duas vezes em qualquer texto pontilhado para editá-lo.\n"
+            "• O layout das espinhas é posicionado e escalonado automaticamente.\n"
+            "• Use o menu 'Exibir' para Zoom."
+        )
         layout = QVBoxLayout(self); layout.setContentsMargins(0,0,0,0); layout.setSpacing(0)
-        tb = _make_toolbar("🐟  Ishikawa — Diagrama de Causa e Efeito (Espinha de Peixe)",
-                           lambda: self._inner.view,
-                           self._inner.zoom_in,
-                           self._inner.zoom_out,
-                           self._inner.reset_zoom, self)
-        layout.addWidget(tb)
         layout.addWidget(self._inner)
 
+    def reset_zoom(self): self._inner.update_zoom(1.0)
+    def zoom_in(self): self._inner.zoom_in()
+    def zoom_out(self): self._inner.zoom_out()
 
 
+
+
+    def get_state(self):
+        return {
+            "nodes": self._inner.nodes,
+            "next_id": self._inner.next_id
+        }
+
+    def set_state(self, state):
+        if not state: return
+        nodes = {}
+        for k, v in state.get("nodes", {}).items():
+            try: k_int = int(k)
+            except: k_int = k
+            nodes[k_int] = v
+            
+        if not nodes:
+            nodes = {1: {"text": "EFEITO / PROBLEMA", "level": 0, "children": [], "parent": None}}
+            cat_names = ["Método", "Máquina", "Material", "Mão de Obra", "Meio Ambiente", "Medição"]
+            next_id = 2
+            for name in cat_names:
+                nodes[next_id] = {"text": name, "level": 1, "children": [], "parent": 1}
+                nodes[1]["children"].append(next_id)
+                next_id += 1
+            self._inner.next_id = next_id
+        else:
+            self._inner.next_id = state.get("next_id", 2)
+
+        self._inner.nodes = nodes
+        self._inner._draw_diagram()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

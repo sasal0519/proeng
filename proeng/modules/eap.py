@@ -605,18 +605,44 @@ class _EAPModule(QWidget):
         super().__init__()
         self._inner = EAPWidget()
         _hide_inner_toolbar(self._inner)
+        self.help_text = (
+            "• Passe o mouse sobre um bloco para ver botões de adicionar Filho (+) ou Irmão (+).\n"
+            "• O código WBS (1.1, 1.2...) é gerado e atualizado sozinho.\n"
+            "• Clique duplo para renomear os pacotes de trabalho.\n"
+            "• Use o menu 'Exibir' para Zoom e ajuste de tela."
+        )
         layout = QVBoxLayout(self); layout.setContentsMargins(0,0,0,0); layout.setSpacing(0)
-        tb = _make_toolbar("📋  Gerador EAP — Estrutura Analítica do Projeto (WBS)",
-                           lambda: self._inner.view,
-                           self._inner.zoom_in,
-                           self._inner.zoom_out,
-                           lambda: self._inner.update_zoom(1.0), self)
-        layout.addWidget(tb)
         layout.addWidget(self._inner)
 
+    def reset_zoom(self):
+        self._inner.update_zoom(1.0)
+
+    def zoom_in(self):
+        self._inner.zoom_in()
+
+    def zoom_out(self):
+        self._inner.zoom_out()
 
 
 
+
+
+    def get_state(self):
+        return {
+            "nodes": self._inner.nodes,
+            "next_id": self._inner.next_id
+        }
+
+    def set_state(self, state):
+        if not state: return
+        nodes = {}
+        for k, v in state.get("nodes", {}).items():
+            try: k_int = int(k)
+            except: k_int = k
+            nodes[k_int] = v
+        self._inner.nodes = nodes if nodes else {1: {"text": "", "children": [], "parent": None, "shape": "roundrect"}}
+        self._inner.next_id = state.get("next_id", 2)
+        self._inner.draw_eap()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

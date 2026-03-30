@@ -411,21 +411,6 @@ class PMCanvasWidget(QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self); layout.setSpacing(0); layout.setContentsMargins(0, 0, 0, 0)
-        self._toolbar_pm = QWidget(); self._toolbar_pm.setFixedHeight(44)
-        toolbar = self._toolbar_pm
-        tb = QHBoxLayout(toolbar)
-
-        self._pm_title_lbl = QLabel("📝  Project Model Canvas — Grelha Finocchio")
-        self._pm_title_lbl.setMaximumWidth(500)
-        tb.addWidget(self._pm_title_lbl); tb.addStretch()
-        self._pm_btns = []
-        for lbl, fn in [("🔍−", self.zoom_out), ("🔍+", self.zoom_in), ("⟳ 60%", self.reset_zoom)]:
-            b = QPushButton(lbl); b.clicked.connect(fn); tb.addWidget(b); self._pm_btns.append(b)
-        self._pm_exp_btns = []
-        for lbl, key in [("📄 PDF","pdf"),("🖼 PNG","png")]:
-            be = QPushButton(lbl); be.clicked.connect(lambda _,k=key: self._export_scene(k))
-            tb.addWidget(be); self._pm_exp_btns.append(be)
-        layout.addWidget(toolbar)
         self.scene = QGraphicsScene()
         self.view  = QGraphicsView(self.scene)
         self.view.setRenderHint(QPainter.Antialiasing)
@@ -438,21 +423,6 @@ class PMCanvasWidget(QWidget):
 
     def refresh_theme(self):
         t = T()
-        self._toolbar_pm.setStyleSheet(f"""
-            QWidget {{ background: {t["toolbar_bg"]}; border-bottom: 1px solid {t["accent"]}; }}
-        """)
-        self._pm_title_lbl.setStyleSheet(f"""
-            color: {t["accent_bright"]}; font-family: 'Segoe UI';
-            font-size: 12px; font-weight: bold; background: transparent;
-        """)
-        btn_s = f"""QPushButton {{ background: {t["toolbar_btn"]}; color: {t["text"]};
-            border: 1px solid {t["accent_dim"]}; border-radius:5px; padding:4px 12px; font-weight:bold; }}
-            QPushButton:hover {{ background:{t["toolbar_btn_h"]}; border-color:{t["accent"]}; color:{t["accent_bright"]}; }}"""
-        exp_s = f"""QPushButton {{ background: {t["toolbar_btn"]}; color: {t["accent"]};
-            border: 1px solid {t["accent_dim"]}; border-radius:5px; padding:4px 12px; font-weight:bold; }}
-            QPushButton:hover {{ background:{t["accent"]}; color: white; }}"""
-        for b in self._pm_btns: b.setStyleSheet(btn_s)
-        for b in self._pm_exp_btns: b.setStyleSheet(exp_s)
         if hasattr(self, 'view'):
             try:
                 self.view.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
@@ -582,28 +552,44 @@ class PMCanvasWidget(QWidget):
 
 
 
-# ═══════════════════════════════════════════════════════════════════
-# ═══════════════════════════════════════════════════════════════════
-
-
 class _CanvasModule(QWidget):
     def __init__(self):
         super().__init__()
         self._inner = PMCanvasWidget()
         _hide_inner_toolbar(self._inner)
+        self.help_text = (
+            "• Clique duas vezes no meio de qualquer bloco amarelo para editar o Post-it.\n"
+            "• Use o botão (+) central das seções para adicionar novas anotações.\n"
+            "• Exclua um cartão posicionando o mouse sobre ele e clicando no botão (-).\n"
+            "• Use as ferramentas de Zoom no menu 'Exibir' ou atalhos Ctrl +/-."
+        )
         layout = QVBoxLayout(self); layout.setContentsMargins(0,0,0,0); layout.setSpacing(0)
-        tb = _make_toolbar("📝  Project Model Canvas — Grelha Finocchio",
-                           lambda: self._inner.view,
-                           self._inner.zoom_in,
-                           self._inner.zoom_out,
-                           self._inner.reset_zoom, self)
-        layout.addWidget(tb)
         layout.addWidget(self._inner)
+
+    def reset_zoom(self): self._inner.reset_zoom()
+    def zoom_in(self): self._inner.zoom_in()
+    def zoom_out(self): self._inner.zoom_out()
 
 
 # ═══════════════════════════════════════════════════════════════════
 
 
+
+    def get_state(self):
+        return {
+            "sections": self._inner.sections,
+            "next_pid": self._inner.next_pid
+        }
+
+    def set_state(self, state):
+        if not state: return
+        secs = state.get("sections", {})
+        if secs:
+            self._inner.sections = secs
+        else:
+            self._inner.sections = {s["id"]: [] for s in self._inner.sections_data}
+        self._inner.next_pid = state.get("next_pid", 1)
+        self._inner._draw_board()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

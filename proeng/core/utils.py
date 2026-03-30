@@ -69,18 +69,29 @@ def _export_view(view, fmt, parent=None):
             parent, "Exportar como PNG", "diagrama.png", "Imagem PNG (*.png)")
         if not path:
             return
-        scale = 2
-        img = QPixmap(max(1, int(rect.width()*scale)), max(1, int(rect.height()*scale)))
+        scale = 3  # Maior escala para mais resolução 
+        target_w = max(1, int(rect.width() * scale))
+        target_h = max(1, int(rect.height() * scale))
+        img = QPixmap(target_w, target_h)
         img.fill(QColor(t["bg_app"]))
         p = QPainter(img)
         p.setRenderHint(QPainter.Antialiasing)
-        p.scale(scale, scale)
-        scene.render(p, source=rect)
+        p.setRenderHint(QPainter.TextAntialiasing)
+        p.setRenderHint(QPainter.SmoothPixmapTransform)
+        
+        target_rect = QRectF(0, 0, target_w, target_h)
+        scene.render(p, target=target_rect, source=rect)
         p.end()
         img.save(path, "PNG")
         QMessageBox.information(parent, "✅ PNG Exportado", f"Arquivo salvo em:\n{path}")
 
     elif fmt == "pdf":
+        try:
+            from PyQt5.QtPrintSupport import QPrinter
+            HAS_PRINT = True
+        except ImportError:
+            HAS_PRINT = False
+            
         if not HAS_PRINT:
             QMessageBox.warning(parent, "Módulo ausente",
                 "QPrintSupport não encontrado.\n"
@@ -97,7 +108,11 @@ def _export_view(view, fmt, parent=None):
         printer.setOrientation(QPrinter.Landscape)
         p = QPainter(printer)
         p.setRenderHint(QPainter.Antialiasing)
-        scene.render(p, source=rect)
+        p.setRenderHint(QPainter.TextAntialiasing)
+        
+        # Mapeia a cena para o tamanho inteiro da folha A3 mantendo proporção 
+        target_rect = QRectF(0, 0, printer.width(), printer.height())
+        scene.render(p, target=target_rect, source=rect, aspectRatioMode=Qt.KeepAspectRatio)
         p.end()
         QMessageBox.information(parent, "✅ PDF Exportado", f"Arquivo salvo em:\n{path}")
 
