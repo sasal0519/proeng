@@ -282,13 +282,13 @@ class EquipmentEditorDialog(QDialog):
 
 
 EQUIPMENT_ALIASES = {
-    "Bomba Centrífuga": "Bomba", "Bomba Volumétrica": "Bomba", "Compressores": "Bomba",
+    "Bomba Centrífuga": "Bomba", "Bomba Volumétrica": "Bomba_V", "Compressores": "Compressor",
     "Trocador Casco-Tubo": "Trocador", "Reator CSTR": "Reator", "Tanque Aberto": "Tanque", 
     "Vaso Vertical": "Vaso", "Tanque Misturador": "Misturador", "Secador Rotativo": "Secador", 
     "Válvula Globo": "Válvula", "PSV (Alívio)": "PSV", "Válvula de Bloqueio": "Válvula", 
     "Forno": "Forno", "Fornalha": "Forno", "Lavagem": "Lavadora", "Peneira": "Peneira", 
-    "Filtro": "Filtro", "Separador Bifásico": "Separador Bifásico", "Vaso Horizontal": "Vaso_H",
-    "Esfera de Gás": "Esfera", "Silo": "Silo", "Compressor": "Compressor", "Soprador": "Compressor",
+    "Filtro": "Filtro", "Separador Bifásico": "Separador_B", "Vaso Horizontal": "Vaso_H",
+    "Esfera de Gás": "Esfera", "Silo": "Silo", "Compressor": "Compressor", "Soprador": "Soprador",
     "Exaustor": "Fan", "Turbina": "Turbina", "Ejetor": "Ejetor", "Trocador de Placas": "Trocador_P",
     "Caldeira": "Caldeira", "Torre de Resfriamento": "Resfriamento", "Evaporador": "Evaporador",
     "Aquecedor Elétrico": "Heat_E", "Reator Tubular (PFR)": "Reator_T", "Moinho": "Moinho",
@@ -341,8 +341,8 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
 
     if st == "Vaso":
         painter.drawRoundedRect(QRectF(-s*0.8, -s, s*1.6, s*2), s*0.6, s*0.6)
-    elif st == "Vaso Horizontal":
-        painter.drawRoundedRect(QRectF(-s*1.5, -s*0.6, s*3, s*1.2), s*0.6, s*0.6)
+    elif st == "Vaso_H":
+        painter.drawRoundedRect(QRectF(-s*1.8, -s*0.8, s*3.6, s*1.6), s*0.6, s*0.6)
     elif st == "Tanque":
         painter.drawRect(QRectF(-s*0.8, -s*0.5, s*1.6, s*1.5))
         painter.drawArc(QRectF(-s*0.8, -s*1.0, s*1.6, s*1.0), 0, 180 * 16)
@@ -358,7 +358,7 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
         painter.drawRect(QRectF(-s*0.8, -s*1.5, s*1.6, s*2))
         poly = QPolygonF([QPointF(-s*0.8, s*0.5), QPointF(s*0.8, s*0.5), QPointF(0, s*1.5)])
         painter.drawPolygon(poly)
-    elif st == "Separador Bifásico":
+    elif st == "Separador_B":
         painter.drawRoundedRect(QRectF(-s*1.5, -s*0.6, s*3.0, s*1.2), s*0.6, s*0.6)
         painter.drawLine(QPointF(-s*1.5, 0), QPointF(s*1.5, 0))
     elif st == "Separador Trifásico":
@@ -398,7 +398,7 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
         painter.drawLine(QPointF(-s*0.5, -s*0.5), QPointF(0, s*0.5))
         painter.drawLine(QPointF(0, s*0.5), QPointF(s*0.5, -s*0.5))
         painter.drawLine(QPointF(s*0.5, -s*0.5), QPointF(s, 0))
-    elif st == "Trocador de Placas":
+    elif st == "Trocador_P":
         painter.drawRect(QRectF(-s*1.2, -s*0.8, s*2.4, s*1.6))
         for i in [-0.8, -0.4, 0, 0.4, 0.8]:
             painter.drawLine(QPointF(s*i, -s*0.8), QPointF(s*i, s*0.8))
@@ -410,7 +410,7 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
     elif st == "Resfriador de Topo":
         painter.drawEllipse(QRectF(-s*0.8, -s*0.8, s*1.6, s*1.6))
         painter.drawLine(QPointF(-s*0.8, -s*0.8), QPointF(s*0.8, s*0.8))
-    elif st == "Fornalha":
+    elif st == "Forno":
         painter.drawRect(QRectF(-s, -s*0.5, s*2, s*1.5))
         poly = QPolygonF([QPointF(-s, -s*0.5), QPointF(0, -s*1.5), QPointF(s, -s*0.5)])
         painter.drawPolygon(poly)
@@ -429,7 +429,7 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
     elif st == "Evaporador":
         painter.drawRoundedRect(QRectF(-s*0.6, -s*1.5, s*1.2, s*2), s*0.6, s*0.6)
         painter.drawRect(QRectF(-s*0.6, s*0.5, s*1.2, s*1.0))
-    elif st == "Aquecedor Elétrico":
+    elif st == "Heat_E":
         painter.drawRect(QRectF(-s*0.6, -s, s*1.2, s*2))
         poly = QPolygonF([QPointF(-s*0.4, 0), QPointF(0, -s*0.6), QPointF(s*0.4, 0), QPointF(0, s*0.6)])
         painter.drawPolygon(poly)
@@ -671,11 +671,17 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
             path.lineTo(-s*0.6 + i*s*0.3, -s*0.2 if i%2==0 else s*0.2)
         painter.setBrush(Qt.NoBrush)
         painter.drawPath(path)
-    elif symbol_type == "Lavadora":
+    elif st == "Lavadora":
         painter.setBrush(QBrush(QColor(_bg_node)))
         painter.drawRoundedRect(QRectF(-s*0.7, -s*1.3, s*1.4, s*2.6), 15, 15)
         for i in range(4):
             painter.drawLine(-s*0.5, -s + i*s*0.6, s*0.5, -s + i*s*0.6)
+    elif st == "Box":
+        painter.setBrush(QBrush(QColor(_bg_node)))
+        painter.setPen(QPen(QColor(theme["accent"]), 1.5))
+        painter.drawRect(QRectF(-s*0.8, -s*0.8, s*1.6, s*1.6))
+        painter.drawLine(QPointF(-s*0.8, -s*0.8), QPointF(s*0.8, s*0.8))
+        painter.drawLine(QPointF(-s*0.8, s*0.8), QPointF(s*0.8, -s*0.8))
     else:
         painter.setBrush(QBrush(QColor(_bg_node)))
         painter.setPen(QPen(QColor(theme["accent"]), 2, Qt.DashLine))
