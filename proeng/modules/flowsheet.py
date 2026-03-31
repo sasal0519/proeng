@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QMessageBox, QGraphicsView, QGraphicsScene, QGraphicsItem,
     QListWidget, QListWidgetItem, QSplitter, QGraphicsPathItem, QMenu,
-    QListView, QLineEdit, QLabel, QStackedWidget, QTextEdit,
+    QListView, QLineEdit, QLabel, QStackedWidget, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView,
     QGraphicsRectItem, QInputDialog, QFileDialog, QSizePolicy, QGraphicsEllipseItem, QToolBox,
-    QGraphicsSimpleTextItem, QDialog, QComboBox, QFormLayout, QDialogButtonBox
+    QGraphicsSimpleTextItem, QGraphicsTextItem, QDialog, QComboBox, QFormLayout, QDialogButtonBox
 )
 from PyQt5.QtGui import (
     QPen, QBrush, QColor, QPainter, QPalette, QCursor, QPolygonF,
@@ -80,6 +80,205 @@ class TerminalConfigDialog(QDialog):
 
     def get_values(self):
         return self.type_combo.currentText(), self.name_edit.text()
+
+
+class StreamEditorDialog(QDialog):
+    """Diálogo avançado para inserir dados de balanço (Vazão Total e Porcentagens)."""
+    def __init__(self, edge, parent=None):
+        super().__init__(parent)
+        self.edge = edge
+        self.setWindowTitle(f"Dados da Corrente: {edge.pipe_name}")
+        self.setMinimumWidth(600); self.setMinimumHeight(450); t = T()
+        
+        layout = QVBoxLayout(self)
+        
+        # Header: Vazão Total
+        header_layout = QFormLayout()
+        self.total_flow_edit = QLineEdit()
+        current_total = sum(edge.flow_data.values())
+        self.total_flow_edit.setText(f"{current_total:.2f}")
+        self.total_flow_edit.textChanged.connect(self.sync_all_from_total)
+        header_layout.addRow("Vazão Mássica TOTAL (kg/h):", self.total_flow_edit)
+        layout.addLayout(header_layout)
+        
+        # Tabela: Comp, %, Flow
+        self.table = QTableWidget(0, 3)
+        self.table.setHorizontalHeaderLabels(["Componente", "Porcentagem (%)", "Vazão (kg/h)"])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.itemChanged.connect(self.on_item_changed)
+        layout.addWidget(self.table)
+        
+        # Info de Soma
+        self.sum_label = QLabel("Soma das Porcentagens: 0.00%")
+        self.sum_label.setStyleSheet("font-weight: bold; padding: 5px;")
+        layout.addWidget(self.sum_label)
+
+        # Popula a tabela
+        self._updating = True # Flag para evitar recursão infinita no sync
+        for comp, flow in self.edge.flow_data.items():
+            perc = (flow / current_total * 100) if current_total > 0 else 0.0
+            self.add_row(comp, perc, flow)
+        self._updating = False
+        self.update_sum_label()
+            
+        btn_layout = QHBoxLayout()
+        btn_add = QPushButton("➕ Adicionar Componente")
+        btn_add.clicked.connect(lambda: self.add_row("", 0.0, 0.0))
+        btn_layout.addWidget(btn_add)
+        layout.addLayout(btn_layout)
+        
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.save_data)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        
+        self.setStyleSheet(f"""
+            QDialog {{ background-color: {t['bg_app']}; color: {t['text']}; font-family: 'Segoe UI'; }}
+            QTableWidget {{ background-color: {t['bg_card']}; color: {t['text']}; border: 1px solid {t['accent']}; }}
+            QLineEdit {{ background: {t['bg_card']}; color: {t['text']}; border: 1px solid {t['accent']}; padding: 5px; }}
+            QHeaderView::section {{ background-color: {t['toolbar_bg']}; color: {t['text']}; font-weight: bold; }}
+            QLabel {{ color: {t['text']}; }}
+        """)
+
+    def add_row(self, comp="", perc=0.0, flow=0.0):
+        self._updating = True
+        row = self.table.rowCount()
+        self.table.insertRow(row)
+        self.table.setItem(row, 0, QTableWidgetItem(comp))
+        self.table.setItem(row, 1, QTableWidgetItem(f"{perc:.2f}"))
+        self.table.setItem(row, 2, QTableWidgetItem(f"{flow:.2f}"))
+        self._updating = False
+
+    def on_item_changed(self, item):
+        if self._updating: return
+        self._updating = True
+        row, col = item.row(), item.column()
+        try:
+            total = float(self.total_flow_edit.text().replace(',', '.'))
+            if col == 1: # Alterou % -> Atualiza Vazão
+                perc = float(item.text().replace(',', '.'))
+                flow = total * (perc / 100.0)
+                self.table.item(row, 2).setText(f"{flow:.2f}")
+            elif col == 2: # Alterou Vazão -> Atualiza %
+                flow = float(item.text().replace(',', '.'))
+                perc = (flow / total * 100.0) if total > 0 else 0.0
+                self.table.item(row, 1).setText(f"{perc:.2f}")
+        except: pass
+        self._updating = False
+        self.update_sum_label()
+
+    def sync_all_from_total(self):
+        if self._updating: return
+        self._updating = True
+        try:
+            total = float(self.total_flow_edit.text().replace(',', '.'))
+            for r in range(self.table.rowCount()):
+                perc_txt = self.table.item(r, 1).text().replace(',', '.')
+                flow = total * (float(perc_txt) / 100.0)
+                self.table.item(r, 2).setText(f"{flow:.2f}")
+        except: pass
+        self._updating = False
+
+    def update_sum_label(self):
+        total_p = 0.0
+        for r in range(self.table.rowCount()):
+            try: total_p += float(self.table.item(r, 1).text().replace(',', '.'))
+            except: pass
+        self.sum_label.setText(f"Soma das Porcentagens: {total_p:.2f}%")
+        color = "#ff4444" if abs(total_p - 100) > 0.01 and total_p > 0 else T()["text"]
+        self.sum_label.setStyleSheet(f"color: {color}; font-weight: bold;")
+
+    def save_data(self):
+        new_data = {}
+        for row in range(self.table.rowCount()):
+            comp_item = self.table.item(row, 0)
+            flow_item = self.table.item(row, 2)
+            if comp_item and flow_item and comp_item.text().strip():
+                try: 
+                    val = float(flow_item.text().replace(',', '.'))
+                    new_data[comp_item.text().strip()] = val
+                except: pass
+        self.edge.flow_data = new_data
+        self.edge.adjust()
+        
+        # Trigger Autocalculation
+        view = self.edge.scene().views()[0]
+        if hasattr(view, 'parentWidget') and hasattr(view.parentWidget(), 'solve_mass_balance'):
+            view.parentWidget().solve_mass_balance()
+            
+        self.accept()
+
+
+class EquipmentEditorDialog(QDialog):
+    """Diálogo avançado para configurar o desempenho (Vazão Fixa vs Fração)."""
+    def __init__(self, node, parent=None):
+        super().__init__(parent)
+        self.node = node
+        self.setWindowTitle(f"Desempenho: {node.symbol_type}")
+        self.setMinimumWidth(700); self.setMinimumHeight(500); t = T()
+        
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Defina como o componente é separado nas saídas.\nUse 'Fator' (0.0-1.0) ou 'Vazão' (kg/h fixa)."))
+
+        self.out_edges = [e for e in node.edges if e.source_node == node]
+        self.out_ports = sorted(list(set(e.source_port for e in self.out_edges)))
+        
+        self.components = set()
+        for e in node.edges:
+            if e.dest_node == node: self.components.update(e.flow_data.keys())
+        self.components = sorted(list(self.components))
+
+        if not self.out_ports or not self.components:
+            layout.addWidget(QLabel("⚠️ Conecte entradas e saídas primeiro."))
+        else:
+            # Tabela complexa: Componente | Porta | Tipo (Combo) | Valor
+            self.table = QTableWidget(len(self.components) * len(self.out_ports), 4)
+            self.table.setHorizontalHeaderLabels(["Componente", "Porta Saída", "Modo", "Valor"])
+            self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            
+            row = 0
+            for comp in self.components:
+                # Recupera config atual: { comp: { port: {"mode": "perc", "val": 0.5} } }
+                comp_cfg = node.split_config.get(comp, {})
+                for port in self.out_ports:
+                    cfg = comp_cfg.get(port, {"mode": "perc", "val": 1.0 / len(self.out_ports)})
+                    
+                    self.table.setItem(row, 0, QTableWidgetItem(comp))
+                    self.table.setItem(row, 1, QTableWidgetItem(port))
+                    
+                    combo = QComboBox()
+                    combo.addItems(["Fração (%)", "Vazão Fixa (kg/h)"])
+                    combo.setCurrentIndex(0 if cfg["mode"] == "perc" else 1)
+                    self.table.setCellWidget(row, 2, combo)
+                    
+                    val_item = QTableWidgetItem(str(cfg["val"]))
+                    self.table.setItem(row, 3, val_item)
+                    row += 1
+            layout.addWidget(self.table)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.save_config)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        
+        self.setStyleSheet(f"QDialog{{background:{t['bg_app']};color:{t['text']};}} QTableWidget{{background:{t['bg_card']};color:{t['text']};}}")
+
+    def save_config(self):
+        if not hasattr(self, 'table'): self.accept(); return
+        new_config = {}
+        for r in range(self.table.rowCount()):
+            comp = self.table.item(r, 0).text()
+            port = self.table.item(r, 1).text()
+            mode_idx = self.table.cellWidget(r, 2).currentIndex()
+            val_txt = self.table.item(r, 3).text().replace(',', '.')
+            try: val = float(val_txt)
+            except: val = 0.0
+            
+            if comp not in new_config: new_config[comp] = {}
+            new_config[comp][port] = {"mode": "perc" if mode_idx == 0 else "fixed", "val": val}
+            
+        self.node.split_config = new_config
+        self.accept()
 
 
 EQUIPMENT_ALIASES = {
@@ -523,6 +722,11 @@ class SourceSinkHandle(QGraphicsItem):
         self.flow_name = flow_name
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.edges = []
+        # Adiciona uma porta real para permitir reconectar arrastando
+        self.ports = {"tip": ConnectorPort(self, "tip")}
+        self.ports["tip"].setPos(0, 0)
+        self.ports["tip"].setBrush(QBrush(QColor(0, 255, 255))) # Cor ciano para terminais
+        self.ports["tip"].setVisible(False)
         
     def add_edge(self, edge): self.edges.append(edge)
     def boundingRect(self): return QRectF(-20, -20, 40, 40)
@@ -551,6 +755,49 @@ class SourceSinkHandle(QGraphicsItem):
         return super().itemChange(change, value)
 
 
+class JunctionNode(QGraphicsEllipseItem):
+    """Nó de interconexão minimalista para T-junctions entre tubulações."""
+    def __init__(self):
+        super().__init__(-6, -6, 12, 12)
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
+        self.edges = []
+        self.ports = {"tip": ConnectorPort(self, "tip")}
+        self.ports["tip"].setPos(0, 0)
+        self.ports["tip"].setBrush(QBrush(QColor(0, 255, 255))) # Ciano Neon
+        self.ports["tip"].setVisible(False)
+        self._bg = T()["accent"]
+        self.custom_name = "Junção"
+
+    def add_edge(self, edge): 
+        if edge not in self.edges: self.edges.append(edge)
+
+    def paint(self, painter, option, widget=None):
+        t = T()
+        painter.setPen(QPen(QColor(t["accent"]), 2))
+        painter.setBrush(QBrush(QColor(t["bg_app"])))
+        painter.drawEllipse(self.rect())
+        
+        # Ponto central se selecionado ou hover
+        if self.isSelected():
+            painter.setBrush(QBrush(QColor(t["accent_bright"])))
+            painter.drawEllipse(-3, -3, 6, 6)
+
+    def contextMenuEvent(self, event):
+        menu = QMenu(); t = T()
+        menu.setStyleSheet(f"QMenu{{background:{t['bg_card']};color:{t['text']};border:1px solid {t['accent']};}}")
+        del_act = menu.addAction("🗑 Excluir Junção")
+        action = menu.exec_(event.screenPos())
+        if action == del_act:
+            for e in list(self.edges): 
+                if e.scene(): self.scene().removeItem(e)
+            if self.scene(): self.scene().removeItem(self)
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionHasChanged:
+            for e in self.edges: e.adjust()
+        return super().itemChange(change, value)
+
+
 class Edge(QGraphicsPathItem):
     def __init__(self, source_node, dest_node, source_port="right", dest_port="left"):
         super().__init__()
@@ -568,6 +815,10 @@ class Edge(QGraphicsPathItem):
         self.setZValue(-1)
         self.is_utility = False
         self.pipe_name = ""
+        
+        # --- Dados do Balanço de Massa Avançado ---
+        self.flow_data = {}      # ex: {"Água": 100.0}
+        
         # Container para o label com fundo para visibilidade
         self.label_bg = QGraphicsRectItem(self)
         self.label_bg.setBrush(QBrush(QColor(T()["bg_app"]))) 
@@ -617,17 +868,21 @@ class Edge(QGraphicsPathItem):
         path.lineTo(p2)
         self.setPath(path)
         
-        # Posicionamento Robusto do Label
-        if self.pipe_name:
+        # Formata o texto para exibir dados do balanço junto com o nome
+        total_flow = sum(self.flow_data.values())
+        display_text = self.pipe_name
+        if total_flow > 0:
+            display_text += f"\n{total_flow:.1f} kg/h"
+            
+        if display_text:
             # Encontra o ponto médio do caminho para o label
             mid_p = path.pointAtPercent(0.5)
-            self.label_item.setText(self.pipe_name)
-            self.label_item.setBrush(QBrush(QColor(T()["text"]))) # Cor dinâmica conforme tema
-            self.label_bg.setBrush(QBrush(QColor(T()["bg_app"]))) # "Mask" com a cor do fundo
+            self.label_item.setText(display_text)
+            self.label_item.setBrush(QBrush(QColor(T()["text"])))
+            self.label_bg.setBrush(QBrush(QColor(T()["bg_app"])))
             br = self.label_item.boundingRect()
             self.label_bg.setRect(0, 0, br.width() + 8, br.height() + 4)
             self.label_item.setPos(4, 2)
-            # Posiciona o label ACIMA da linha para maior clareza visual
             self.label_bg.setPos(mid_p.x() - br.width()/2 - 4, mid_p.y() - br.height() - 10)
             self.label_bg.setVisible(True)
             self.label_bg.setZValue(1)
@@ -639,6 +894,7 @@ class Edge(QGraphicsPathItem):
     def contextMenuEvent(self, event):
         menu = QMenu(); t = T()
         menu.setStyleSheet(f"QMenu{{background:{t['bg_card']};color:{t['text']};border:1px solid {t['accent']};}}")
+        data_act = menu.addAction("📊 Editar Dados da Corrente")
         name_action = menu.addAction("✏️ Renomear Fluxo")
         del_act = menu.addAction("🗑 Excluir Tubulação")
         action = menu.exec_(event.screenPos())
@@ -651,6 +907,9 @@ class Edge(QGraphicsPathItem):
         elif action == name_action:
             text, ok = QInputDialog.getText(None, "Piping", "Nome:", QLineEdit.Normal, self.pipe_name)
             if ok: self.pipe_name = text; self.label_item.setText(text); self.adjust()
+        elif action == data_act:
+            dialog = StreamEditorDialog(self)
+            dialog.exec_()
 
     def paint(self, painter, option, widget=None):
         try: t = T(); lc = t.get("line", C_LINE)
@@ -700,30 +959,37 @@ class ProcessNode(QGraphicsItem):
         self._hover_text.setFont(QFont("Segoe UI", 9, QFont.Bold))
         tw, th = self._hover_text.boundingRect().width(), self._hover_text.boundingRect().height()
         self._hover_bg.setRect(-5, -5, tw + 10, th + 10)
-        r = self.boundingRect(); lx, ly = r.center().x() - tw/2, r.top() - th - 15
+        lx, ly = -tw/2, -self.size/2 - th - 15
         self._hover_bg.setPos(lx, ly); self._hover_text.setPos(lx, ly)
         self._hover_bg.setVisible(False); self._hover_text.setVisible(False)
         self._hover_bg.setAcceptHoverEvents(False); self._hover_text.setAcceptHoverEvents(False)
         
-        # Rótulo Persistente (Nome do Equipamento) — Sem fundo, cor dinâmica
-        self._name_item = QGraphicsSimpleTextItem(self)
-        self._name_item.setBrush(QBrush(QColor(T()["text"])))
+        # Rótulo Persistente (Nome do Equipamento) — Com quebra de linha (Word Wrap)
+        self._name_item = QGraphicsTextItem(self)
+        self._name_item.setDefaultTextColor(QColor(T()["text"]))
         self._name_item.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        self._name_item.setTextWidth(120) # Largura máxima para forçar quebra de linha
+        opt = self._name_item.document().defaultTextOption()
+        opt.setAlignment(Qt.AlignCenter)
+        self._name_item.document().setDefaultTextOption(opt)
+        
         self.update_name_pos()
+        
+        # --- Configuração de Balanço de Massa (Split) ---
+        # { component: { port_id: {mode: "perc"/"fixed", val: float} } }
+        self.split_config = {} 
 
     def update_name_pos(self):
-        r = self.boundingRect()
+        # r é a área central do equipamento, ignorando os paddings do boundingRect
+        # Vamos posicionar o texto de forma fixa em relação ao centro (0,0) do nó
         tw = self._name_item.boundingRect().width()
-        # Centralizado abaixo do equipamento
-        self._name_item.setPos(r.center().x() - tw/2, r.bottom() - 15)
+        th = self._name_item.boundingRect().height()
+        # Posiciona abaixo do ícone (o ícone costuma ficar em torno de self.size)
+        self._name_item.setPos(-tw/2, self.size/2 + 5)
 
     def hoverEnterEvent(self, event):
         for port in self.ports.values(): port.setVisible(True)
         self.prepareGeometryChange()
-        r = self.boundingRect(); tw = self._hover_text.boundingRect().width()
-        th = self._hover_text.boundingRect().height()
-        lx, ly = r.center().x() - tw/2, r.top() + 5
-        self._hover_bg.setPos(lx, ly); self._hover_text.setPos(lx, ly)
         self._hover_bg.setVisible(True); self._hover_text.setVisible(True)
         super().hoverEnterEvent(event)
 
@@ -756,7 +1022,7 @@ class ProcessNode(QGraphicsItem):
     def set_name(self, name):
         self.custom_name = name
         self._hover_text.setText(f"{self.symbol_type}: {name}" if name else self.symbol_type)
-        self._name_item.setText(name if name else self.symbol_type)
+        self._name_item.setPlainText(name if name else self.symbol_type)
         self.update_name_pos()
         # Re-ajustar fundo do hover
         tw, th = self._hover_text.boundingRect().width(), self._hover_text.boundingRect().height()
@@ -771,6 +1037,7 @@ class ProcessNode(QGraphicsItem):
     def contextMenuEvent(self, event):
         menu = QMenu(); t = T()
         menu.setStyleSheet(f"QMenu{{background:{t['bg_card']};color:{t['text']};border:1px solid {t['accent']};}}")
+        perf_act = menu.addAction("⚙️ Configurar Desempenho")
         del_act = menu.addAction("🗑 Excluir Equipamento")
         act = menu.exec_(event.screenPos())
         if act == del_act:
@@ -780,6 +1047,12 @@ class ProcessNode(QGraphicsItem):
                     if other.scene(): self.scene().removeItem(other)
                 if e.scene(): self.scene().removeItem(e)
             if self.scene(): self.scene().removeItem(self)
+        elif act == perf_act:
+            EquipmentEditorDialog(self).exec_()
+            
+    def mouseDoubleClickEvent(self, event):
+        EquipmentEditorDialog(self).exec_()
+        super().mouseDoubleClickEvent(event)
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionHasChanged:
@@ -799,7 +1072,7 @@ class ProcessNode(QGraphicsItem):
             painter.setPen(QPen(QColor(t["accent_bright"]), 2, Qt.DotLine))
             painter.drawRect(self.boundingRect().adjusted(0, 40, 0, 0))
         # Sincroniza cor do texto com o tema no redesenho
-        self._name_item.setBrush(QBrush(QColor(t["text"])))
+        self._name_item.setDefaultTextColor(QColor(t["text"]))
         draw_equipment(painter, self.symbol_type, self.size, False, t)
 
 
@@ -858,7 +1131,25 @@ class SymbolPalette(QToolBox):
 
     def _apply_palette_style(self):
         t = T()
-        self.setStyleSheet(f"QToolBox::tab{{background:{t['bg_card']};color:{t['text']};font-weight:bold;}} QToolBox::tab:selected{{color:{t['accent']};}}")
+        self.setStyleSheet(f"""
+            QToolBox {{ 
+                background-color: {t['bg_card']}; 
+                border: none;
+            }}
+            QToolBox::tab {{
+                background-color: {t['bg_card']};
+                color: {t['text']};
+                font-weight: bold;
+                font-size: 13px;
+                font-family: 'Segoe UI';
+                border-bottom: 1px solid {t['accent_dim']};
+                padding: 8px 12px;
+            }}
+            QToolBox::tab:selected {{
+                color: {t['accent']};
+                border-bottom: 2px solid {t['accent']};
+            }}
+        """)
 
     def _apply_list_style(self, lw):
         t = T()
@@ -884,53 +1175,126 @@ class FlowsheetCanvas(QGraphicsView):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            for item in self.items(event.pos()):
-                if isinstance(item, ConnectorPort):
-                    self.mode, self.start_port = "PortConnect", item
-                    path = QPainterPath(); path.moveTo(item.scenePos())
-                    self.temp_line = self.scene().addPath(path, QPen(QColor(T()["accent"]), 2, Qt.DashLine))
-                    for i in self.scene().items():
-                        if hasattr(i, "ports"): 
-                            for p in i.ports.values(): p.setVisible(True)
-                    return
+            items = self.items(event.pos())
+            # Prioridade para ConnectorPort
+            port = next((i for i in items if isinstance(i, ConnectorPort)), None)
+            if port:
+                self.mode, self.start_port = "PortConnect", port
+                path = QPainterPath(); path.moveTo(port.scenePos())
+                self.temp_line = self.scene().addPath(path, QPen(QColor(T()["accent"]), 2, Qt.DashLine))
+                # Mostra todas as portas para conexão
+                for i in self.scene().items():
+                    if hasattr(i, "ports"): 
+                        for p in i.ports.values(): p.setVisible(True)
+                return
+            
+            # Se clicou em um Terminal que já tem porta escondida, mostra ela
+            handle = next((i for i in items if isinstance(i, SourceSinkHandle)), None)
+            if handle:
+                handle.ports["tip"].setVisible(True)
+                
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self.mode == "PortConnect" and self.temp_line:
             p1, p2 = self.start_port.scenePos(), self.mapToScene(event.pos())
-            path = QPainterPath(); path.moveTo(p1); path.lineTo(p2); self.temp_line.setPath(path)
+            path = QPainterPath(); path.moveTo(p1)
+            
+            # Lógica Ortogonal (L-shape) para o Preview
+            # Similar ao Edge.adjust()
+            d1 = (0, 0)
+            if hasattr(self.start_port.node, 'ports'): # Se for de um ProcessNode
+                for pid, po in self.start_port.node.ports.items():
+                    if po == self.start_port:
+                        side = pid.split('_')[0]
+                        if side == "top": d1 = (0, -1)
+                        elif side == "bottom": d1 = (0, 1)
+                        elif side == "left": d1 = (-1, 0)
+                        elif side == "right": d1 = (1, 0)
+                        break
+            
+            p1_out = QPointF(p1.x() + d1[0]*25, p1.y() + d1[1]*25)
+            path.lineTo(p1_out)
+            if d1[1] != 0: # Norte/Sul
+                path.lineTo(p2.x(), p1_out.y())
+            else: # Leste/Oeste ou Terminal
+                path.lineTo(p1_out.x(), p2.y())
+            path.lineTo(p2)
+            
+            self.temp_line.setPath(path)
             return
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if self.mode == "PortConnect" and self.temp_line:
             target = None
-            for item in self.items(event.pos()):
-                if isinstance(item, ConnectorPort) and item.node != self.start_port.node: target = item; break
-            if target: self.scene().addItem(Edge(self.start_port.node, target.node, self.start_port.port_id, target.port_id))
+            items = self.items(event.pos())
+            target = next((i for i in items if isinstance(i, ConnectorPort) and i.node != self.start_port.node), None)
+            
+            # Se não achou porta, mas achou um PIPE (Edge), criamos uma JUNÇÃO automática
+            target_edge = None
+            if not target:
+                target_edge = next((i for i in items if isinstance(i, Edge) and i.source_node != self.start_port.node and i.dest_node != self.start_port.node), None)
+
+            if target: 
+                # Reconexão Simples entre dois elementos existentes (Nodes ou Terminais)
+                edge = Edge(self.start_port.node, target.node, self.start_port.port_id, target.port_id)
+                edge.flow_data = self._probe_old_data(self.start_port.node)
+                self.scene().addItem(edge); edge.adjust()
+                StreamEditorDialog(edge).exec_()
+            elif target_edge:
+                # INTERCONEXÃO COM SPLIT: Dividir o tubo original em dois
+                pos = self.mapToScene(event.pos())
+                junction = JunctionNode()
+                junction.setPos(pos)
+                self.scene().addItem(junction)
+                
+                # Dados originais para os novos segmentos
+                old_flow = target_edge.flow_data.copy()
+                old_name = target_edge.pipe_name
+                src_n, dst_n = target_edge.source_node, target_edge.dest_node
+                src_p, dst_p = target_edge.source_port, target_edge.dest_port
+                
+                # Remove o pipe original
+                self.scene().removeItem(target_edge)
+                if target_edge in src_n.edges: src_n.edges.remove(target_edge)
+                if target_edge in dst_n.edges: dst_n.edges.remove(target_edge)
+                
+                # Cria Segmento 1 (Origem -> Junção)
+                e1 = Edge(src_n, junction, src_p, "tip")
+                e1.flow_data = old_flow; e1.pipe_name = old_name
+                self.scene().addItem(e1); e1.adjust()
+                
+                # Cria Segmento 2 (Junção -> Destino)
+                e2 = Edge(junction, dst_n, "tip", dst_p)
+                e2.flow_data = old_flow; e2.pipe_name = f"{old_name} (cont.)" if old_name else ""
+                self.scene().addItem(e2); e2.adjust()
+                
+                # Cria a NOVA perna (Início -> Junção)
+                new_leg = Edge(self.start_port.node, junction, self.start_port.port_id, "tip")
+                new_leg.flow_data = self._probe_old_data(self.start_port.node)
+                self.scene().addItem(new_leg); new_leg.adjust()
+                
+                StreamEditorDialog(new_leg).exec_()
             else:
+                # Criar novo terminal se soltar no vazio
                 suggested = "Saída" if "right" in self.start_port.port_id else "Entrada"
                 dialog = TerminalConfigDialog(self, suggested)
                 if dialog.exec_() == QDialog.Accepted:
                     v_type, v_name = dialog.get_values()
                     if v_name:
-                        # Criamos a Ponta de Seta Autônoma (Sem Ghost Nodes)
                         handle = SourceSinkHandle(v_type, v_name)
                         handle.setPos(self.mapToScene(event.pos()))
                         self.scene().addItem(handle)
                         
-                        # Conectamos o pipe (Edge)
-                        # Entrada: O fluxo flui do Handle para o Equipamento
-                        # Saída: O fluxo flui do Equipamento para o Handle
                         if v_type == "Entrada":
                             edge = Edge(handle, self.start_port.node, "tip", self.start_port.port_id)
                         else:
                             edge = Edge(self.start_port.node, handle, self.start_port.port_id, "tip")
                             
-                        self.scene().addItem(edge)
                         edge.pipe_name = v_name
-                        edge.label_item.setText(v_name)
-                        edge.adjust()
+                        self.scene().addItem(edge); edge.adjust()
+                        StreamEditorDialog(edge).exec_()
                     
             self.scene().removeItem(self.temp_line); self.temp_line = None; self.mode = "Move"
             for i in self.scene().items():
@@ -939,22 +1303,232 @@ class FlowsheetCanvas(QGraphicsView):
             return
         super().mouseReleaseEvent(event)
 
+    def _probe_old_data(self, node):
+        """Helper para recuperar flow_data em caso de reconexão."""
+        for e in node.edges:
+            if (e.source_node == node or e.dest_node == node) and e.flow_data:
+                return e.flow_data.copy()
+        return {}
+
 
 class FlowsheetWidget(QWidget):
     def __init__(self):
         super().__init__(); layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0)
-        self._tb = QWidget(); self._tb.setFixedHeight(50); tb_lay = QHBoxLayout(self._tb)
+        
+        # Usa a toolbar padronizada do core (adicionando o botão de cálculo)
+        self._tb, tb_lay = _make_toolbar(self, "PFD Flowsheet")
         self.btn_pal = QPushButton("☰ Equipamentos"); self.btn_pal.setCheckable(True); self.btn_pal.setChecked(True)
-        tb_lay.addWidget(self.btn_pal); tb_lay.addStretch()
+        self.btn_solve = QPushButton("🧮 Calcular Balanço")
+        self.btn_solve.clicked.connect(self.solve_mass_balance)
+        
+        tb_lay.insertWidget(1, self.btn_pal)
+        tb_lay.addWidget(self.btn_solve)
         layout.addWidget(self._tb)
+        
         self.scene = QGraphicsScene(); self.scene.setSceneRect(0,0,2000,2000); self.canvas = FlowsheetCanvas(self.scene)
-        self.splitter = QSplitter(Qt.Horizontal); self.palette = SymbolPalette()
-        self.splitter.addWidget(self.palette)
-        self.splitter.addWidget(self.canvas)
-        self.splitter.setStretchFactor(1, 1)
-        self.splitter.setSizes([200, 800])
-        layout.addWidget(self.splitter)
+        
+        # Splitter Horizontal (Paleta e Canvas)
+        self.h_splitter = QSplitter(Qt.Horizontal)
+        self.palette = SymbolPalette()
+        self.h_splitter.addWidget(self.palette)
+        self.h_splitter.addWidget(self.canvas)
+        self.h_splitter.setStretchFactor(1, 1)
+        self.h_splitter.setSizes([200, 800])
+        
+        # Tabela de Resultados do Balanço (Agora flutuante no OVERLAY GERAL)
+        self.results_table = QTableWidget(self)
+        self.results_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.results_table.setFixedSize(800, 450) # Grid expandido para alta visibilidade
+        self.results_table.raise_() 
+        
+        layout.addWidget(self.h_splitter)
+        
         self.process_name_input = QLineEdit(self.canvas); self.process_name_input.setPlaceholderText("Processo..."); self.process_name_input.move(15, 15)
+        
+        # Timer para Autocalculação (Debounce de 300ms)
+        self._auto_timer = QTimer(self)
+        self._auto_timer.setSingleShot(True)
+        self._auto_timer.timeout.connect(self.solve_mass_balance)
+        self.scene.changed.connect(lambda: self._auto_timer.start(300))
+        
+        # Garante que as cores iniciais estejam corretas conforme o tema ativo
+        self.refresh_theme()
+
+    def solve_mass_balance(self):
+        """Motor de cálculo ITERATIVO ROBUSTO para suporte a Reciclo, Purga e Terminais."""
+        edges = [i for i in self.scene.items() if isinstance(i, Edge)]
+        if not edges: return
+        
+        # 1. Identifica Feeds Reais (Qualquer corrente vinda de um Terminal de Entrada)
+        feeds = [e for e in edges if isinstance(e.source_node, SourceSinkHandle) and e.source_node.h_type == "Entrada"]
+        
+        # 2. Inicializa fluxos internos para garantir convergência limpa
+        for e in edges:
+            if e not in feeds:
+                e.flow_data = {k: 0.0 for k in e.flow_data}
+
+        # 3. Loop Iterativo de Relaxação
+        max_iter = 200
+        epsilon = 0.001
+        for _ in range(max_iter):
+            old_flows = {e: sum(e.flow_data.values()) for e in edges}
+            
+            for node in self.scene.items():
+                if isinstance(node, (ProcessNode, JunctionNode)):
+                    in_edges = [e for e in node.edges if e.dest_node == node]
+                    out_edges = [e for e in node.edges if e.source_node == node]
+                    if not in_edges or not out_edges: continue
+                    
+                    total_in_comp = {}
+                    for ie in in_edges:
+                        for comp, val in ie.flow_data.items():
+                            total_in_comp[comp] = total_in_comp.get(comp, 0.0) + val
+                    
+                    comp_outs = {oe: {} for oe in out_edges}
+                    for comp, total_val in total_in_comp.items():
+                        config_all = getattr(node, 'split_config', {}).get(comp, {})
+                        
+                        # Processa Vazões Fixas primeiro
+                        remaining = total_val
+                        for oe in out_edges:
+                            cfg = config_all.get(oe.source_port, {"mode": "perc", "val": 0.0})
+                            if cfg["mode"] == "fixed":
+                                val = min(remaining, cfg["val"])
+                                comp_outs[oe][comp] = val
+                                remaining -= val
+                            else:
+                                comp_outs[oe][comp] = 0.0
+                        
+                        # Distribui o restante por Fração
+                        perc_ports = [oe for oe in out_edges if config_all.get(oe.source_port, {"mode": "perc"}).get("mode") == "perc"]
+                        if perc_ports:
+                            total_p = sum(config_all.get(oe.source_port, {"val": 1.0/len(perc_ports)})["val"] for oe in perc_ports)
+                            for oe in perc_ports:
+                                p_cfg = config_all.get(oe.source_port, {"val": 1.0/len(perc_ports)})
+                                share = (p_cfg["val"] / total_p) if total_p > 0 else (1.0 / len(perc_ports))
+                                comp_outs[oe][comp] += remaining * share
+                        elif remaining > 0.001 and out_edges:
+                            comp_outs[out_edges[-1]][comp] += remaining
+
+                    for oe in out_edges:
+                        oe.flow_data = comp_outs[oe]
+                        if abs(sum(comp_outs[oe].values()) - old_flows.get(oe, 0)) > epsilon:
+                            oe.adjust()
+
+            if sum(abs(sum(e.flow_data.values()) - old_flows.get(edge, 0)) for edge in edges) < epsilon: break
+
+        self.update_results_table(edges)
+
+    def update_results_table(self, _=None):
+        """Atualiza a planilha universal com TODOS os elementos da cena."""
+        all_items = self.scene.items()
+        edges = [i for i in all_items if isinstance(i, Edge)]
+        nodes = [i for i in all_items if isinstance(i, (ProcessNode, JunctionNode, SourceSinkHandle))]
+        
+        components = sorted(list(set(c for e in edges for c in e.flow_data.keys())))
+        base_headers = ["Elemento", "Identificação", "Status / Rota", "⚖ Vazão (kg/h)"]
+        headers = base_headers + components
+        self.results_table.setColumnCount(len(headers))
+        self.results_table.setHorizontalHeaderLabels(headers)
+        
+        all_entries = edges + nodes
+        self.results_table.setRowCount(len(all_entries))
+        
+        for i, item in enumerate(all_entries):
+            if isinstance(item, Edge):
+                tipo, name = "🌊 Piping", item.pipe_name or f"Linha {i+1}"
+                src = item.source_node.custom_name if isinstance(item.source_node, ProcessNode) else getattr(item.source_node, 'flow_name', 'IN')
+                dst = item.dest_node.custom_name if isinstance(item.dest_node, ProcessNode) else getattr(item.dest_node, 'flow_name', 'OUT')
+                status, total_f, comps_data = f"{src} → {dst}", sum(item.flow_data.values()), item.flow_data
+            else:
+                tipo = f"⚙️ {item.symbol_type}" if isinstance(item, ProcessNode) else ("💠 Junção" if isinstance(item, JunctionNode) else f"🚉 Terminal ({item.h_type})")
+                name = getattr(item, 'custom_name', '') or getattr(item, 'flow_name', '') or "---"
+                in_edges = [e for e in edges if e.dest_node == item]
+                out_edges = [e for e in edges if e.source_node == item]
+                mass_in, mass_out = sum(sum(e.flow_data.values()) for e in in_edges), sum(sum(e.flow_data.values()) for e in out_edges)
+                diff = abs(mass_in - mass_out)
+                status = "✅ Balanço OK" if diff < 0.001 else f"❌ Desvio: {diff:.2f}"
+                total_f = mass_in if mass_in > 0 else mass_out
+                comps_data = {c: sum(e.flow_data.get(c, 0) for e in in_edges) for c in components}
+
+            row_data = [tipo, name, status, f"{total_f:.2f}"]
+            for col_idx, text in enumerate(row_data):
+                it = QTableWidgetItem(text); it.setTextAlignment(Qt.AlignCenter)
+                self.results_table.setItem(i, col_idx, it)
+            for j, comp in enumerate(components):
+                it = QTableWidgetItem(f"{comps_data.get(comp, 0.0):.2f}"); it.setTextAlignment(Qt.AlignCenter)
+                self.results_table.setItem(i, len(base_headers) + j, it)
+
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.update_table_position()
+
+    def update_table_position(self):
+        wh = self.height()
+        tw = self.results_table.width()
+        th = self.results_table.height()
+        # Reposiciona com um padding de 25px em relação à borda da janela
+        self.results_table.move(ww - tw - 25, wh - th - 25)
+        self.results_table.raise_()
+
+    def refresh_theme(self):
+        t = T()
+        # Estiliza o botão "Equipamentos" com tipografia controlada para não "estourar"
+        self.btn_pal.setStyleSheet(f"""
+            QPushButton {{ 
+                background: transparent; color: {t['text']}; 
+                font-weight: bold; border: none; padding: 2px 10px; 
+                font-size: 13px; font-family: 'Segoe UI';
+            }}
+            QPushButton:hover {{ color: {t['accent']}; }}
+            QPushButton:checked {{ color: {t['accent_bright']}; text-decoration: underline; }}
+        """)
+        self.btn_solve.setStyleSheet(f"""
+            QPushButton {{ 
+                background: {t['accent']}; color: white; 
+                font-weight: bold; border-radius: 4px; padding: 5px 15px; 
+            }}
+            QPushButton:hover {{ background: {t['accent_bright']}; }}
+        """)
+        self._tb.setStyleSheet(f"background:{t['toolbar_bg']}; border-bottom:2px solid {t['accent']};")
+        self.canvas.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
+        
+        # Estilo Glassmorphism para a Tabela Flutuante
+        rgba = QColor(t["bg_card"])
+        glass_bg = f"rgba({rgba.red()}, {rgba.green()}, {rgba.blue()}, 180)" # Transparência
+        
+        self.results_table.setStyleSheet(f"""
+            QTableWidget {{ 
+                background: {glass_bg}; color: {t['text']}; 
+                gridline-color: {t['accent_dim']}; border: 2px solid {t['accent']}; 
+                font-family: 'Segoe UI'; font-size: 11px; border-radius: 12px;
+            }} 
+            QTableWidget::item {{ 
+                padding: 5px; border-bottom: 1px solid {t['accent_dim']}; 
+            }}
+            QHeaderView::section {{ 
+                background-color: {t['accent']}; color: white; 
+                border: none; font-weight: bold; padding: 6px;
+                text-transform: uppercase; font-size: 10px;
+            }}
+            QScrollBar:vertical {{ border: none; background: transparent; width: 8px; }}
+            QScrollBar::handle:vertical {{ background: {t['accent']}; border-radius: 4px; }}
+        """)
+        
+        # Força o reposicionamento inicial
+        self.update_table_position()
+        if hasattr(self, "palette"):
+            self.palette.refresh_theme()
+        # Força redo em todos os itens da cena para pegar novas cores e máscaras
+        for item in self.scene.items():
+            if isinstance(item, Edge):
+                item.adjust() # Recalcula máscara com nova cor bg_app
+            item.update()
+
     def load_example(self, example_id):
         # 1. Limpar cena
         self.scene.clear()
@@ -1038,14 +1612,17 @@ class FlowsheetWidget(QWidget):
             self.scene.addItem(edge)
             edge.adjust()
 
+    def refresh_theme(self):
         t = T()
-        # Estiliza o botão "Equipamentos" para ficar sem fundo e com texto no tema
+        # Estiliza o botão "Equipamentos" com tipografia controlada para não "estourar"
         self.btn_pal.setStyleSheet(f"""
             QPushButton {{ 
                 background: transparent; color: {t['text']}; 
-                font-weight: bold; border: none; padding: 5px 15px; 
+                font-weight: bold; border: none; padding: 2px 10px; 
+                font-size: 13px; font-family: 'Segoe UI';
             }}
             QPushButton:hover {{ color: {t['accent']}; }}
+            QPushButton:checked {{ color: {t['accent_bright']}; text-decoration: underline; }}
         """)
         self._tb.setStyleSheet(f"background:{t['toolbar_bg']}; border-bottom:2px solid {t['accent']};")
         self.canvas.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
@@ -1083,6 +1660,7 @@ class _FlowsheetModule(BaseModule):
                     "y": i.scenePos().y(),
                     "name": getattr(i, "custom_name", ""),
                     "size": getattr(i, "size", 50),
+                    "split_config": getattr(i, "split_config", {}),
                 })
             elif isinstance(i, SourceSinkHandle):
                 handle_id = f"h{len(handle_ids) + 1}"
@@ -1118,10 +1696,11 @@ class _FlowsheetModule(BaseModule):
                 "dest_port": i.dest_port,
                 "pipe_name": i.pipe_name,
                 "is_utility": i.is_utility,
+                "flow_data": i.flow_data,
             })
 
         return {
-            "schema": "flowsheet.v2",
+            "schema": "flowsheet.v6",
             "process_name": self._inner.process_name_input.text(),
             "nodes": nodes,
             "handles": handles,
@@ -1154,6 +1733,8 @@ class _FlowsheetModule(BaseModule):
                     node.set_size(int(n["size"]))
                 except Exception:
                     pass
+            if "split_config" in n:
+                node.split_config = n["split_config"]
             self._inner.scene.addItem(node)
             created_nodes[n.get("id")] = node
 
@@ -1173,8 +1754,7 @@ class _FlowsheetModule(BaseModule):
             edge = Edge(src, dst, e.get("source_port", "right"), e.get("dest_port", "left"))
             edge.pipe_name = e.get("pipe_name", "")
             edge.is_utility = bool(e.get("is_utility", False))
-            if edge.pipe_name:
-                edge.label_item.setText(edge.pipe_name)
+            edge.flow_data = e.get("flow_data", {})
             edge.adjust()
             self._inner.scene.addItem(edge)
 
