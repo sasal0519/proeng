@@ -264,8 +264,6 @@ Diferente de licenças permissivas, a GPLv3 garante que o ProEng permaneça livr
 
 Para dúvidas técnicas, bugs ou sugestões de novos equipamentos:
 - **Issues**: [GitHub Issues Page]
-- **Email**: suporte@proengsuite.com.br
-- **Site**: www.proengsuite.com.br
 
 ---
 
