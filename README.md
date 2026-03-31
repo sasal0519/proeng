@@ -158,6 +158,22 @@ O ProEng segmenta as causas em 6 categorias pré-definidas:
 
 ---
 
+## 📸 Galeria de Interface (Dark vs. Light)
+
+Abaixo, a demonstração visual de como a suíte ProEng adapta sua elegância industrial conforme o tema selecionado.
+
+| Módulo | Tema Dark (Premium) | Tema Light (Corporativo) |
+| :--- | :---: | :---: |
+| **Welcome Screen** | ![Welcome Dark](proeng/resources/screenshots/welcome_dark.png) | ![Welcome Light](proeng/resources/screenshots/welcome_light.png) |
+| **Flowsheet (PFD)** | ![Flowsheet Dark](proeng/resources/screenshots/flowsheet_dark.png) | ![Flowsheet Light](proeng/resources/screenshots/flowsheet_light.png) |
+| **BPMN Modeler** | ![BPMN Dark](proeng/resources/screenshots/bpmn_dark.png) | ![BPMN Light](proeng/resources/screenshots/bpmn_light.png) |
+| **EAP / WBS** | ![EAP Dark](proeng/resources/screenshots/eap_dark.png) | ![EAP Light](proeng/resources/screenshots/eap_light.png) |
+| **Project Canvas** | ![Canvas Dark](proeng/resources/screenshots/canvas_dark.png) | ![Canvas Light](proeng/resources/screenshots/canvas_light.png) |
+| **Plano 5W2H** | ![5W2H Dark](proeng/resources/screenshots/w5h2_dark.png) | ![5W2H Light](proeng/resources/screenshots/w5h2_light.png) |
+| **Ishikawa (6M)** | ![Ishikawa Dark](proeng/resources/screenshots/ishikawa_dark.png) | ![Ishikawa Light](proeng/resources/screenshots/ishikawa_light.png) |
+
+---
+
 ## 🚀 Guia de Instalação e Configuração
 
 O ProEng foi desenhado para ser leve e não requerer instaladores complexos.
