@@ -373,10 +373,6 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
         painter.drawEllipse(QRectF(-s*0.8, -s*0.8, s*1.6, s*1.6))
         painter.drawEllipse(QRectF(-s*0.4, -s*0.4, s*0.8, s*0.8))
         painter.drawLine(QPointF(0, -s*0.8), QPointF(0, s*0.8))
-    elif st == "Compressor":
-        poly = QPolygonF([QPointF(-s*0.8, s*0.8), QPointF(s*0.8, s*0.4),
-                          QPointF(s*0.8, -s*0.4), QPointF(-s*0.8, -s*0.8)])
-        painter.drawPolygon(poly)
     elif st == "Soprador":
         painter.drawEllipse(QRectF(-s*0.8, -s*0.6, s*1.2, s*1.2))
         painter.drawRect(QRectF(s*0.2, -s*0.6, s*0.5, s*0.5))
@@ -495,7 +491,7 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
             painter.drawEllipse(QRectF(s*i - s*0.2, -s*0.4, s*0.4, s*0.8))
     elif st == "Moinho":
         painter.drawEllipse(QRectF(-s, -s, s*2, s*2))
-        painter.drawPoint(0,0); painter.drawEllipse(QRectF(-s*0.5, -s*0.5, s, s))
+        painter.drawPoint(QPointF(0,0)); painter.drawEllipse(QRectF(-s*0.5, -s*0.5, s, s))
     elif st == "Britador":
         painter.drawLine(QPointF(-s, -s), QPointF(0, s)); painter.drawLine(QPointF(s, -s), QPointF(0, s))
         painter.drawLine(QPointF(-s*0.5, -s), QPointF(s*0.5, -s))
@@ -662,7 +658,7 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
     elif st == "Chaminé":
         poly = QPolygonF([QPointF(-s*0.4, -s*2), QPointF(s*0.4, -s*2), QPointF(s*0.8, s*2), QPointF(-s*0.8, s*2)])
         painter.drawPolygon(poly)
-    elif symbol_type == "Forno":
+    elif st == "Forno":
         painter.setBrush(QBrush(QColor(_bg_node)))
         painter.drawRoundedRect(QRectF(-s*1.2, -s*0.8, s*2.4, s*1.6), 10, 10)
         path = QPainterPath()
@@ -675,7 +671,7 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
         painter.setBrush(QBrush(QColor(_bg_node)))
         painter.drawRoundedRect(QRectF(-s*0.7, -s*1.3, s*1.4, s*2.6), 15, 15)
         for i in range(4):
-            painter.drawLine(-s*0.5, -s + i*s*0.6, s*0.5, -s + i*s*0.6)
+            painter.drawLine(QPointF(-s*0.5, -s + i*s*0.6), QPointF(s*0.5, -s + i*s*0.6))
     elif st == "Box":
         painter.setBrush(QBrush(QColor(_bg_node)))
         painter.setPen(QPen(QColor(theme["accent"]), 1.5))
