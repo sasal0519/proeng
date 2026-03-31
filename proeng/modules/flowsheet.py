@@ -1468,6 +1468,7 @@ class FlowsheetWidget(QWidget):
         self.update_table_position()
 
     def update_table_position(self):
+        ww = self.width()
         wh = self.height()
         tw = self.results_table.width()
         th = self.results_table.height()
