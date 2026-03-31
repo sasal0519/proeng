@@ -242,19 +242,8 @@ A customização visual é feita através de um dicionário centralizado. Abaixo
 
 ---
 
-## 📈 Roadmap de Atualizações Futuras
 
-O desenvolvimento do ProEng é movido pela comunidade e pelas necessidades da engenharia moderna.
-
-- **Fase 1 (Atual)**: Estabilização de módulos core e sistema de temas dinâmicos.
-- **Fase 2**: Implementação de exportação vetorial (SVG e DXF para integração com CAD).
-- **Fase 3**: Módulo de Gestão de Riscos (FMEA - Failure Mode and Effects Analysis).
-- **Fase 4**: Integração com APIs de CLOUD para salvamento remoto sincronizado.
-- **Fase 5**: Suporte a cálculos dinâmicos de balanço de massa no PFD.
-
----
-
-### 🤝 Contribuição e Filosofia Hacker
+### 🤝 Contribuição e Filosofia 
 
 O ProEng é um projeto de **Software Livre** que valoriza a cooperação altruísta. Para contribuir, você não apenas segue um fluxo técnico, mas adere ao compromisso de manter o conhecimento aberto:
 1.  **Audite o Código**: Como ferramenta de engenharia, a segurança depende da sua revisão.
