@@ -18,10 +18,9 @@ from PyQt5.QtCore import (
 )
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import (_export_view, C_BG_APP, C_BG_NODE,
-    C_BORDER, C_TEXT_MAIN, C_PLACEHOLDER, C_BTN_ADD, C_BTN_DEL, C_LINE,
-    C_BTN_SIB, C_BG_ROOT, C_BORDER_ROOT, W5H2_TYPES)
+from proeng.core.utils import (_export_view, _c, _glass_grad)
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
+from proeng.core.base_module import BaseModule
 
 class NodeSignals(QObject):
     commit_text = pyqtSignal(int, str)
@@ -64,14 +63,21 @@ class NodeItem(QGraphicsItem):
         fmw = QFontMetrics(self._font_wbs)
         sample = self.text if self.text.strip() else "Nomear"
         pad_x = 30 * self.zoom
-        pad_y = 18 * self.zoom
+        pad_y = 24 * self.zoom # Slightly more vertical padding
         if self.shape in ["ellipse", "diamond"]:
             pad_x *= 1.6
             pad_y *= 1.8
-        text_w = self._get_text_width(fm, sample)
-        wbs_w  = self._get_text_width(fmw, self.wbs)
-        self._w = max(100 * self.zoom, max(text_w, wbs_w) + pad_x)
-        self._h = max(40  * self.zoom, fm.height() + fmw.height() + pad_y)
+            
+        # Max width for EAP nodes
+        max_node_w = 180 * self.zoom
+        wbs_w = self._get_text_width(fmw, self.wbs)
+        
+        # Calculate text height with wrapping
+        available_text_w = max_node_w - pad_x
+        text_rect = fm.boundingRect(0, 0, int(available_text_w), 1000, Qt.AlignCenter | Qt.TextWordWrap, sample)
+        
+        self._w = max(100 * self.zoom, max(text_rect.width(), wbs_w) + pad_x)
+        self._h = max(45 * self.zoom, text_rect.height() + fmw.height() + pad_y)
 
     def width(self):  return self._w
     def height(self): return self._h
@@ -88,25 +94,15 @@ class NodeItem(QGraphicsItem):
         bs    = 14 * self.zoom
         hbs   = bs / 2
 
-        # Fundo com gradiente
-        grad = QLinearGradient(r.topLeft(), r.bottomRight())
-        if self.is_root:
-            grad.setColorAt(0, QColor(t["bg_card2"]))
-            grad.setColorAt(1, QColor(t["bg_card"]))
-        else:
-            grad.setColorAt(0, QColor(t["bg_card"]))
-            grad.setColorAt(1, QColor(t["bg_app"]))
-        if self._hovered:
-            grad.setColorAt(0, QColor(t["bg_card2"]))
-            grad.setColorAt(1, QColor(t["bg_card2"]))
-        painter.setBrush(QBrush(grad))
+        # Fundo com o novo motor universal de gradiente (High-Fidelity)
+        painter.setBrush(QBrush(_glass_grad(r, self._hovered or self.is_root)))
 
         border = t["accent_bright"] if self.is_root else (t["accent"] if not empty else t["accent_dim"])
         style  = Qt.SolidLine if not empty else Qt.DashLine
-        painter.setPen(QPen(QColor(border), 2.0 if self.is_root else 1.5, style))
+        painter.setPen(QPen(Qt.NoPen))
 
         if self.shape == "roundrect":
-            painter.drawRoundedRect(r, 7, 7)
+            painter.drawRoundedRect(r, 12, 12)
         elif self.shape == "ellipse":
             painter.drawEllipse(r)
         elif self.shape == "diamond":
@@ -119,12 +115,18 @@ class NodeItem(QGraphicsItem):
             painter.drawPolygon(poly)
 
         if self.is_root and not empty and self.shape == "roundrect":
+            painter.save()
+            clip_path = QPainterPath()
+            clip_path.addRoundedRect(r, 12, 12)
+            painter.setClipPath(clip_path)
+
             sg = QLinearGradient(0, 0, self._w, 0)
             sg.setColorAt(0, QColor(t["accent_bright"]))
             sg.setColorAt(0.7, QColor(0,0,0,0))
             painter.setBrush(QBrush(sg))
-            painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(QRectF(0, 0, self._w, 3 * self.zoom), 2, 2)
+            painter.setPen(QPen(Qt.NoPen))
+            painter.drawRect(QRectF(0, 0, self._w, 4 * self.zoom))
+            painter.restore()
 
         if empty:
             painter.setFont(self._font_ph)
@@ -134,12 +136,21 @@ class NodeItem(QGraphicsItem):
             # WBS number — elide if needed
             fmw = QFontMetrics(self._font_wbs)
             painter.setFont(self._font_wbs)
-            painter.setPen(QColor(t["accent"]))
-            offset_y = 6 * self.zoom
+            painter.setPen(QPen(_c("accent"), 1.2))
+            # Offset and padding
+            offset_y = 8 * self.zoom
             if self.shape in ["ellipse", "diamond"]:
                 offset_y += 10 * self.zoom
-            wbs_rect = QRectF(0, offset_y, self._w, fmw.height())
+            wbs_rect = QRectF(6*self.zoom, offset_y, self._w - 12*self.zoom, fmw.height())
             painter.drawText(wbs_rect, Qt.AlignHCenter | Qt.AlignVCenter, self.wbs)
+            
+            # Subtitle (text) — increase padding
+            painter.setFont(self._font_text)
+            painter.setPen(QColor(t["text"]))
+            # Add padding to avoid rounded corner clipping
+            p_val = 15 * self.zoom if self.is_root else 8 * self.zoom
+            text_rect = QRectF(p_val, offset_y + fmw.height(), self._w - 2*p_val, self._h - offset_y - fmw.height() - 5*self.zoom)
+            painter.drawText(text_rect, Qt.AlignCenter | Qt.TextWordWrap, self.text)
             # Main text — word-wrap with bounded height
             painter.setFont(self._font_text)
             painter.setPen(QColor(t["text"]))
@@ -286,6 +297,8 @@ class EAPWidget(QWidget):
         self.node_positions  = {}
         self._scene_items    = []
         self.nodes = {1: {"text": "", "children": [], "parent": None, "shape": "roundrect"}}
+        self.pad_x = 30
+        self.pad_y = 60
         self.signals = NodeSignals()
         self.signals.commit_text.connect(self._on_commit)
         self.signals.add_child.connect(self._on_add_child)
@@ -347,10 +360,7 @@ class EAPWidget(QWidget):
         try:
             self.view.setBackgroundBrush(QBrush(QColor(T()["bg_app"])))
         except Exception:
-            try:
-                self.view.setBackgroundBrush(QBrush(QColor(C_BG_APP)))
-            except Exception:
-                pass
+            self.view.setBackgroundBrush(QBrush(QColor("#FFFFFF")))
 
     def refresh_theme(self):
         t = T()
@@ -381,6 +391,15 @@ class EAPWidget(QWidget):
         for b in self._eap_exp_btns: b.setStyleSheet(exp_s)
         if hasattr(self, 'view'):
             self._refresh_view_bg()
+        
+        # Refresh scene items and connections
+        if hasattr(self, 'scene'):
+            self.scene.update()
+            # Redesenha para garantir que cores de linhas (que não são itens custom) atualizem
+            self.draw_eap()
+        
+        if hasattr(self, '_float_editor'):
+            self._float_editor._apply_style()
 
     def zoom_in(self, *args):  self.update_zoom(self.zoom * 1.15)
     def zoom_out(self, *args): self.update_zoom(self.zoom / 1.15)
@@ -405,8 +424,8 @@ class EAPWidget(QWidget):
         pixmap.fill(Qt.transparent)
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(QPen(QColor(C_BORDER), 2))
-        painter.setBrush(QBrush(QColor(C_BG_NODE)))
+        painter.setPen(QPen(_c("accent"), 2))
+        painter.setBrush(QBrush(_c("bg_card")))
         rect = QRectF(4, 4, 24, 24)
         if shape_type == "roundrect":
             painter.drawRoundedRect(rect, 4, 4)
@@ -600,7 +619,7 @@ class EAPWidget(QWidget):
 
 
 
-class _EAPModule(QWidget):
+class _EAPModule(BaseModule):
     def __init__(self):
         super().__init__()
         self._inner = EAPWidget()
@@ -623,18 +642,17 @@ class _EAPModule(QWidget):
     def zoom_out(self):
         self._inner.zoom_out()
 
-
-
-
-
+    # --- BaseModule API -------------------------------------------------
     def get_state(self):
         return {
+            "schema": "eap.v1",
             "nodes": self._inner.nodes,
             "next_id": self._inner.next_id
         }
 
     def set_state(self, state):
-        if not state: return
+        if not state:
+            return
         nodes = {}
         for k, v in state.get("nodes", {}).items():
             try: k_int = int(k)
@@ -644,10 +662,17 @@ class _EAPModule(QWidget):
         self._inner.next_id = state.get("next_id", 2)
         self._inner.draw_eap()
 
+    def refresh_theme(self):
+        if hasattr(self._inner, "refresh_theme"):
+            self._inner.refresh_theme()
+
+    def get_view(self):
+        return getattr(self._inner, "view", None)
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = _EAPModule()
-    w.setWindowTitle("Gerador EAP — ProEng")
+    w.setWindowTitle("Gerador EAP — PRO ENG")
     w.resize(1400, 900)
     w.show()
     sys.exit(app.exec_())

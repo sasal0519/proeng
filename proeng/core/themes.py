@@ -24,68 +24,86 @@ from PyQt5.QtCore import (
 THEMES = {
     "dark": {
         "name":          "dark",
-        "bg_app":        "#161922",     # Grafite profundo azulado
-        "bg_card":       "#222636",     # Slate azulado suave
-        "bg_card2":      "#2F3349",     # Slate médio para hover
-        "accent":        "#7367F0",     # Indigo moderno (menos agressivo que vermelho)
-        "accent_bright": "#9E95F5",     # Indigo brilhante
-        "accent_dim":    "#484481",     # Indigo desbotado / Bordas
-        "text":          "#D0D2D6",     # Off-white suave
-        "text_dim":      "#B4B7BD",     # Slate claro
-        "text_muted":    "#676D7D",     # Slate escuro
-        "line":          "#7367F0",
-        "line_eap":      "#484481",
-        "btn_add":       "#28C76F",     # Verde esmeralda moderno
-        "btn_sib":       "#00CFE8",     # Ciano vibrante
-        "btn_del":       "#EA5455",     # Coral suave para deleção
-        "node_bg":       "#161922",
-        "node_border":   "#484481",
-        "node_text":     "#D0D2D6",
-        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #161922,stop:0.5 #222636,stop:1 #161922)",
-        "toolbar_sep":   "rgba(115,103,240,0.25)",
-        "toolbar_btn":   "rgba(34,38,54,0.95)",
-        "toolbar_btn_h": "rgba(115,103,240,0.15)",
-        "sig_bg_l":      "rgba(22,25,34,0)",
-        "sig_bg_r":      "rgba(47,51,73,225)",
-        "sig_border":    "rgba(115,103,240,50)",
-        "sig_text":      "rgba(180,183,189,180)",
+        # Fundo principal mais sóbrio e neutro
+        "bg_app":        "#050816",     # Azul petróleo quase preto
+        # Cartões com glass leve, porém menos “fantasia”
+        "bg_card":       "rgba(15, 23, 42, 210)",   # Slate escuro
+        "bg_card2":      "rgba(30, 64, 175, 220)",  # Azul mais forte no hover
+        "bg_input":      "#020617",     # Fundo quase preto para inputs
+        "glass_border":  "rgba(148, 163, 184, 80)",
+        # Paleta de acento mais corporativa (azul petróleo)
+        "accent":        "#2563EB",     # Blue 600
+        "accent_bright": "#38BDF8",     # Sky 400
+        "accent_dim":    "rgba(37, 99, 235, 110)",
+        # Tipografia
+        "text":          "#E5E7EB",     # Gray-200
+        "text_dim":      "#9CA3AF",     # Gray-400
+        "text_muted":    "#6B7280",     # Gray-500
+        # Linhas e elementos estruturais
+        "line":          "#38BDF8",
+        "line_eap":      "#4B5563",
+        # Botões de ação
+        "btn_add":       "#22C55E",
+        "btn_sib":       "#0EA5E9",
+        "btn_del":       "#EF4444",
+        # Nós de diagramas
+        "node_bg":       "rgba(15, 23, 42, 230)",
+        "node_border":   "rgba(148, 163, 184, 180)",
+        "node_text":     "#F9FAFB",
+        # Barra superior mais discreta
+        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 rgba(5,8,22,255),stop:1 rgba(15,23,42,255))",
+        "toolbar_sep":   "rgba(148,163,184,60)",
+        "toolbar_btn":   "rgba(15,23,42,255)",
+        "toolbar_btn_h": "rgba(30,64,175,255)",
+        # Assinaturas/suporte
+        "sig_bg_l":      "rgba(5,8,22,0)",
+        "sig_bg_r":      "rgba(15,23,42,230)",
+        "sig_border":    "rgba(148,163,184,80)",
+        "sig_text":      "rgba(229,231,235,200)",
+        # Controles de janela
+        "btn_close_h":   "#EF4444",
+        "btn_win_h":     "rgba(148,163,184,60)",
     },
     "light": {
-        # ── Paleta Azul Celeste & Branco Moderno ─────────────────────
         "name":          "light",
-        # Superfícies
-        "bg_app":        "#F4F8FF",     # fundo geral — azul muito pálido
-        "bg_card":       "#FFFFFF",     # card puro branco
-        "bg_card2":      "#E6EFFF",     # card hover / selecionado
-        # Accent azul saturado (mais vibrante que antes)
-        "accent":        "#1A62CC",     # azul primário
-        "accent_bright": "#2575E8",     # azul brilhante / hover
-        "accent_dim":    "#93B8E8",     # azul desbotado / borda suave
-        # Texto
-        "text":          "#0D1A2E",     # quase preto-azulado
-        "text_dim":      "#4A6A94",     # azul médio
-        "text_muted":    "#A8BDD8",     # azul apagado
-        # Linhas do diagrama
-        "line":          "#2575E8",
-        "line_eap":      "#93B8E8",
-        # Botões de ação nos nós
-        "btn_add":       "#166B30",
-        "btn_sib":       "#1A3A8B",
-        "btn_del":       "#C0392B",
-        # Node canvas (flowsheet)
-        "node_bg":       "#EBF3FF",
-        "node_border":   "#93B8E8",
-        "node_text":     "#0D1A2E",
-        # Toolbar
-        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #E6EFFF,stop:0.5 #F4F8FF,stop:1 #E6EFFF)",
-        "toolbar_sep":   "rgba(26,98,204,0.25)",
-        "toolbar_btn":   "rgba(255,255,255,0.97)",
-        "toolbar_btn_h": "rgba(26,98,204,0.10)",
-        # Assinatura
-        "sig_bg_l":      "rgba(180,210,255,0)",
-        "sig_bg_r":      "rgba(220,235,255,235)",
-        "sig_border":    "rgba(26,98,204,55)",
-        "sig_text":      "rgba(26,80,160,205)",
+        # Fundo claro levemente acinzentado (menos brilho)
+        "bg_app":        "#F3F4F6",     # Gray-100
+        "bg_card":       "rgba(255,255,255, 245)",  # Branco com leve transparência
+        "bg_card2":      "rgba(226, 232, 240, 255)",# Gray-200 no hover
+        "bg_input":      "#FFFFFF",
+        "glass_border":  "rgba(148,163,184,70)",
+        # Acento azul profissional
+        "accent":        "#2563EB",     # Blue 600
+        "accent_bright": "#1D4ED8",     # Blue 700
+        "accent_dim":    "rgba(37, 99, 235, 80)",
+        # Tipografia
+        "text":          "#111827",     # Gray-900
+        "text_dim":      "#4B5563",     # Gray-600
+        "text_muted":    "#6B7280",     # Gray-500
+        # Linhas
+        "line":          "#2563EB",
+        "line_eap":      "#CBD5F5",     # Azul bem claro para linhas estruturais
+        # Botões
+        "btn_add":       "#16A34A",
+        "btn_sib":       "#2563EB",
+        "btn_del":       "#DC2626",
+        # Nós
+        "node_bg":       "#FFFFFF",
+        "node_border":   "#E5E7EB",
+        "node_text":     "#111827",
+        # Barra superior
+        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 rgba(243,244,246,255),stop:1 rgba(229,231,235,255))",
+        "toolbar_sep":   "rgba(148,163,184,60)",
+        "toolbar_btn":   "rgba(255,255,255,255)",
+        "toolbar_btn_h": "rgba(219,234,254,255)",
+        # Assinaturas/suporte
+        "sig_bg_l":      "rgba(255,255,255,0)",
+        "sig_bg_r":      "rgba(243,244,246,245)",
+        "sig_border":    "rgba(148,163,184,70)",
+        "sig_text":      "rgba(17,24,39,190)",
+        # Controles de janela
+        "btn_close_h":   "#EF4444",
+        "btn_win_h":     "rgba(148,163,184,60)",
     },
 }
 

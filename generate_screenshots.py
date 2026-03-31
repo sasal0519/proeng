@@ -135,7 +135,7 @@ def gen_canvas(theme_name):
     w = PMCanvasWidget()
     w.sections["just"].append({"id": "j1", "text": "Melhorar eficiência de processos"})
     w.sections["obj"].append({"id": "o1", "text": "Redução de 30% no desperdício"})
-    w.sections["prod"].append({"id": "p1", "text": "Plataforma ProEng v2.0"})
+    w.sections["prod"].append({"id": "p1", "text": "Plataforma PRO ENG v2.0"})
     w.sections["eqp"].append({"id": "e1", "text": "Equipe de Engenharia"})
     w.sections["stk"].append({"id": "s1", "text": "Diretoria, Fábrica, TI"})
     w.sections["risc"].append({"id": "r1", "text": "Atraso na entrega de hardware"})
@@ -147,7 +147,7 @@ def gen_canvas(theme_name):
 def gen_w5h2(theme_name):
     set_theme(theme_name)
     w = W5H2Widget()
-    w.nodes[1]["text"] = "IMPLANTAÇÃO DO PROENG CLOUD"
+    w.nodes[1]["text"] = "IMPLANTAÇÃO DO PRO ENG CLOUD"
     
     # Ação 1
     a1 = w.next_id; w.next_id += 1

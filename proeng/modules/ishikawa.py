@@ -18,10 +18,9 @@ from PyQt5.QtCore import (
 )
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import (_export_view, C_BG_APP, C_BG_NODE,
-    C_BORDER, C_TEXT_MAIN, C_PLACEHOLDER, C_BTN_ADD, C_BTN_DEL, C_LINE,
-    C_BTN_SIB, C_BG_ROOT, C_BORDER_ROOT, W5H2_TYPES)
+from proeng.core.utils import (_export_view, _c, _glass_grad)
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
+from proeng.core.base_module import BaseModule
 
 
 class IshikawaSignals(QObject):
@@ -111,10 +110,16 @@ class IshikawaNode(QGraphicsItem):
     def _calc_size(self):
         sample = self.text if self.text else ("Efeito / Problema" if self.level == 0 else "Nova Causa")
         fm = QFontMetrics(self._font)
-        tw = fm.horizontalAdvance(sample) if hasattr(fm, "horizontalAdvance") else fm.width(sample)
-        th = fm.height()
-        self.w = max(self.base_w, tw + 28 * self.zoom)
-        self.h = max(self.base_h, th + 16 * self.zoom)
+        
+        # Max width for Ishikawa nodes
+        max_node_w = (240 if self.level == 0 else 160) * self.zoom
+        pad_x = (40 if self.level == 0 else 24) * self.zoom
+        pad_y = (30 if self.level == 0 else 18) * self.zoom
+        
+        text_rect = fm.boundingRect(0, 0, int(max_node_w - pad_x), 1000, Qt.AlignCenter | Qt.TextWordWrap, sample)
+        
+        self.w = max(self.base_w, text_rect.width() + pad_x)
+        self.h = max(self.base_h, text_rect.height() + pad_y)
 
     def boundingRect(self):
         m = 14 * self.zoom
@@ -125,44 +130,34 @@ class IshikawaNode(QGraphicsItem):
         painter.setRenderHint(QPainter.Antialiasing)
         r = QRectF(0, 0, self.w, self.h)
 
-        # Fundo com gradiente
-        grad = QLinearGradient(r.topLeft(), r.bottomRight())
-        if self.level == 0:
-            grad.setColorAt(0, QColor(t["bg_card2"]))
-            grad.setColorAt(1, QColor(t["bg_card"]))
-            border_col = t["accent_bright"] if not self.hovered else "#FF8888" if t["name"] == "dark" else "#0050CC"
-            pen_w = 2.5 * self.zoom
-            radius = 6
-        elif self.level == 1:
-            grad.setColorAt(0, QColor(t["bg_card"]))
-            grad.setColorAt(1, QColor(t["bg_app"]))
-            border_col = t["accent"] if not self.hovered else t["accent_bright"]
-            pen_w = 1.8 * self.zoom
-            radius = 5
-        else:
-            grad.setColorAt(0, QColor(t["bg_card"]))
-            grad.setColorAt(1, QColor(t["bg_card"]))
-            border_col = t["accent_dim"] if not self.hovered else t["accent"]
-            pen_w = 1.2 * self.zoom
-            radius = 4
-
-        painter.setBrush(QBrush(grad))
-        painter.setPen(QPen(QColor(border_col), pen_w))
+        # Aplicar motor de vidro universal para máxima clareza em todos os modos
+        painter.setBrush(QBrush(_glass_grad(r, self.hovered or self.level==0)))
+        painter.setPen(QPen(Qt.NoPen))
+        radius = 12 if self.level >= 1 else 15
         painter.drawRoundedRect(r, radius, radius)
 
-        # Accent strip topo
+        # Accent strip topo (CLIPPED)
         if self.level <= 1:
+            painter.save()
+            clip_path = QPainterPath()
+            clip_path.addRoundedRect(r, 12, 12)
+            painter.setClipPath(clip_path)
+
             sg = QLinearGradient(0, 0, self.w, 0)
             sg.setColorAt(0, QColor(t["accent_bright"] if self.hovered else t["accent"]))
             sg.setColorAt(0.6, QColor(0, 0, 0, 0))
             painter.setBrush(QBrush(sg)); painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(QRectF(0, 0, self.w, 3 * self.zoom), 2, 2)
+            painter.drawRect(QRectF(0, 0, self.w, 4 * self.zoom))
+            painter.restore()
 
         # Texto
         display = self.text if self.text else ("✎ Efeito/Problema" if self.level == 0 else "✎ Nomear")
-        painter.setPen(QColor(t["text"] if self.text else t["text_dim"]))
+        painter.setPen(_c("text" if self.text else "text_dim"))
         painter.setFont(self._font)
-        inner = r.adjusted(6 * self.zoom, 4 * self.zoom, -6 * self.zoom, -4 * self.zoom)
+        # Increased padding to avoid rounded corner clipping
+        px = 15 * self.zoom if self.level == 0 else 8 * self.zoom
+        py = 10 * self.zoom if self.level == 0 else 4 * self.zoom
+        inner = r.adjusted(px, py, -px, -py)
         painter.drawText(inner, Qt.AlignCenter | Qt.TextWordWrap, display)
 
         # Botões hover
@@ -247,14 +242,22 @@ class IshikawaWidget(QWidget):
 
     def _apply_view_bg(self):
         try:
-            self.view.setBackgroundBrush(QBrush(QColor(T()["bg_app"])))
+            self.view.setBackgroundBrush(QBrush(_c("bg_app")))
         except Exception:
-            self.view.setBackgroundBrush(QBrush(QColor(C_BG_APP)))
+            try:
+                self.view.setBackgroundBrush(QBrush(QColor("#FFFFFF")))
+            except Exception:
+                pass
 
     def refresh_theme(self):
         self._apply_view_bg()
-        if self.scene:
-            self.scene.update()
+        
+        if hasattr(self, '_float_editor'):
+            self._float_editor._apply_style()
+
+        # Precisamos redesenhar para atualizar as cores das linhas e setas (que não são itens custom)
+        if hasattr(self, 'scene'):
+            self._draw_diagram()
 
     def zoom_in(self):  self._scale(1.15)
     def zoom_out(self): self._scale(1 / 1.15)
@@ -426,7 +429,7 @@ class IshikawaWidget(QWidget):
 # ═══════════════════════════════════════════════════════════════════
 
 
-class _IshikawaModule(QWidget):
+class _IshikawaModule(BaseModule):
     def __init__(self):
         super().__init__()
         self._inner = IshikawaWidget()
@@ -449,12 +452,14 @@ class _IshikawaModule(QWidget):
 
     def get_state(self):
         return {
+            "schema": "ishikawa.v1",
             "nodes": self._inner.nodes,
             "next_id": self._inner.next_id
         }
 
     def set_state(self, state):
-        if not state: return
+        if not state:
+            return
         nodes = {}
         for k, v in state.get("nodes", {}).items():
             try: k_int = int(k)
@@ -475,11 +480,16 @@ class _IshikawaModule(QWidget):
 
         self._inner.nodes = nodes
         self._inner._draw_diagram()
+    def refresh_theme(self):
+        if hasattr(self._inner, "refresh_theme"):
+            self._inner.refresh_theme()
+    def get_view(self):
+        return getattr(self._inner, "view", None)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = _IshikawaModule()
-    w.setWindowTitle("Ishikawa — Causa e Efeito — ProEng")
+    w.setWindowTitle("Ishikawa — Causa e Efeito — PRO ENG")
     w.resize(1400, 900)
     w.show()
     sys.exit(app.exec_())

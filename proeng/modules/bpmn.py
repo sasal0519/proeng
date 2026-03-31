@@ -18,10 +18,9 @@ from PyQt5.QtCore import (
 )
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import (_export_view, C_BG_APP, C_BG_NODE,
-    C_BORDER, C_TEXT_MAIN, C_PLACEHOLDER, C_BTN_ADD, C_BTN_DEL, C_LINE,
-    C_BTN_SIB, C_BG_ROOT, C_BORDER_ROOT, W5H2_TYPES)
+from proeng.core.utils import (_export_view, _c, _glass_grad)
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
+from proeng.core.base_module import BaseModule
 
 import math as _math
 
@@ -79,26 +78,30 @@ class HeaderItem(QGraphicsRectItem):
                 self.signals.add_root.emit(lane_idx)
 
     def paint(self, painter, option, widget=None):
-        t = T()
         painter.setRenderHint(QPainter.Antialiasing)
-        grad = QLinearGradient(self.rect().topLeft(), self.rect().bottomRight())
-        if self.hovered:
-            grad.setColorAt(0, QColor(t["bg_card2"])); grad.setColorAt(1, QColor(t["bg_card"]))
-        else:
-            grad.setColorAt(0, QColor(t["bg_card"])); grad.setColorAt(1, QColor(t["bg_app"]))
-        b_color = t["accent_bright"] if self.type_id == "project" else t["accent"]
-        painter.setBrush(QBrush(grad))
-        painter.setPen(QPen(QColor(b_color), 2))
-        painter.drawRect(self.rect())
-        # Accent strip
-        sg = QLinearGradient(self.rect().left(), 0, self.rect().right(), 0)
-        sg.setColorAt(0, QColor(b_color)); sg.setColorAt(0.5, QColor(0,0,0,0))
+        r = self.rect().adjusted(0.5, 0.5, -0.5, -0.5)
+        painter.setBrush(QBrush(_glass_grad(r, self.hovered)))
+        painter.setPen(QPen(Qt.NoPen))
+        rad = 20 if self.type_id == "pool" else 8
+        painter.drawRoundedRect(r, rad, rad)
+
+        # ── Accent strip logic (CLIPPED to round container) ──────────────────
+        painter.save()
+        clip_path = QPainterPath()
+        clip_path.addRoundedRect(r, rad, rad)
+        painter.setClipPath(clip_path)
+
+        sg = QLinearGradient(r.left(), 0, r.right(), 0)
+        sg.setColorAt(0, _c("accent_bright") if self.type_id == "project" else _c("accent")); sg.setColorAt(0.5, QColor(0,0,0,0))
         painter.setBrush(QBrush(sg)); painter.setPen(Qt.NoPen)
         if self.vertical:
-            painter.drawRect(QRectF(self.rect().left(), self.rect().top(), self.rect().width(), 3))
+            painter.drawRect(QRectF(r.left(), r.top(), r.width(), 3))
         else:
-            painter.drawRect(QRectF(self.rect().left(), self.rect().top(), self.rect().width(), 4))
-        painter.setPen(QColor(t["text"]))
+            painter.drawRect(QRectF(r.left(), r.top(), r.width(), 4))
+        painter.restore()
+
+        # ── Text Drawing (Highest contrast) ──────────────────────────────────
+        painter.setPen(QColor(T()["text"])) 
         font_size = 14 if self.type_id == "project" else 11
         font = QFont("Segoe UI", max(7, int(font_size * self.zoom)), QFont.Bold)
         painter.setFont(font)
@@ -106,16 +109,15 @@ class HeaderItem(QGraphicsRectItem):
             painter.save()
             painter.translate(self.rect().x() + self.rect().width()/2, self.rect().y() + self.rect().height()/2)
             painter.rotate(-90)
-            # Clamp text to rect to avoid overflow
-            tr = QRectF(-self.rect().height()/2, -self.rect().width()/2, self.rect().height(), self.rect().width())
+            tr = QRectF(-self.rect().height()/2 + 10*self.zoom, -self.rect().width()/2 + 2*self.zoom, 
+                         self.rect().height() - 20*self.zoom, self.rect().width() - 4*self.zoom)
             fm = QFontMetrics(font)
-            elided = fm.elidedText(self.text, Qt.ElideRight, int(tr.width() * 0.9))
+            elided = fm.elidedText(self.text, Qt.ElideRight, int(tr.width()))
             painter.drawText(tr, Qt.AlignCenter, elided)
             painter.restore()
         else:
-            fm = QFontMetrics(font)
-            elided = fm.elidedText(self.text, Qt.ElideRight, int(self.rect().width() * 0.9))
-            painter.drawText(self.rect(), Qt.AlignCenter, elided)
+            text_r = r.adjusted(15*self.zoom, 8*self.zoom, -15*self.zoom, -8*self.zoom)
+            painter.drawText(text_r, Qt.AlignCenter | Qt.TextWordWrap, self.text)
 
 
 class AddLaneItem(QGraphicsRectItem):
@@ -139,13 +141,20 @@ class AddLaneItem(QGraphicsRectItem):
             self.lane_callback()
 
     def paint(self, painter, option, widget=None):
-        t = T()
         painter.setRenderHint(QPainter.Antialiasing)
-        bg_color  = QColor(t["bg_card2"]) if self.hovered else QColor(t["bg_app"])
-        pen_color = QColor(t["accent_bright"]) if self.hovered else QColor(t["accent_dim"])
-        painter.setBrush(QBrush(bg_color))
-        painter.setPen(QPen(pen_color, 2, Qt.DashLine))
-        painter.drawRect(self.rect())
+        # 0. Body background with glassmorphism gradient
+        grad = QLinearGradient(0, 0, 0, self.rect().height())
+        bg_col1 = _c("bg_card2") if self.hovered else _c("bg_app")
+        bg_col2 = _c("bg_app")
+        grad.setColorAt(0, bg_col1)
+        grad.setColorAt(1, bg_col2)
+        
+        pen_color = _c("accent_bright") if self.hovered else _c("accent_dim")
+        # Refine lane addition button rounding
+        painter.setBrush(QBrush(grad))
+        painter.setPen(QPen(Qt.NoPen))
+        painter.drawRoundedRect(self.rect(), 20, 20)
+        t = T()
         painter.setPen(QColor(t["accent_bright"] if self.hovered else t["text_dim"]))
         font = QFont("Segoe UI", max(7, int(11 * self.zoom)), QFont.Bold)
         painter.setFont(font)
@@ -180,10 +189,12 @@ class BPMNAutoNode(QGraphicsItem):
         elif "Objeto" in self.shape:
             self._w = 40 * self.zoom; self._h = 50 * self.zoom
         else:
+            # Dynamic text wrap calculation for Tasks
             pad_x, pad_y = 20 * self.zoom, 16 * self.zoom
-            text_w = fm.horizontalAdvance(sample) if hasattr(fm, 'horizontalAdvance') else fm.width(sample)
-            self._w = max(90 * self.zoom, text_w + pad_x)
-            self._h = max(45 * self.zoom, fm.height() + pad_y)
+            max_w = 160 * self.zoom
+            text_rect = fm.boundingRect(0, 0, int(max_w - pad_x), 1000, Qt.AlignCenter | Qt.TextWordWrap, sample)
+            self._w = max(90 * self.zoom, text_rect.width() + pad_x)
+            self._h = max(45 * self.zoom, text_rect.height() + pad_y)
 
     def width(self):  return self._w
     def height(self): return self._h
@@ -197,44 +208,54 @@ class BPMNAutoNode(QGraphicsItem):
     def paint(self, painter, option, widget=None):
         painter.setRenderHint(QPainter.Antialiasing)
         r = QRectF(0, 0, self._w, self._h)
-        bs = 16 * self.zoom; hbs = bs / 2
-
         t = T()
-        bg_color = QColor(t["bg_card2"]) if self._hovered else QColor(t["bg_card"])
-        painter.setBrush(QBrush(bg_color))
-
+        
+        # Definir cores e espessuras antes do desenho
         border_color, pen_width = t["accent"], 2.0
-        if "Início" in self.shape:       border_color, pen_width = "#41CD52", 3.0
-        elif "Fim" in self.shape:         border_color, pen_width = t["accent_bright"], 4.0
-        elif "Gateway" in self.shape:     border_color = "#D4A017" if t["name"]=="dark" else "#B8860B"
-        elif "Intermediário" in self.shape: border_color = "#D4A017" if t["name"]=="dark" else "#B8860B"
+        if "Início" in self.shape:         border_color, pen_width = "#41CD52", 3.0
+        elif "Fim" in self.shape:           border_color, pen_width = "#CC2222", 4.0
+        elif "Gateway" in self.shape:       border_color = "#D4A017" if t["name"]=="dark" else "#B8860B"
+        elif "Intermediário" in self.shape:   border_color = "#D4A017" if t["name"]=="dark" else "#B8860B"
 
-        painter.setPen(QPen(QColor(border_color), pen_width, Qt.SolidLine))
+        # Fundo sólido conforme solicitado (Branco ou Escuro)
+        bg_color = QColor(255, 255, 255) if t["name"] == "light" else QColor(30, 30, 30)
+        painter.setBrush(QBrush(bg_color))
+        painter.setPen(QPen(QColor(border_color), pen_width))
 
         if "Evento" in self.shape:
             painter.drawEllipse(r)
             if "Intermediário" in self.shape:
                 painter.drawEllipse(QRectF(4, 4, self._w-8, self._h-8))
             if "Mensagem" in self.shape:
+                painter.setPen(QPen(QColor(border_color), 1.5))
                 painter.drawRect(QRectF(self._w*0.25, self._h*0.3, self._w*0.5, self._h*0.4))
                 painter.drawLine(QPointF(self._w*0.25, self._h*0.3), QPointF(self._w*0.5, self._h*0.5))
                 painter.drawLine(QPointF(self._w*0.5, self._h*0.5), QPointF(self._w*0.75, self._h*0.3))
+                painter.setPen(QPen(Qt.NoPen))
             if "Tempo" in self.shape:
+                painter.setPen(QPen(QColor(border_color), 1.5))
                 painter.drawEllipse(QRectF(self._w*0.2, self._h*0.2, self._w*0.6, self._h*0.6))
                 painter.drawLine(QPointF(self._w*0.5, self._h*0.5), QPointF(self._w*0.5, self._h*0.3))
                 painter.drawLine(QPointF(self._w*0.5, self._h*0.5), QPointF(self._w*0.65, self._h*0.5))
+                painter.setPen(QPen(Qt.NoPen))
 
         elif "Gateway" in self.shape:
             painter.drawPolygon(QPolygonF([QPointF(self._w/2, 0), QPointF(self._w, self._h/2),
                                            QPointF(self._w/2, self._h), QPointF(0, self._h/2)]))
             if "Exclusivo" in self.shape:
+                painter.setPen(QPen(QColor(border_color), 2.5))
                 painter.drawLine(QPointF(self._w*0.35, self._h*0.35), QPointF(self._w*0.65, self._h*0.65))
                 painter.drawLine(QPointF(self._w*0.65, self._h*0.35), QPointF(self._w*0.35, self._h*0.65))
+                painter.setPen(QPen(Qt.NoPen))
             elif "Paralelo" in self.shape:
+                painter.setPen(QPen(QColor(border_color), 2.5))
                 painter.drawLine(QPointF(self._w*0.5, self._h*0.25), QPointF(self._w*0.5, self._h*0.75))
                 painter.drawLine(QPointF(self._w*0.25, self._h*0.5), QPointF(self._w*0.75, self._h*0.5))
+                painter.setPen(QPen(Qt.NoPen))
             elif "Inclusivo" in self.shape:
+                painter.setPen(QPen(QColor(border_color), 1.5))
                 painter.drawEllipse(QRectF(self._w*0.3, self._h*0.3, self._w*0.4, self._h*0.4))
+                painter.setPen(QPen(Qt.NoPen))
 
         elif "Objeto de Dados" in self.shape:
             poly = QPolygonF([QPointF(0, 0), QPointF(self._w*0.7, 0), QPointF(self._w, self._h*0.3),
@@ -262,13 +283,17 @@ class BPMNAutoNode(QGraphicsItem):
                 painter.drawLine(QPointF(self._w/2 - 4*self.zoom, self._h - 6*self.zoom), QPointF(self._w/2 + 4*self.zoom, self._h - 6*self.zoom))
 
         painter.setFont(self._font_text if self.text else self._font_ph)
-        painter.setPen(QColor(t["text"] if self.text else t["text_dim"]))
+        painter.setPen(QColor(T()["text"] if self.text else T()["text_dim"]))
         display_text = self.text if self.text else "✎ Nomear"
         if "Evento" in self.shape or "Gateway" in self.shape or "Objeto" in self.shape or "Base" in self.shape:
-            text_rect = QRectF(-self._w, self._h + 4*self.zoom, self._w*3, 30*self.zoom)
-            painter.drawText(text_rect, Qt.AlignTop | Qt.AlignHCenter, display_text)
+            # Labels below the shape - use word wrap and high-Z for visibility
+            text_rect = QRectF(-self._w, self._h + 4*self.zoom, self._w*3, 60*self.zoom)
+            painter.drawText(text_rect, Qt.AlignTop | Qt.AlignHCenter | Qt.TextWordWrap, display_text)
         else:
-            painter.drawText(r, Qt.AlignCenter, display_text)
+            # Task text - precisely centered with padding
+            px = 8 * self.zoom
+            inner = r.adjusted(px, 4*self.zoom, -px, -4*self.zoom)
+            painter.drawText(inner, Qt.AlignCenter | Qt.TextWordWrap, display_text)
 
     def _draw_btn(self, painter, rect, label, color):
         painter.setBrush(QBrush(QColor(color)))
@@ -460,7 +485,7 @@ class BPMNAutoWidget(QWidget):
     def _create_shape_icon(self, shape_type):
         pixmap = QPixmap(32, 32); pixmap.fill(Qt.transparent)
         painter = QPainter(pixmap); painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(QPen(QColor(C_BORDER), 2)); painter.setBrush(QBrush(QColor(C_BG_NODE)))
+        painter.setPen(QPen(_c("accent"), 2)); painter.setBrush(QBrush(_c("bg_card")))
         r = QRectF(4, 4, 24, 24)
         if "Tarefa" in shape_type or "Subprocesso" in shape_type:
             painter.drawRoundedRect(r, 3, 3)
@@ -479,12 +504,13 @@ class BPMNAutoWidget(QWidget):
         return QIcon(pixmap)
 
     def _choose_shape(self):
+        t_m = T()
         menu = QMenu(self)
         menu.setStyleSheet(f"""
-            QMenu {{ background-color: {C_BG_NODE}; color: {C_TEXT_MAIN}; border: 1px solid {C_BORDER};
+            QMenu {{ background-color: {t_m["bg_card"]}; color: {t_m["text"]}; border: 1px solid {t_m["accent"]};
                     font-family: 'Segoe UI'; font-size: 10pt; }}
             QMenu::item {{ padding: 8px 30px; }}
-            QMenu::item:selected {{ background-color: {C_BORDER}; color: #0D0D0D; }}
+            QMenu::item:selected {{ background-color: {t_m["accent"]}; color: #0D0D0D; }}
         """)
         m_task = menu.addMenu("⚙️ Tarefas & Atividades")
         a1 = m_task.addAction(self._create_shape_icon("Tarefa"),           "Tarefa Simples")
@@ -709,9 +735,9 @@ class BPMNAutoWidget(QWidget):
                                self.project_name, "project", self.signals, self.zoom, vertical=False)
         self.scene.addItem(item_proj); self._scene_items.append(item_proj)
 
-        t = T()
-        pen = QPen(QColor(t["accent"]), 2, Qt.SolidLine)
-        rect_item = self.scene.addRect(pool_x, pool_y, w, h, pen, QBrush(QColor(t["bg_app"])))
+        path_p = QPainterPath()
+        path_p.addRoundedRect(pool_x, pool_y, w, h, 20*self.zoom, 20*self.zoom)
+        rect_item = self.scene.addPath(path_p, QPen(Qt.NoPen), QBrush(_c("bg_app")))
         rect_item.setZValue(-20); self._scene_items.append(rect_item)
 
         pool_header_w = 40 * self.zoom
@@ -722,17 +748,32 @@ class BPMNAutoWidget(QWidget):
         curr_y = pool_y
         for i, lane_name in enumerate(self.lanes):
             lh = self.lane_heights[i]
-            # Alternating lane background
-            lane_bg = t["bg_card"] if i % 2 == 0 else t["bg_app"]
-            lane_rect_item = self.scene.addRect(
-                pool_x + 40 * self.zoom, curr_y, w - 40 * self.zoom, lh,
-                QPen(Qt.NoPen), QBrush(QColor(lane_bg)))
+            # Use a path for lane background to match pool rounding at top/bottom
+            lane_bg_key = "bg_card" if i % 2 == 0 else "bg_app"
+            lane_path = QPainterPath()
+            lx, ly, lw, lh_val = pool_x + 40 * self.zoom, curr_y, w - 40 * self.zoom, lh
+            
+            # If it's the first or last lane, we need some rounding to match the pool
+            is_first = (i == 0)
+            is_last  = (i == len(self.lanes) - 1)
+            rad = 20 * self.zoom
+            
+            if is_first or is_last:
+                lane_path.addRoundedRect(lx, ly, lw, lh_val, rad, rad)
+                # Flatten the 'inner' side
+                if is_first and not is_last:
+                    lane_path.addRect(lx, ly + rad, lw, lh_val - rad)
+                elif is_last and not is_first:
+                    lane_path.addRect(lx, ly, lw, lh_val - rad)
+            else:
+                lane_path.addRect(lx, ly, lw, lh_val)
+                
+            lane_rect_item = self.scene.addPath(lane_path, QPen(Qt.NoPen), QBrush(_c(lane_bg_key)))
             lane_rect_item.setZValue(-18); self._scene_items.append(lane_rect_item)
 
             if i > 0:
-                line = self.scene.addLine(pool_x, curr_y, pool_x + w, curr_y,
-                                          QPen(QColor(t["accent_dim"]), 1, Qt.DashLine))
-                line.setZValue(-17); self._scene_items.append(line)
+                # Remove dashed separator, use subtle space or zero-width line
+                pass
             lane_header_w = 40 * self.zoom
             item_lane = HeaderItem(QRectF(pool_x, curr_y, lane_header_w, lh),
                                    lane_name, f"lane_{i}", self.signals, self.zoom, vertical=True)
@@ -841,7 +882,7 @@ class BPMNAutoWidget(QWidget):
 
 
 
-class _BPMNModule(QWidget):
+class _BPMNModule(BaseModule):
     def __init__(self):
         super().__init__()
         self._inner = BPMNAutoWidget()
@@ -868,15 +909,19 @@ class _BPMNModule(QWidget):
 
 
 
+    # --- BaseModule API -------------------------------------------------
     def get_state(self):
         return {
+            "schema": "bpmn.v1",
             "nodes": self._inner.nodes,
             "lanes": self._inner.lanes,
             "next_id": self._inner.next_id
         }
 
     def set_state(self, state):
-        if not state: return
+        if not state:
+            return
+        # Aceita tanto formato antigo (sem schema) quanto o novo.
         nodes = {}
         for k, v in state.get("nodes", {}).items():
             try: k_int = int(k)
@@ -889,10 +934,17 @@ class _BPMNModule(QWidget):
         self._inner.next_id = state.get("next_id", 2)
         self._inner.draw_diagram()
 
+    def refresh_theme(self):
+        if hasattr(self._inner, "refresh_theme"):
+            self._inner.refresh_theme()
+
+    def get_view(self):
+        return getattr(self._inner, "view", None)
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = _BPMNModule()
-    w.setWindowTitle("BPMN Modeler — ProEng")
+    w.setWindowTitle("BPMN Modeler — PRO ENG")
     w.resize(1400, 900)
     w.show()
     sys.exit(app.exec_())

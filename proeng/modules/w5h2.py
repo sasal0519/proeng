@@ -18,10 +18,9 @@ from PyQt5.QtCore import (
 )
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import (_export_view, C_BG_APP, C_BG_NODE,
-    C_BORDER, C_TEXT_MAIN, C_PLACEHOLDER, C_BTN_ADD, C_BTN_DEL, C_LINE,
-    C_BTN_SIB, C_BG_ROOT, C_BORDER_ROOT, W5H2_TYPES)
+from proeng.core.utils import (_export_view, _c, _glass_grad, W5H2_TYPES)
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
+from proeng.core.base_module import BaseModule
 
 
 class W5H2Signals(QObject):
@@ -125,22 +124,27 @@ class W5H2Node(QGraphicsItem):
         t = T()
         r = QRectF(0, 0, self.w, self.h)
         
-        bg = t["bg_card2"] if self.node_type == "ROOT" else t["bg_card"]
-        painter.setBrush(QBrush(QColor(bg)))
-        
-        border_color = self.type_data["c"] if self.hovered else t["accent_dim"]
-        painter.setPen(QPen(QColor(border_color), max(1, int(2 * self.zoom))))
-        painter.drawRoundedRect(r, 6, 6)
+        # Centralized glass gradient for excellent visual clarity (No-Border ready)
+        painter.setBrush(QBrush(_glass_grad(r, self.hovered or self.node_type == "ROOT")))
+        painter.setPen(QPen(Qt.NoPen))
+        painter.drawRoundedRect(r, 12, 12)
 
-        # 1. Aumenta a parte colorida (cabeçalho)
+        # 1. Header with dynamic gradient and precision clipping
         header_h = 28 * self.zoom
-        header_rect = QRectF(0, 0, self.w, header_h)
-        path = QPainterPath()
-        path.addRoundedRect(header_rect, 6, 6)
-        path.addRect(0, header_h - 6, self.w, 6)
-        painter.setBrush(QBrush(QColor(self.type_data["c"])))
-        painter.setPen(Qt.NoPen)
-        painter.drawPath(path)
+        painter.save()
+        clip_path = QPainterPath()
+        clip_path.addRoundedRect(r, 12, 12) # Use main rect to clip header
+        painter.setClipPath(clip_path)
+
+        header_col = QColor(self.type_data["c"])
+        h_grad = QLinearGradient(0, 0, 0, header_h)
+        h_grad.setColorAt(0, header_col)
+        h_grad.setColorAt(1, header_col.darker(115))
+        
+        painter.setBrush(QBrush(h_grad))
+        painter.setPen(QPen(Qt.NoPen))
+        painter.drawRect(QRectF(0, 0, self.w, header_h))
+        painter.restore()
         
         painter.setPen(QColor("#000000" if self.node_type in ["WHY", "WHEN", "WHERE"] else "#FFFFFF"))
         painter.setFont(QFont("Consolas", int(10 * self.zoom), QFont.Bold))
@@ -148,11 +152,12 @@ class W5H2Node(QGraphicsItem):
         header_text_rect = QRectF(0, -2 * self.zoom, self.w, header_h)
         painter.drawText(header_text_rect, Qt.AlignCenter, self.type_data["t"])
 
-        painter.setPen(QColor(t["text"]) if self.text else QColor(t["text_dim"]))
+        painter.setPen(_c("text" if self.text else "text_dim"))
         painter.setFont(self._font)
         
         # 2. Posiciona o texto principal mais para cima, colado ao cabeçalho (com padding)
-        text_rect = QRectF(10 * self.zoom, header_h + 8 * self.zoom, self.w - 20 * self.zoom, self.h - header_h - 16 * self.zoom)
+        p_val = 15 * self.zoom
+        text_rect = QRectF(p_val, header_h + 8 * self.zoom, self.w - 2 * p_val, self.h - header_h - 16 * self.zoom)
         # Usa AlignTop para colar o texto no alto
         painter.drawText(text_rect, Qt.AlignTop | Qt.AlignHCenter | Qt.TextWordWrap, self.text if self.text else "✎ Preencher")
 
@@ -215,9 +220,14 @@ class W5H2Widget(QWidget):
 
     def refresh_theme(self):
         t = T()
-        self.view.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
-        self._float_editor.apply_theme()
-        if self.scene: self.scene.update()
+        if hasattr(self, 'view'):
+            self.view.setBackgroundBrush(QBrush(_c("bg_app")))
+        
+        if hasattr(self, '_float_editor'):
+            self._float_editor.apply_theme()
+
+        # Redesenha para atualizar conectores e itens
+        self._draw_diagram()
 
     def _setup_ui(self):
         layout = QVBoxLayout(self); layout.setSpacing(0); layout.setContentsMargins(0, 0, 0, 0)
@@ -340,7 +350,7 @@ class W5H2Widget(QWidget):
 # ═══════════════════════════════════════════════════════════════════
 
 
-class _W5H2Module(QWidget):
+class _W5H2Module(BaseModule):
     def __init__(self):
         super().__init__()
         self._inner = W5H2Widget()
@@ -365,12 +375,14 @@ class _W5H2Module(QWidget):
 
     def get_state(self):
         return {
+            "schema": "w5h2.v1",
             "nodes": self._inner.nodes,
             "next_id": self._inner.next_id
         }
 
     def set_state(self, state):
-        if not state: return
+        if not state:
+            return
         nodes = {}
         for k, v in state.get("nodes", {}).items():
             try: k_int = int(k)
@@ -380,11 +392,16 @@ class _W5H2Module(QWidget):
         self._inner.nodes = nodes if nodes else {1: {"text": "Novo Projeto / Meta", "type": "ROOT", "parent": None, "children": []}}
         self._inner.next_id = state.get("next_id", 2)
         self._inner._draw_diagram()
+    def refresh_theme(self):
+        if hasattr(self._inner, "refresh_theme"):
+            self._inner.refresh_theme()
+    def get_view(self):
+        return getattr(self._inner, "view", None)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = _W5H2Module()
-    w.setWindowTitle("Plano de Ação 5W2H — ProEng")
+    w.setWindowTitle("Plano de Ação 5W2H — PRO ENG")
     w.resize(1400, 900)
     w.show()
     sys.exit(app.exec_())

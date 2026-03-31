@@ -18,10 +18,9 @@ from PyQt5.QtCore import (
 )
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import (_export_view, C_BG_APP, C_BG_NODE,
-    C_BORDER, C_TEXT_MAIN, C_PLACEHOLDER, C_BTN_ADD, C_BTN_DEL, C_LINE,
-    C_BTN_SIB, C_BG_ROOT, C_BORDER_ROOT, W5H2_TYPES)
+from proeng.core.utils import (_export_view, _c, _glass_grad)
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
+from proeng.core.base_module import BaseModule
 
 import math as _math
 
@@ -112,7 +111,7 @@ class CanvasFloatingEditor(QWidget):
 def draw_canvas_icon(painter, icon_name, rect):
     painter.save()
     painter.setRenderHint(QPainter.Antialiasing)
-    painter.setPen(QPen(QColor(C_TEXT_MAIN), 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+    painter.setPen(QPen(QColor(_c("text")), 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
     painter.setBrush(Qt.NoBrush)
     x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
     if icon_name == "just":
@@ -125,7 +124,7 @@ def draw_canvas_icon(painter, icon_name, rect):
         painter.drawLine(QPointF(x+w*0.5, y+h*0.5), QPointF(x+w*1.1, y-h*0.1))
         painter.drawPolygon(QPolygonF([QPointF(x+w*1.1, y-h*0.1), QPointF(x+w*0.9, y-h*0.1), QPointF(x+w*1.1, y+h*0.1)]))
     elif icon_name == "ben":
-        painter.setBrush(QBrush(QColor(C_TEXT_MAIN)))
+        painter.setBrush(QBrush(QColor(_c("text"))))
         painter.drawRect(QRectF(x+w*0.1, y+h*0.6, w*0.2, h*0.4))
         painter.drawRect(QRectF(x+w*0.4, y+h*0.3, w*0.2, h*0.7))
         painter.drawRect(QRectF(x+w*0.7, y, w*0.2, h*1.0))
@@ -165,7 +164,7 @@ def draw_canvas_icon(painter, icon_name, rect):
         painter.drawRect(QRectF(x+w*0.4, y, w*0.2, h*0.2))
         painter.drawLine(QPointF(x+w*0.5, y), QPointF(x+w*0.7, y-h*0.2))
     elif icon_name == "tmp":
-        painter.setBrush(QBrush(QColor(C_TEXT_MAIN)))
+        painter.setBrush(QBrush(QColor(_c("text"))))
         painter.drawEllipse(QRectF(x, y+h*0.4, w*0.15, h*0.15))
         painter.drawEllipse(QRectF(x+w*0.4, y+h*0.4, w*0.15, h*0.15))
         painter.drawEllipse(QRectF(x+w*0.8, y+h*0.4, w*0.15, h*0.15))
@@ -200,22 +199,24 @@ class CanvasSectionFixed(QGraphicsItem):
         painter.setRenderHint(QPainter.Antialiasing)
         r = self.boundingRect()
 
-        grad = QLinearGradient(0, 0, 0, self.h)
-        grad.setColorAt(0.0, QColor(t["bg_card"]))
-        grad.setColorAt(1.0, QColor(t["bg_app"]))
-        if self.hovered:
-            grad.setColorAt(0.0, QColor(t["bg_card2"]))
-        painter.setBrush(QBrush(grad))
-        painter.setPen(QPen(QColor(t["accent"]), max(1, int(1.5*self.zoom))))
-        painter.drawRect(r)
+        painter.setBrush(QBrush(_glass_grad(r, self.hovered)))
+        painter.setPen(QPen(Qt.NoPen))
+        painter.drawRoundedRect(r, 12, 12)
 
-        # Accent strip topo
+        # ── Accent strip topo (CLIPPED to round container) ────────────────────────
+        painter.save()
+        clip_path = QPainterPath()
+        clip_path.addRoundedRect(r, 12, 12)
+        painter.setClipPath(clip_path)
+
         strip_h = max(3, int(4 * self.zoom))
         sg = QLinearGradient(0, 0, self.w, 0)
-        sg.setColorAt(0.0, QColor(t["accent_bright"]))
+        sg.setColorAt(0.0, _c("accent_bright"))
         sg.setColorAt(0.6, QColor(0,0,0,0))
-        painter.setBrush(QBrush(sg)); painter.setPen(Qt.NoPen)
+        painter.setBrush(QBrush(sg)); painter.setPen(QPen(Qt.NoPen))
         painter.drawRect(QRectF(0, 0, self.w, strip_h))
+        painter.restore()
+        # ──────────────────────────────────────────────────────────────────────────
 
         # Ícone
         icon_size = 42 * self.zoom
@@ -223,29 +224,31 @@ class CanvasSectionFixed(QGraphicsItem):
         # Recolor icon for light theme
         painter.save()
         if t["name"] == "light":
-            painter.setPen(QPen(QColor(t["accent"]), 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter.setPen(QPen(_c("accent"), 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             painter.setBrush(Qt.NoBrush)
         draw_canvas_icon(painter, self.icon, ic_r)
         painter.restore()
 
-        # Título — bound height to avoid overflow
+        # Título — bound height to avoid overflow + padding
         title_font = QFont("Segoe UI", max(7, int(12*self.zoom)), QFont.Bold)
         painter.setPen(QColor(t["text"]))
         painter.setFont(title_font)
         title_x = 68*self.zoom
-        title_w = self.w - title_x - 8*self.zoom
-        title_rect = QRectF(title_x, 10*self.zoom, title_w, self.h * 0.35)
+        title_w = self.w - title_x - 14*self.zoom # Extra padding
+        # Increase height from 0.35 to 0.45 to avoid vertical 'bursting'
+        title_rect = QRectF(title_x, 14*self.zoom, title_w, self.h * 0.45)
         painter.drawText(title_rect, Qt.AlignLeft | Qt.AlignTop | Qt.TextWordWrap, self.title)
 
         if self.subtitle:
             fm_t = QFontMetrics(title_font)
             tb = fm_t.boundingRect(0, 0, int(title_w), 1000,
                                    Qt.AlignLeft | Qt.TextWordWrap, self.title)
-            sub_font = QFont("Segoe UI", max(6, int(9*self.zoom)))
-            painter.setPen(QColor(t["text_dim"]))
+            sub_font = QFont("Segoe UI", max(6, int(10*self.zoom)), QFont.Bold)
+            painter.setPen(_c("accent"))
             painter.setFont(sub_font)
-            sub_y = 10*self.zoom + tb.height() + 3*self.zoom
-            sub_rect = QRectF(title_x, sub_y, title_w, self.h * 0.2)
+            # Position subtitle based on title bounding box
+            sub_y = title_rect.top() + tb.height() + 4*self.zoom
+            sub_rect = QRectF(title_x, sub_y, title_w, self.h - sub_y - 8*self.zoom)
             painter.drawText(sub_rect, Qt.AlignLeft | Qt.AlignTop | Qt.TextWordWrap, self.subtitle)
 
         # Botão "+"
@@ -262,7 +265,7 @@ class CanvasSectionFixed(QGraphicsItem):
             painter.drawText(btn_rect, Qt.AlignCenter, "+")
         else:
             painter.setBrush(QBrush(QColor(128,128,128,30)))
-            painter.setPen(QPen(QColor(t["accent_dim"]), 1.5, Qt.DashLine))
+            painter.setPen(QPen(Qt.NoPen))
             painter.drawRoundedRect(btn_rect, 10, 10)
             painter.setPen(QColor(t["accent"]))
             painter.setFont(QFont("Consolas", max(12, int(28*self.zoom)), QFont.Bold))
@@ -312,30 +315,29 @@ class CanvasBlockSolid(QGraphicsItem):
     def boundingRect(self): return QRectF(0, 0, self.w, self.h)
 
     def paint(self, painter, option, widget=None):
-        t = T()
-        painter.setRenderHint(QPainter.Antialiasing)
         r = self.boundingRect()
+        painter.setRenderHint(QPainter.Antialiasing)
+        t = T()
 
-        grad = QLinearGradient(0, 0, 0, self.h)
+        # Body background block with universal glass engine
+        painter.setBrush(QBrush(_glass_grad(r, self.hovered)))
+        painter.setPen(QPen(Qt.NoPen))
+        painter.drawRoundedRect(r, 10, 10)
+        
+        # ── Accent strip lateral (CLIPPED) ────────────────────────────────────────
         if self.hovered:
-            grad.setColorAt(0.0, QColor(t["bg_card2"]))
-            grad.setColorAt(1.0, QColor(t["bg_card"]))
-        else:
-            grad.setColorAt(0.0, QColor(t["bg_card"]))
-            grad.setColorAt(1.0, QColor(t["bg_app"]))
-        border_color = t["accent_bright"] if self.hovered else t["accent_dim"]
-        painter.setBrush(QBrush(grad))
-        painter.setPen(QPen(QColor(border_color), max(1, int(1.8 * self.zoom))))
-        painter.drawRoundedRect(r, 6, 6)
+            painter.save()
+            clip_path = QPainterPath()
+            clip_path.addRoundedRect(r, 10, 10)
+            painter.setClipPath(clip_path)
 
-        # Accent strip lateral
-        if self.hovered:
             strip = QLinearGradient(0, 0, 0, self.h)
             strip.setColorAt(0, QColor(t["accent_bright"]))
             strip.setColorAt(1, QColor(t["accent"]))
             painter.setBrush(QBrush(strip))
-            painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(QRectF(0, 0, max(3, int(4*self.zoom)), self.h), 3, 3)
+            painter.setPen(QPen(Qt.NoPen))
+            painter.drawRect(QRectF(0, 0, max(3, int(4*self.zoom)), self.h))
+            painter.restore()
 
         if not self.text:
             painter.setFont(QFont("Segoe UI", max(7, int(10*self.zoom))))
@@ -344,8 +346,11 @@ class CanvasBlockSolid(QGraphicsItem):
         else:
             painter.setFont(self._font_text)
             painter.setPen(QColor(t["text"]))
-            inner = r.adjusted(10*self.zoom, 10*self.zoom, -10*self.zoom, -22*self.zoom)
-            painter.drawText(inner, Qt.AlignCenter | Qt.TextWordWrap, self.text)
+            # Precise alignment and wrapping for task blocks
+            # Increase padding to avoid rounded corners and give breathing room
+            px, py = 16 * self.zoom, 12 * self.zoom
+            inner = r.adjusted(px, py, -px, -py - 14*self.zoom)
+            painter.drawText(inner, Qt.AlignTop | Qt.AlignHCenter | Qt.TextWordWrap, self.text)
 
         if self.hovered:
             del_s    = 20 * self.zoom
@@ -414,23 +419,24 @@ class PMCanvasWidget(QWidget):
         self.scene = QGraphicsScene()
         self.view  = QGraphicsView(self.scene)
         self.view.setRenderHint(QPainter.Antialiasing)
-        try: self.view.setBackgroundBrush(QBrush(QColor(T()["bg_app"])))
-        except: self.view.setBackgroundBrush(QBrush(QColor(C_BG_APP)))
+        try: self.view.setBackgroundBrush(QBrush(_c("bg_app")))
+        except: self.view.setBackgroundBrush(QBrush(QColor("#FFFFFF")))
         self.view.setDragMode(QGraphicsView.ScrollHandDrag)
         self.view.setStyleSheet("border:none;")
         self.view.scale(self.zoom_level, self.zoom_level)
         layout.addWidget(self.view)
 
     def refresh_theme(self):
-        t = T()
         if hasattr(self, 'view'):
             try:
-                self.view.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
+                self.view.setBackgroundBrush(QBrush(_c("bg_app")))
                 self.view.viewport().update()
             except Exception: pass
-        if hasattr(self, 'scene'):
-            try: self.draw_diagram()
-            except Exception: pass
+        
+        if hasattr(self, '_float_editor'):
+            self._float_editor._apply_style()
+
+        self._draw_board()
 
     def zoom_in(self): self.update_zoom(self.zoom_level * 1.15)
     def zoom_out(self): self.update_zoom(self.zoom_level / 1.15)
@@ -466,9 +472,10 @@ class PMCanvasWidget(QWidget):
         sec_info = {s["id"]: s for s in self.sections_data}
 
         # Cabeçalhos GP / PITCH com gradiente
+        t_style = T()
         for txt, xp in [("GRUPO", 10*z), ("PITCH", cw*2 + 10*z)]:
             ti = self.scene.addText(txt)
-            ti.setDefaultTextColor(QColor(C_BORDER_ROOT))
+            ti.setDefaultTextColor(QColor(t_style["accent"]))
             ti.setFont(QFont("Consolas", int(24*z), QFont.Bold))
             ti.setPos(xp, -65*z)
 
@@ -492,7 +499,7 @@ class PMCanvasWidget(QWidget):
                 curr_px += p_item.w + 15*z
 
             if len(block_positions) > 1:
-                pen_conn = QPen(QColor(C_LINE), max(2, int(4*z)), Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                pen_conn = QPen(QColor(_c("accent")), max(2, int(4*z)), Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
                 for i in range(len(block_positions) - 1):
                     p_item1, px1, py1 = block_positions[i]
                     p_item2, px2, py2 = block_positions[i+1]
@@ -507,7 +514,7 @@ class PMCanvasWidget(QWidget):
                     ap2 = QPointF(mid_p.x() - arrow_size*_math.cos(angle + _math.pi/6),
                                   mid_p.y() - arrow_size*_math.sin(angle + _math.pi/6))
                     self.scene.addPolygon(QPolygonF([mid_p, ap1, ap2]),
-                                          QPen(Qt.NoPen), QBrush(QColor(C_LINE))).setZValue(6)
+                                          QPen(Qt.NoPen), QBrush(QColor(_c("accent")))).setZValue(6)
 
             for p_item, px, py in block_positions:
                 p_item.setPos(rect.x() + px, rect.y() + py)
@@ -516,7 +523,7 @@ class PMCanvasWidget(QWidget):
 
         # Título rodapé
         ti = self.scene.addText("Project Model Canvas")
-        ti.setDefaultTextColor(QColor(C_TEXT_MAIN))
+        ti.setDefaultTextColor(QColor(_c("text")))
         ti.setFont(QFont("Consolas", int(20*z), QFont.Bold))
         ti.setPos(cw*5 - ti.boundingRect().width() - 20*z, ch*10 + 10*z)
 
@@ -552,7 +559,7 @@ class PMCanvasWidget(QWidget):
 
 
 
-class _CanvasModule(QWidget):
+class _CanvasModule(BaseModule):
     def __init__(self):
         super().__init__()
         self._inner = PMCanvasWidget()
@@ -577,12 +584,14 @@ class _CanvasModule(QWidget):
 
     def get_state(self):
         return {
+            "schema": "canvas.v1",
             "sections": self._inner.sections,
             "next_pid": self._inner.next_pid
         }
 
     def set_state(self, state):
-        if not state: return
+        if not state:
+            return
         secs = state.get("sections", {})
         if secs:
             self._inner.sections = secs
@@ -590,11 +599,16 @@ class _CanvasModule(QWidget):
             self._inner.sections = {s["id"]: [] for s in self._inner.sections_data}
         self._inner.next_pid = state.get("next_pid", 1)
         self._inner._draw_board()
+    def refresh_theme(self):
+        if hasattr(self._inner, "refresh_theme"):
+            self._inner.refresh_theme()
+    def get_view(self):
+        return getattr(self._inner, "view", None)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = _CanvasModule()
-    w.setWindowTitle("PM Canvas — ProEng")
+    w.setWindowTitle("PM Canvas — PRO ENG")
     w.resize(1400, 900)
     w.show()
     sys.exit(app.exec_())

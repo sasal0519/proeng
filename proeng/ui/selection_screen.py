@@ -49,21 +49,24 @@ class ModuleCard(QPushButton):
         p.setRenderHint(QPainter.Antialiasing)
         r = QRectF(self.rect()).adjusted(2, 2, -2, -2)
 
-        # Fundo
+        # Fundo (Glassmorphism)
         g = QLinearGradient(r.topLeft(), r.bottomRight())
         if self._hov:
             g.setColorAt(0, QColor(t["bg_card2"])); g.setColorAt(1, QColor(t["bg_card"]))
         else:
             g.setColorAt(0, QColor(t["bg_card"])); g.setColorAt(1, QColor(t["bg_app"]))
         p.setBrush(QBrush(g))
-        p.setPen(QPen(QColor(t["accent_bright"] if self._hov else t["accent"]), 1.5))
-        p.drawRoundedRect(r, 12, 12)
+        
+        # Borda sutil de vidro
+        glass_color = QColor(t.get("glass_border", "rgba(255,255,255,40)"))
+        p.setPen(QPen(glass_color if not self._hov else QColor(t["accent_bright"]), 1.2))
+        p.drawRoundedRect(r, 16, 16)
 
         # Accent strip topo
         sg = QLinearGradient(r.left(), 0, r.right(), 0)
         sg.setColorAt(0, QColor(t["accent_bright"] if self._hov else t["accent"]))
         sg.setColorAt(0.55, QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(sg)); p.setPen(Qt.NoPen)
+        p.setBrush(QBrush(sg)); p.setPen(QPen(Qt.NoPen))
         p.drawRoundedRect(QRectF(r.left(), r.top(), r.width(), 3), 2, 2)
 
         # Emoji
@@ -249,7 +252,7 @@ class SelectionScreen(QWidget):
         self._topbar_widget.setAttribute(Qt.WA_StyledBackground, True)
         tl = QHBoxLayout(self._topbar_widget)
         tl.setContentsMargins(24, 0, 24, 0); tl.setSpacing(12)
-        self._brand_lbl = QLabel("⚙  Pro Eng Tools")
+        self._brand_lbl = QLabel("⚙  PRO ENG")
         tl.addWidget(self._brand_lbl)
         tl.addStretch()
         tog = ThemeToggle()
@@ -288,7 +291,7 @@ class SelectionScreen(QWidget):
         lay.addSpacing(18)
 
         # Títulos
-        self._t1 = QLabel("Pro Eng Tools"); self._t1.setAlignment(Qt.AlignCenter)
+        self._t1 = QLabel("PRO ENG"); self._t1.setAlignment(Qt.AlignCenter)
         lay.addWidget(self._t1)
         self._t2 = QLabel("— "); self._t2.setAlignment(Qt.AlignCenter)
         lay.addWidget(self._t2)
@@ -366,17 +369,17 @@ class SelectionScreen(QWidget):
     def _apply_styles(self):
         t = T()
 
-        # Root background — WA_StyledBackground + explicit selector ensures paint
+        # Root background
         self.setStyleSheet(f"QWidget {{ background-color: {t['bg_app']}; }}")
 
-        # Accent bars
+        # Accent bars (Modern gradients)
         self._top_bar.setStyleSheet(
             f"QWidget {{ background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
-            f"stop:0 {t['accent_bright']}, stop:0.6 {t['accent']}, stop:1 {t['bg_app']}); }}"
+            f"stop:0 {t['accent_bright']}, stop:0.4 {t['accent']}, stop:1 transparent); }}"
         )
         self._bot_bar.setStyleSheet(
             f"QWidget {{ background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
-            f"stop:0 {t['bg_app']}, stop:0.5 {t['accent']}, stop:1 {t['accent_bright']}); }}"
+            f"stop:0 transparent, stop:0.6 {t['accent']}, stop:1 {t['accent_bright']}); }}"
         )
 
         # Topbar
@@ -425,11 +428,11 @@ class SelectionScreen(QWidget):
             f" font-size: 10px; font-weight: bold; background: transparent; }}"
         )
 
-        # Feature pills
+        # Feature pills (Modern glass pills)
         pill_s = (
-            f"QLabel {{ color: {t['text_dim']}; font-family: 'Segoe UI'; font-size: 10px;"
-            f" background: {t['bg_card']}; border: 1px solid {t['accent_dim']};"
-            f" border-radius: 12px; padding: 3px 10px; }}"
+            f"QLabel {{ color: {t['text_dim']}; font-family: 'Segoe UI'; font-size: 11px;"
+            f" background: {t['bg_card']}; border: 1px solid {t.get('glass_border', 'rgba(255,255,255,30)')};"
+            f" border-radius: 14px; padding: 4px 14px; font-weight: 600; }}"
         )
         for p in self._pills:
             p.setStyleSheet(pill_s)

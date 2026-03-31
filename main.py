@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ProEng — Suíte de Ferramentas de Engenharia
+PRO ENG — Suíte de Ferramentas de Engenharia
 Ponto de entrada principal.
 """
 import sys
@@ -9,8 +9,8 @@ from proeng.ui.main_app import MainApp
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("ProEng")
-    app.setOrganizationName("ProEng Suite")
+    app.setApplicationName("PRO ENG")
+    app.setOrganizationName("PRO ENG")
     window = MainApp()
     window.show()
     sys.exit(app.exec_())

@@ -5,7 +5,7 @@ import time
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTimer
 
-# Importando os módulos do ProEng
+# Importando os módulos do PRO ENG
 from proeng.ui.main_app import MainApp
 from proeng.modules.flowsheet import _FlowsheetModule
 from proeng.modules.eap import _EAPModule
@@ -37,7 +37,7 @@ def take_screenshots():
         
         # Instancia o módulo
         widget = module_class()
-        widget.setWindowTitle(f"ProEng Screenshot - {name}")
+        widget.setWindowTitle(f"PRO ENG Screenshot - {name}")
         widget.resize(1280, 720) # Tamanho padrão para os prints
         widget.show()
         

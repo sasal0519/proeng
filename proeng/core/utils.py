@@ -17,36 +17,64 @@ from PyQt5.QtCore import (
     QIODevice, QSize, QPoint, QTimer, pyqtSignal, QObject, QSizeF
 )
 
-from proeng.core.themes import T, _ACTIVE, W5H2_TYPES
+from proeng.core.themes import T, _ACTIVE
 
 # ==========================================
-# CORES DINÂMICAS — lidas em tempo real do tema ativo
-# (definidas após THEMES, mas usadas via funções abaixo)
+# FUNÇÕES DE COR DINÂMICAS
 # ==========================================
 
-# Placeholders estáticos usados ANTES do sistema de temas carregar
-# (serão sobrescritos pelas funções dinâmicas de cor)
-C_BG_APP       = "#0D0D0D"
-C_BG_NODE      = "#1A0A0A"
-C_BG_ROOT      = "#2A0F0F"
-C_BORDER       = "#CC2222"
-C_BORDER_ROOT  = "#E03535"
-C_BORDER_EMPTY = "#8B2020"
-C_TEXT_WBS     = "#CC2222"
-C_TEXT_MAIN    = "#FAE8E8"
-C_TEXT         = "#FAE8E8"
-C_PLACEHOLDER  = "#8B2020"
-C_BTN_ADD      = "#1A5C1A"
-C_BTN_SIB      = "#1A3A6B"
-C_BTN_DEL      = "#8B1515"
-C_LINE         = "#E03535"
-C_LINE_EAP     = "#8B2020"
-
-# Funções de cor dinâmicas (usam T() após o sistema de temas estar carregado)
-# São chamadas dentro dos métodos paint() para pegar a cor do tema atual
 def _c(key):
-    try: return _ACTIVE["theme"][key]
-    except: return "#CC2222"  # fallback
+    """Retorna uma QColor baseada na chave do tema ativo, suportando formatos hex e rgba."""
+    try:
+        val = T().get(key, "#7367F0")
+        if val.startswith("rgba"):
+            # Parse rgba(r, g, b, a)
+            parts = val.replace("rgba(", "").replace(")", "").split(",")
+            r, g, b = int(parts[0]), int(parts[1]), int(parts[2])
+            a = int(parts[3])
+            return QColor(r, g, b, a)
+        return QColor(val)
+    except Exception:
+        return QColor("#7367F0")
+
+def _glass_grad(rect, hovered=False):
+    """Gera um gradiente linear de alta fidelidade (Efeito Glass) para preenchimentos borderless."""
+    t = T()
+    grad = QLinearGradient(rect.topLeft(), rect.bottomLeft())
+    
+    if t["name"] == "dark":
+        # Dark Mode: Slate-800 Glass -> Deep Slate-950
+        c1 = _c("bg_card") if not hovered else _c("bg_card2")
+        c2 = _c("bg_app")
+        grad.setColorAt(0, c1)
+        grad.setColorAt(0.4, c1) # Mantém brilho no topo
+        grad.setColorAt(1, c2)
+    else:
+        # Light Mode: 'Frost' effect (Slate-50 to White)
+        # Mais opacidade no topo para definição borderless
+        c1 = QColor(241, 245, 249, 230) if not hovered else QColor(226, 232, 240, 255)
+        c2 = QColor(255, 255, 255, 200)
+        grad.setColorAt(0, c1)
+        grad.setColorAt(1, c2)
+        
+    return grad
+
+# PROXY LEGACY CONSTANTS (Mapeadas dinamicamente para o motor de temas T())
+C_BG_APP      = "transparent" # Fundo via StyleSheet
+C_BG_NODE     = "transparent" 
+C_BORDER      = "rgba(0,0,0,0)"
+C_TEXT_MAIN   = "white"
+C_TEXT        = "white"
+C_PLACEHOLDER = "grey"
+C_BTN_ADD     = "#22C55E"
+C_BTN_DEL     = "#EF4444"
+C_LINE        = "#7367F0"
+C_BTN_SIB     = "#0EA5E9"
+C_BG_ROOT     = "#5E50EF"
+C_BORDER_ROOT = "white"
+
+# Note: many Flowsheet components now use T() directly, 
+# but these constants prevent crashes on legacy imports.
 
 
 # ==========================================
@@ -120,5 +148,16 @@ def _export_view(view, fmt, parent=None):
 # ==========================================
 #   MÓDULO 5W2H (ACTION PLAN AUTO-LAYOUT)
 # ==========================================
+
+W5H2_TYPES = {
+    "ROOT":    {"t": "🎯 Objetivo",  "c": "#5E50EF"}, # Soft Indigo
+    "WHAT":    {"t": "🤔 O Que?",      "c": "#FF9F43"}, # Soft Orange
+    "WHY":     {"t": "❓ Por Que?",    "c": "#EA5455"}, # Soft Red
+    "WHO":     {"t": "👤 Quem?",       "c": "#28C76F"}, # Soft Green
+    "WHERE":   {"t": "📍 Onde?",      "c": "#00CFE8"}, # Soft Cyan
+    "WHEN":    {"t": "📅 Quando?",     "c": "#D4A017"}, # Goldenrod
+    "HOW":     {"t": "🛠 Como?",       "c": "#82868b"}, # Gray Slate
+    "COST":    {"t": "💰 Quanto?",     "c": "#B33939"}  # Darker Red
+}
 
 
