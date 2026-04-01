@@ -3329,10 +3329,10 @@ class FlowsheetWidget(QWidget):
                     ("Tanque Fechado", 750, 150, "Destilado"),
                 ],
                 "edges": [
-                    (0, 1, "right", "left"),
-                    (1, 2, "right", "left"),
-                    (2, 3, "top", "left"),
-                    (3, 4, "right", "left"),
+                    (0, 1, "right", "left", {"Água": 1000, "Óleo": 500, "Gás": 200}),
+                    (1, 2, "right", "left", {"Água": 1000, "Óleo": 500, "Gás": 200}),
+                    (2, 3, "top", "left", {"Água": 300, "Óleo": 450, "Gás": 150}),
+                    (3, 4, "right", "left", {"Água": 300, "Óleo": 450, "Gás": 150}),
                 ],
             },
             "Produção de Amônia": {
@@ -3343,9 +3343,21 @@ class FlowsheetWidget(QWidget):
                     ("Separador Bifásico", 750, 300, "V-102"),
                 ],
                 "edges": [
-                    (0, 1, "right", "left"),
-                    (1, 2, "right", "left"),
-                    (2, 3, "right", "left"),
+                    (0, 1, "right", "left", {"N2": 140, "H2": 420, "Ar": 60}),
+                    (
+                        1,
+                        2,
+                        "right",
+                        "left",
+                        {"N2": 98, "H2": 294, "NH3": 168, "CH4": 60},
+                    ),
+                    (
+                        2,
+                        3,
+                        "right",
+                        "left",
+                        {"N2": 98, "H2": 200, "NH3": 168, "CH4": 60},
+                    ),
                 ],
             },
             "Tratamento de Água (ETA)": {
@@ -3356,9 +3368,21 @@ class FlowsheetWidget(QWidget):
                     ("Tanque Aberto", 700, 250, "Água Tratada"),
                 ],
                 "edges": [
-                    (0, 1, "right", "left"),
-                    (1, 2, "right", "left"),
-                    (2, 3, "right", "left"),
+                    (
+                        0,
+                        1,
+                        "right",
+                        "left",
+                        {"Turbidez": 50, "Sólidos": 100, "Água": 1000},
+                    ),
+                    (
+                        1,
+                        2,
+                        "right",
+                        "left",
+                        {"Turbidez": 10, "Sólidos": 20, "Água": 980},
+                    ),
+                    (2, 3, "right", "left", {"Turbidez": 1, "Sólidos": 5, "Água": 975}),
                 ],
             },
             "Caldeira Industrial": {
@@ -3369,9 +3393,9 @@ class FlowsheetWidget(QWidget):
                     ("Chaminé", 650, 200, "Exaustão"),
                 ],
                 "edges": [
-                    (0, 1, "right", "left"),
-                    (1, 2, "right", "left"),
-                    (2, 3, "top", "bottom"),
+                    (0, 1, "right", "left", {"Água": 500}),
+                    (1, 2, "right", "left", {"Água": 500}),
+                    (2, 3, "top", "bottom", {"Vapor": 480, "Gases": 20}),
                 ],
             },
             "Linha de Mineração": {
@@ -3380,7 +3404,10 @@ class FlowsheetWidget(QWidget):
                     ("Correia Transportadora", 350, 220, "Transporte"),
                     ("Moinho", 600, 200, "Moagem"),
                 ],
-                "edges": [(0, 1, "right", "left"), (1, 2, "right", "left")],
+                "edges": [
+                    (0, 1, "right", "left", {"Minério": 100, "Ganga": 400}),
+                    (1, 2, "right", "left", {"Minério": 100, "Ganga": 400}),
+                ],
             },
         }
 
@@ -3398,8 +3425,11 @@ class FlowsheetWidget(QWidget):
             created_nodes.append(node)
 
         # 4. Criar Edges
-        for s_idx, t_idx, s_por, t_por in ex["edges"]:
+        for edge_data in ex["edges"]:
+            s_idx, t_idx, s_por, t_por = edge_data[:4]
             edge = Edge(created_nodes[s_idx], created_nodes[t_idx], s_por, t_por)
+            if len(edge_data) > 4 and isinstance(edge_data[4], dict):
+                edge.flow_data = edge_data[4]
             self.scene.addItem(edge)
             edge.adjust()
 
