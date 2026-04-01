@@ -1,27 +1,63 @@
 # -*- coding: utf-8 -*-
 """Janela principal da aplicação PRO ENG - Formato Workspace/Project."""
+
 import sys
 import os
 
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QListWidget, QListWidgetItem, QStackedWidget,
-    QMenuBar, QMenu, QAction, QFileDialog, QMessageBox, QLabel, QSplitter,
-    QGraphicsView, QSizePolicy, QScrollArea, QGridLayout, QFrame,
-    QGraphicsOpacityEffect
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QListWidget,
+    QListWidgetItem,
+    QStackedWidget,
+    QMenuBar,
+    QMenu,
+    QAction,
+    QFileDialog,
+    QMessageBox,
+    QLabel,
+    QSplitter,
+    QGraphicsView,
+    QSizePolicy,
+    QScrollArea,
+    QGridLayout,
+    QFrame,
+    QGraphicsOpacityEffect,
 )
 from PyQt5.QtGui import (
-    QIcon, QFont, QColor, QPalette, QBrush, QLinearGradient,
-    QPainter, QPen, QPixmap, QPainterPath, QRadialGradient, QPolygonF
+    QIcon,
+    QFont,
+    QColor,
+    QPalette,
+    QBrush,
+    QLinearGradient,
+    QPainter,
+    QPen,
+    QPixmap,
+    QPainterPath,
+    QRadialGradient,
+    QPolygonF,
 )
 from PyQt5.QtCore import (
-    Qt, QSize, QRectF, QPointF, pyqtSignal, QPropertyAnimation, 
-    QEasingCurve, QTimer, QSequentialAnimationGroup, QPauseAnimation
+    Qt,
+    QSize,
+    QRectF,
+    QPointF,
+    pyqtSignal,
+    QPropertyAnimation,
+    QEasingCurve,
+    QTimer,
+    QSequentialAnimationGroup,
+    QPauseAnimation,
 )
 
 from proeng.core.themes import T
 from proeng.core.project import AppProject
-from proeng.core.utils   import _export_view, _c
+from proeng.core.utils import _export_view, _c
 from proeng.core.base_module import BaseModule
 
 
@@ -43,21 +79,25 @@ class SidebarItem(QPushButton):
 
     def _refresh(self):
         t = T()
-        txt = self.icon_char if self.is_collapsed else f"{self.icon_char}   {self.full_text}"
+        txt = (
+            self.icon_char
+            if self.is_collapsed
+            else f"{self.icon_char}   {self.full_text}"
+        )
         self.setText(txt)
-        
+
         # Estilo Dinâmico Premium
         self.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {t['text_dim']};
+                background: transparent; color: {t["text_dim"]};
                 border: none; border-radius: 8px;
                 text-align: left; padding-left: 12px;
                 font-family: 'Segoe UI'; font-size: 11px; font-weight: 600;
             }}
-            QPushButton:hover {{ background: {t['bg_card']}; color: {t['accent_bright']}; }}
+            QPushButton:hover {{ background: {t["bg_card"]}; color: {t["accent_bright"]}; }}
             QPushButton:checked {{ 
-                background: {t['accent_dim']}; color: {t['accent_bright']}; 
-                border-left: 3px solid {t['accent_bright']}; 
+                background: {t["accent_dim"]}; color: {t["accent_bright"]}; 
+                border-left: 3px solid {t["accent_bright"]}; 
             }}
         """)
 
@@ -89,6 +129,7 @@ class Sidebar(QFrame):
         self.items = []
         modules = [
             ("🏠", "Início", "welcome"),
+            ("📊", "Gantt", "gantt"),
             ("🏭", "Flowsheet", "flowsheet"),
             ("🔀", "BPMN", "bpmn"),
             ("📋", "EAP", "eap"),
@@ -96,7 +137,7 @@ class Sidebar(QFrame):
             ("🎯", "5W2H", "w5h2"),
             ("🐟", "Ishikawa", "ishikawa"),
         ]
-        
+
         self.group = []
         for icon, name, mid in modules:
             btn = SidebarItem(icon, name, mid)
@@ -123,22 +164,26 @@ class Sidebar(QFrame):
         t = T()
         self.setStyleSheet(f"""
             QFrame {{ 
-                background: {t['bg_card']}; 
-                border-right: 1px solid {t['accent_dim']};
+                background: {t["bg_card"]}; 
+                border-right: 1px solid {t["accent_dim"]};
             }}
             QPushButton#toggle {{
-                background: transparent; border: 1px solid {t['accent_dim']};
-                border-radius: 6px; color: {t['accent']}; font-size: 14px;
+                background: transparent; border: 1px solid {t["accent_dim"]};
+                border-radius: 6px; color: {t["accent"]}; font-size: 14px;
             }}
         """)
-        self.btn_toggle.setStyleSheet(f"background: transparent; color: {t['accent']}; font-size: 18px; border: none;")
+        self.btn_toggle.setStyleSheet(
+            f"background: transparent; color: {t['accent']}; font-size: 18px; border: none;"
+        )
+
 
 from proeng.modules.flowsheet import _FlowsheetModule
-from proeng.modules.eap       import _EAPModule
-from proeng.modules.bpmn      import _BPMNModule
-from proeng.modules.canvas    import _CanvasModule
-from proeng.modules.ishikawa  import _IshikawaModule
-from proeng.modules.w5h2      import _W5H2Module
+from proeng.modules.gantt import _GanttModule
+from proeng.modules.eap import _EAPModule
+from proeng.modules.bpmn import _BPMNModule
+from proeng.modules.canvas import _CanvasModule
+from proeng.modules.ishikawa import _IshikawaModule
+from proeng.modules.w5h2 import _W5H2Module
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -146,6 +191,13 @@ from proeng.modules.w5h2      import _W5H2Module
 # ─────────────────────────────────────────────────────────────────────────────
 
 MODULE_PREVIEWS = {
+    "gantt": {
+        "name": "Gantt Chart",
+        "desc": "Cronograma de projetos com calculo de caminho critico (CPM).",
+        "color1": "#1a4a8b",
+        "color2": "#0d2847",
+        "icon": "GNT",
+    },
     "flowsheet": {
         "name": "PFD Flowsheet",
         "desc": "Modelagem de fluxos industriais com equipamentos e linhas de processo.",
@@ -225,7 +277,7 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         # Equipamentos industriais: Bombas, Trocadores e Tanques
         p.setPen(QPen(QColor(100, 200, 255, 200), 1.5))
         p.setBrush(QBrush(QColor(40, 120, 200, 80)))
-        
+
         # Tanque (Cilindro vertical)
         p.drawRoundedRect(QRectF(30, 40, 40, 70), 5, 5)
         # Trocador (Círculo com espiral)
@@ -236,21 +288,21 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         p.drawRoundedRect(QRectF(150, 70, 70, 35), 8, 8)
         # Bomba (Círculo pequeno)
         p.drawEllipse(QPointF(60, 130), 15, 15)
-        
+
         # Tubulações com gradiente
         pen_pipe = QPen(QColor(160, 220, 255, 180), 2)
         p.setPen(pen_pipe)
-        p.drawLine(70, 75, 88, 50)     # Tanque -> Trocador
-        p.drawLine(132, 50, 150, 85)   # Trocador -> Separador
-        p.drawLine(60, 110, 60, 115)   # Tanque -> Bomba
+        p.drawLine(70, 75, 88, 50)  # Tanque -> Trocador
+        p.drawLine(132, 50, 150, 85)  # Trocador -> Separador
+        p.drawLine(60, 110, 60, 115)  # Tanque -> Bomba
 
     elif module_id == "bpmn":
-        # Raias e Fluxos 
+        # Raias e Fluxos
         p.setPen(QPen(QColor(150, 200, 255, 160), 1))
         # Cabeçalho da Raia
         p.setBrush(QBrush(QColor(40, 80, 180, 100)))
-        p.drawRect(10, 10, 25, size.height()-20)
-        
+        p.drawRect(10, 10, 25, size.height() - 20)
+
         # Atividades e Gateways
         p.setBrush(QBrush(QColor(50, 100, 220, 80)))
         # Evento Início (Verde)
@@ -260,10 +312,14 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         p.setPen(QPen(QColor(200, 220, 255, 200), 1.5))
         p.drawRoundedRect(QRectF(90, 35, 60, 30), 6, 6)
         # Gateway (Diamond)
-        p.drawPolygon(QPolygonF([QPointF(190, 50), QPointF(205, 65), QPointF(190, 80), QPointF(175, 65)]))
+        p.drawPolygon(
+            QPolygonF(
+                [QPointF(190, 50), QPointF(205, 65), QPointF(190, 80), QPointF(175, 65)]
+            )
+        )
         # Tarefa 2 (Baixo)
         p.drawRoundedRect(QRectF(160, 100, 60, 30), 6, 6)
-        
+
         # Conexões
         p.setPen(QPen(QColor(200, 220, 255, 120), 1.5))
         p.drawLine(72, 50, 90, 50)
@@ -289,9 +345,14 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         # Blocos do Canvas com Cores Significativas
         colors = ["#1a3a6b", "#1a6b4a", "#6b4a1a", "#4a1a6b", "#6b1a2a"]
         blocks = [
-            (10, 10, 45, 100, 0), (60, 10, 45, 45, 1), (110, 10, 45, 100, 2),
-            (60, 65, 45, 45, 3), (160, 10, 45, 100, 4), (210, 10, 45, 45, 0),
-            (10, 120, 110, 45, 1), (130, 120, 120, 45, 2)
+            (10, 10, 45, 100, 0),
+            (60, 10, 45, 45, 1),
+            (110, 10, 45, 100, 2),
+            (60, 65, 45, 45, 3),
+            (160, 10, 45, 100, 4),
+            (210, 10, 45, 45, 0),
+            (10, 120, 110, 45, 1),
+            (130, 120, 120, 45, 2),
         ]
         for rx, ry, rw, rh, ci in blocks:
             p.setPen(QPen(QColor(colors[ci]).lighter(), 1))
@@ -306,7 +367,7 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         for i in range(7):
             y = 20 + i * (row_h + 4)
             p.setPen(QPen(Qt.NoPen))
-            p.setBrush(QBrush(QColor(255, 255, 255, 20 if i%2==0 else 40)))
+            p.setBrush(QBrush(QColor(255, 255, 255, 20 if i % 2 == 0 else 40)))
             p.drawRect(10, y, size.width() - 20, row_h)
             # Simular colunas
             p.setPen(QPen(QColor(255, 255, 255, 60), 0.5))
@@ -314,7 +375,7 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
                 p.drawLine(x, y, x, y + row_h)
         # Cabeçalho
         p.setBrush(QBrush(QColor(100, 200, 255, 80)))
-        p.drawRect(10, 5, size.width()-20, 12)
+        p.drawRect(10, 5, size.width() - 20, 12)
 
     elif module_id == "ishikawa":
         # Diagrama de Espinha Completo
@@ -322,8 +383,16 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         mid_y = size.height() // 2 + 5
         p.drawLine(15, mid_y, size.width() - 50, mid_y)
         # Cabeça seta
-        p.drawPolygon(QPolygonF([QPointF(size.width()-50, mid_y), QPointF(size.width()-65, mid_y-8), QPointF(size.width()-65, mid_y+8)]))
-        
+        p.drawPolygon(
+            QPolygonF(
+                [
+                    QPointF(size.width() - 50, mid_y),
+                    QPointF(size.width() - 65, mid_y - 8),
+                    QPointF(size.width() - 65, mid_y + 8),
+                ]
+            )
+        )
+
         # Espinhas principais
         p.setPen(QPen(QColor(255, 150, 150, 180), 1.8))
         for x in [50, 110, 170]:
@@ -333,8 +402,8 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
             p.drawLine(x, mid_y, x + 35, mid_y + 50)
             # Sub-causas (tiny lines)
             p.setPen(QPen(QColor(255, 150, 150, 100), 1))
-            p.drawLine(x+15, mid_y-20, x+35, mid_y-20)
-            p.drawLine(x+15, mid_y+20, x+35, mid_y+20)
+            p.drawLine(x + 15, mid_y - 20, x + 35, mid_y - 20)
+            p.drawLine(x + 15, mid_y + 20, x + 35, mid_y + 20)
 
     p.end()
     return px
@@ -417,7 +486,7 @@ class ModuleCard(QFrame):
                 border: 1px solid {border_color};
             }}
             QWidget#cardInfo {{ background: transparent; border-radius: 0 0 12px 12px; }}
-            QLabel {{ color: {t['text']}; background: transparent; border: none; }}
+            QLabel {{ color: {t["text"]}; background: transparent; border: none; }}
         """)
 
     def enterEvent(self, e):
@@ -440,6 +509,7 @@ class ModuleCard(QFrame):
 #  GALERIA DE EXEMPLOS
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class GalleryItem(QFrame):
     def __init__(self, title, module_key, parent=None):
         super().__init__(parent)
@@ -447,22 +517,22 @@ class GalleryItem(QFrame):
         self._hover = False
         self.module_key = module_key
         self.setCursor(Qt.PointingHandCursor)
-        
+
         lay = QVBoxLayout(self)
         lay.setContentsMargins(8, 8, 8, 8)
-        
+
         self.img_lbl = QLabel()
         self.img_lbl.setScaledContents(True)
         self.img_lbl.setFixedSize(300, 170)
         lay.addWidget(self.img_lbl)
-        
+
         self.title_lbl = QLabel(title)
         self.title_lbl.setAlignment(Qt.AlignCenter)
         self.title_lbl.setWordWrap(True)
         self.title_lbl.setFont(QFont("Segoe UI", 9, QFont.Bold))
         self.title_lbl.setStyleSheet("padding: 2px 4px;")
         lay.addWidget(self.title_lbl)
-        
+
         self._refresh()
 
     def _refresh(self):
@@ -475,7 +545,7 @@ class GalleryItem(QFrame):
             # Fallback para o desenho programático se o arquivo não existir
             px = _generate_module_preview(self.module_key, QSize(300, 170))
             self.img_lbl.setPixmap(px)
-        
+
         self.title_lbl.setStyleSheet(f"color: {t['text']};")
         self._style()
 
@@ -493,8 +563,16 @@ class GalleryItem(QFrame):
             }}
         """)
 
-    def enterEvent(self, e): self._hover = True; self._style(); super().enterEvent(e)
-    def leaveEvent(self, e): self._hover = False; self._style(); super().leaveEvent(e)
+    def enterEvent(self, e):
+        self._hover = True
+        self._style()
+        super().enterEvent(e)
+
+    def leaveEvent(self, e):
+        self._hover = False
+        self._style()
+        super().leaveEvent(e)
+
 
 class ScreenshotGallery(QScrollArea):
     def __init__(self, parent=None):
@@ -505,13 +583,13 @@ class ScreenshotGallery(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setStyleSheet("background: transparent;")
-        
+
         container = QWidget()
         container.setStyleSheet("background: transparent;")
         self.layout_h = QHBoxLayout(container)
         self.layout_h.setContentsMargins(10, 0, 10, 0)
         self.layout_h.setSpacing(16)
-        
+
         items_data = [
             ("PFD Flowsheet", "flowsheet"),
             ("EAP / WBS", "eap"),
@@ -525,7 +603,7 @@ class ScreenshotGallery(QScrollArea):
             it = GalleryItem(title, key)
             self.items.append(it)
             self.layout_h.addWidget(it)
-        
+
         self.setWidget(container)
 
     def refresh_theme(self):
@@ -537,22 +615,47 @@ class ScreenshotGallery(QScrollArea):
 #  CARROSSEL DE EXEMPLOS (LADO ESQUERDO)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class ScreenshotCarousel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumWidth(450) # Aumentado conforme solicitado
+        self.setMinimumWidth(450)  # Aumentado conforme solicitado
         self.current_idx = 0
         self.items_data = [
-            ("PFD Flowsheet", "flowsheet", "Ferramenta para diagramas de processo com tubulacoes e equipamentos industriais."),
-            ("EAP / WBS", "eap", "Organizacao hierarquica do escopo e pacotes de trabalho do projeto."),
-            ("BPMN Modeler", "bpmn", "Modelagem de processos de negocio com eventos, tarefas e gateways."),
-            ("Project Model Canvas", "canvas", "Planejamento estrategico visual com blocos de decisao e entrega."),
-            ("Ishikawa", "ishikawa", "Analise de causa raiz para falhas e oportunidades de melhoria."),
-            ("Plano 5W2H", "w5h2", "Plano de acao orientado a execucao, prazo, responsavel e custo."),
+            (
+                "PFD Flowsheet",
+                "flowsheet",
+                "Ferramenta para diagramas de processo com tubulacoes e equipamentos industriais.",
+            ),
+            (
+                "EAP / WBS",
+                "eap",
+                "Organizacao hierarquica do escopo e pacotes de trabalho do projeto.",
+            ),
+            (
+                "BPMN Modeler",
+                "bpmn",
+                "Modelagem de processos de negocio com eventos, tarefas e gateways.",
+            ),
+            (
+                "Project Model Canvas",
+                "canvas",
+                "Planejamento estrategico visual com blocos de decisao e entrega.",
+            ),
+            (
+                "Ishikawa",
+                "ishikawa",
+                "Analise de causa raiz para falhas e oportunidades de melhoria.",
+            ),
+            (
+                "Plano 5W2H",
+                "w5h2",
+                "Plano de acao orientado a execucao, prazo, responsavel e custo.",
+            ),
         ]
-        
+
         self._build_ui()
-        
+
         # Sistema de Animação de Fade
         self.opacity_effect = QGraphicsOpacityEffect(self.img_lbl)
         self.img_lbl.setGraphicsEffect(self.opacity_effect)
@@ -562,26 +665,26 @@ class ScreenshotCarousel(QWidget):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._next_with_fade)
-        self.timer.start(3000) # Ajustado para 3 segundos
+        self.timer.start(3000)  # Ajustado para 3 segundos
 
     def _build_ui(self):
         self.main_lay = QVBoxLayout(self)
-        self.main_lay.setContentsMargins(15, 40, 15, 15) # Mais respiro no topo
+        self.main_lay.setContentsMargins(15, 40, 15, 15)  # Mais respiro no topo
         self.main_lay.setSpacing(12)
-        
+
         # Container de imagem proporcional (40% da largura, mantendo aspecto 1.5)
         self.frame = QFrame()
-        self.frame.setFixedHeight(410) 
+        self.frame.setFixedHeight(410)
         self.frame_lay = QVBoxLayout(self.frame)
         self.frame_lay.setContentsMargins(10, 10, 10, 10)
-        
+
         self.img_lbl = QLabel()
         self.img_lbl.setScaledContents(True)
         self.img_lbl.setAlignment(Qt.AlignCenter)
         self.frame_lay.addWidget(self.img_lbl)
-        
+
         self.main_lay.addWidget(self.frame)
-        
+
         # Indicadores (Dots)
         self.dots_lay = QHBoxLayout()
         self.dots_lay.setAlignment(Qt.AlignCenter)
@@ -594,26 +697,26 @@ class ScreenshotCarousel(QWidget):
             self.dots.append(dot)
             self.dots_lay.addWidget(dot)
         self.main_lay.addLayout(self.dots_lay)
-        
+
         self.title_lbl = QLabel()
         self.title_lbl.setFont(QFont("Segoe UI", 16, QFont.Bold))
         self.title_lbl.setAlignment(Qt.AlignCenter)
         self.title_lbl.setWordWrap(True)
         self.main_lay.addWidget(self.title_lbl)
-        
+
         self.desc_lbl = QLabel()
         self.desc_lbl.setFont(QFont("Segoe UI", 11))
         self.desc_lbl.setAlignment(Qt.AlignCenter)
         self.desc_lbl.setWordWrap(True)
         self.desc_lbl.setMinimumHeight(45)
         self.main_lay.addWidget(self.desc_lbl)
-        
+
         self._refresh()
 
     def _refresh(self):
         t = T()
         title, key, desc = self.items_data[self.current_idx]
-        
+
         # Somente no Carrossel: tenta carregar os screenshots reais
         path = f"proeng/resources/screenshots/{key}_{t['name']}.png"
         if os.path.exists(path):
@@ -622,30 +725,36 @@ class ScreenshotCarousel(QWidget):
             # Fallback para o desenho programático se o arquivo não existir
             px = _generate_module_preview(key, QSize(450, 300))
             self.img_lbl.setPixmap(px)
-            
+
         self.title_lbl.setText(title)
         self.desc_lbl.setText(desc)
         self.desc_lbl.setWordWrap(True)
         self.desc_lbl.setAlignment(Qt.AlignCenter)
-        
+
         # Estilização Premium
-        self.title_lbl.setStyleSheet(f"color: {t['accent_bright']}; text-transform: uppercase; letter-spacing: 1px;")
-        self.desc_lbl.setStyleSheet(f"color: {t['text_dim']}; font-style: italic; padding: 0 10px;")
-        
+        self.title_lbl.setStyleSheet(
+            f"color: {t['accent_bright']}; text-transform: uppercase; letter-spacing: 1px;"
+        )
+        self.desc_lbl.setStyleSheet(
+            f"color: {t['text_dim']}; font-style: italic; padding: 0 10px;"
+        )
+
         # Moldura com efeito Glass
         glass_border = t.get("glass_border", "rgba(255,255,255,40)")
         self.frame.setStyleSheet(f"""
             QFrame {{
-                background: {t['bg_card']};
+                background: {t["bg_card"]};
                 border: 1px solid {glass_border};
                 border-radius: 24px;
             }}
         """)
-        
+
         # Atualizar Dots
         for i, dot in enumerate(self.dots):
             if i == self.current_idx:
-                dot.setStyleSheet(f"border-radius: 4px; background: {t['accent_bright']}; width: 20px;")
+                dot.setStyleSheet(
+                    f"border-radius: 4px; background: {t['accent_bright']}; width: 20px;"
+                )
                 dot.setFixedWidth(24)
             else:
                 dot.setStyleSheet(f"border-radius: 4px; background: {t['accent_dim']};")
@@ -659,8 +768,10 @@ class ScreenshotCarousel(QWidget):
         self.fade_anim.start()
 
     def _change_and_fade_in(self):
-        try: self.fade_anim.finished.disconnect(self._change_and_fade_in)
-        except: pass
+        try:
+            self.fade_anim.finished.disconnect(self._change_and_fade_in)
+        except:
+            pass
         self.current_idx = (self.current_idx + 1) % len(self.items_data)
         self._refresh()
         self.fade_anim.setStartValue(0.1)
@@ -689,7 +800,7 @@ class WelcomeScreen(QWidget):
 
         # ── Header Ultra-Compacto e Centralizado ───────────────────────────
         header = QWidget()
-        header.setMinimumHeight(280) 
+        header.setMinimumHeight(280)
         header_main_layout = QVBoxLayout(header)
         header_main_layout.setContentsMargins(0, 20, 0, 20)
         header_main_layout.setSpacing(5)
@@ -698,8 +809,10 @@ class WelcomeScreen(QWidget):
         self.logo_lbl = QLabel("PRO ENG")
         self.logo_lbl.setFont(QFont("Segoe UI", 24, QFont.Bold))
         self.logo_lbl.setAlignment(Qt.AlignCenter)
-        
-        self.sub_lbl = QLabel("Solução integrada para modelagem e engenharia estratégica.")
+
+        self.sub_lbl = QLabel(
+            "Solução integrada para modelagem e engenharia estratégica."
+        )
         self.sub_lbl.setFont(QFont("Segoe UI", 10))
         self.sub_lbl.setAlignment(Qt.AlignCenter)
         self.sub_lbl.setStyleSheet("color: rgba(255,255,255,180); margin-bottom: 10px;")
@@ -731,7 +844,9 @@ class WelcomeScreen(QWidget):
         ex_title = QLabel("PROJETOS DE EXEMPLO")
         ex_title.setFont(QFont("Segoe UI", 10, QFont.Bold))
         ex_title.setAlignment(Qt.AlignCenter)
-        ex_title.setStyleSheet(f"color: {t['accent']}; letter-spacing: 1px; margin-bottom: 5px;")
+        ex_title.setStyleSheet(
+            f"color: {t['accent']}; letter-spacing: 1px; margin-bottom: 5px;"
+        )
         header_main_layout.addWidget(ex_title)
 
         ex_row = QHBoxLayout()
@@ -739,20 +854,29 @@ class WelcomeScreen(QWidget):
         ex_row.setSpacing(6)
 
         self.ex_buttons = []
-        examples = [("Refinaria", "R"), ("Amônia", "A"), ("ETA", "E"), ("Caldeira", "C"), ("Mineração", "M")]
+        examples = [
+            ("Refinaria", "R"),
+            ("Amônia", "A"),
+            ("ETA", "E"),
+            ("Caldeira", "C"),
+            ("Mineração", "M"),
+        ]
         for name, icon in examples:
             btn = QPushButton(f"{icon}  {name}")
             btn.setFixedSize(110, 32)
             btn.setCursor(Qt.PointingHandCursor)
             real_name = name if name != "Amônia" else "Produção de Amônia"
-            if name == "ETA": real_name = "Tratamento de Água (ETA)"
-            if name == "Caldeira": real_name = "Caldeira Industrial"
-            if name == "Mineração": real_name = "Linha de Mineração"
-            
+            if name == "ETA":
+                real_name = "Tratamento de Água (ETA)"
+            if name == "Caldeira":
+                real_name = "Caldeira Industrial"
+            if name == "Mineração":
+                real_name = "Linha de Mineração"
+
             btn.clicked.connect(lambda _, n=real_name: self.load_example.emit(n))
             ex_row.addWidget(btn)
             self.ex_buttons.append(btn)
-        
+
         header_main_layout.addLayout(ex_row)
         main_layout.addWidget(header)
 
@@ -765,7 +889,7 @@ class WelcomeScreen(QWidget):
         # ── Área de Conteúdo Lado a Lado (Proporcional) ──────────────────────
         content_row = QHBoxLayout()
         content_row.setContentsMargins(60, 20, 60, 40)
-        content_row.setSpacing(60) 
+        content_row.setSpacing(60)
         main_layout.addLayout(content_row, 1)
 
         # Esquerda: Carrossel (Aumentado para 40% da largura)
@@ -781,13 +905,15 @@ class WelcomeScreen(QWidget):
         cards_container = QWidget()
         cards_container.setStyleSheet("background: transparent;")
         grid = QGridLayout(cards_container)
-        grid.setContentsMargins(0, 10, 0, 10) 
+        grid.setContentsMargins(0, 10, 0, 10)
         grid.setSpacing(30)
         grid.setAlignment(Qt.AlignCenter)
 
         label_tools = QLabel("SELECIONE UMA FERRAMENTA")
         label_tools.setFont(QFont("Segoe UI", 12, QFont.Bold))
-        label_tools.setStyleSheet(f"color: {t['accent']}; letter-spacing: 1px;") # Usando accent principal para melhor contraste
+        label_tools.setStyleSheet(
+            f"color: {t['accent']}; letter-spacing: 1px;"
+        )  # Usando accent principal para melhor contraste
         label_tools.setAlignment(Qt.AlignCenter)
         grid.addWidget(label_tools, 0, 0, 1, 3, Qt.AlignCenter)
 
@@ -807,58 +933,63 @@ class WelcomeScreen(QWidget):
         # Lado Direito: Grid de Módulos (com screenshots industriais)
         content_row.addWidget(scroll, 60)
 
-        self.refresh_theme() # Apply all styles after widgets are created
+        self.refresh_theme()  # Apply all styles after widgets are created
 
     def refresh_theme(self):
         t = T()
         glass_border = t.get("glass_border", "rgba(255,255,255,30)")
-        
+
         # Estilo do Logo e Subtítulo
-        self.logo_lbl.setStyleSheet(f"color: {t['accent_bright']}; letter-spacing: 2px; font-weight: 800;")
+        self.logo_lbl.setStyleSheet(
+            f"color: {t['accent_bright']}; letter-spacing: 2px; font-weight: 800;"
+        )
         self.sub_lbl.setStyleSheet(f"color: {t['text_dim']};")
-        
+
         # Botões Modernos
         btn_base = f"""
             QPushButton {{
-                background-color: {t['bg_card']};
-                color: {t['text']};
+                background-color: {t["bg_card"]};
+                color: {t["text"]};
                 border: 1px solid {glass_border};
                 border-radius: 12px;
                 padding: 10px;
             }}
             QPushButton:hover {{
-                background-color: {t['accent']};
+                background-color: {t["accent"]};
                 color: white;
-                border-color: {t['accent_bright']};
+                border-color: {t["accent_bright"]};
             }}
         """
-        self.btn_new.setStyleSheet(btn_base + f"QPushButton {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {t['accent']}, stop:1 {t['accent_bright']}); color: white; border: 2px solid {t['accent']}; font-weight: 800; }}")
+        self.btn_new.setStyleSheet(
+            btn_base
+            + f"QPushButton {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {t['accent']}, stop:1 {t['accent_bright']}); color: white; border: 2px solid {t['accent']}; font-weight: 800; }}"
+        )
         self.btn_open.setStyleSheet(btn_base)
-        
+
         ex_style = f"""
             QPushButton {{
-                background-color: {t['bg_card']};
-                color: {t['text_dim']};
+                background-color: {t["bg_card"]};
+                color: {t["text_dim"]};
                 border: 1px solid {glass_border};
                 border-radius: 21px; /* Pill */
                 font-family: 'Segoe UI'; font-size: 11px; font-weight: bold;
             }}
             QPushButton:hover {{
-                background-color: {t['accent_dim']};
-                color: {t['accent_bright']};
-                border-color: {t['accent_bright']};
+                background-color: {t["accent_dim"]};
+                color: {t["accent_bright"]};
+                border-color: {t["accent_bright"]};
             }}
         """
         for b in self.ex_buttons:
             b.setStyleSheet(ex_style)
-        
+
         # Refresh components
         self.carousel.refresh_theme()
         # Gallery logic
         gallery = self.findChild(ScreenshotGallery)
         if gallery:
             gallery.refresh_theme()
-            
+
         for card in self.findChildren(ModuleCard):
             card._refresh_preview()
             if hasattr(card, "_update_style"):
@@ -870,18 +1001,21 @@ class WelcomeScreen(QWidget):
 #  MAIN APP
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.project = AppProject()
         self.setWindowTitle("PRO ENG - Início")
         self.setGeometry(80, 60, 1440, 880)
-        
+
         # Frameless Window
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
-        self.setAttribute(Qt.WA_TranslucentBackground, False) # Using themes.py colors
+        self.setAttribute(Qt.WA_TranslucentBackground, False)  # Using themes.py colors
 
-        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "icon.png")
+        icon_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "resources", "icon.png"
+        )
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 
@@ -890,17 +1024,18 @@ class MainApp(QMainWindow):
         # Layout Principal (Vertical)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        
+
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         # Import e Adição da NavBar (Barra Superior)
         from proeng.ui.nav_bar import NavBar
+
         self.nav_bar = NavBar(
             lambda: self._navigate_to_module("welcome"),
             self._toggle_theme_action,
-            self._on_module_help
+            self._on_module_help,
         )
         self.nav_bar.example_requested.connect(self._on_load_example)
         main_layout.addWidget(self.nav_bar)
@@ -919,12 +1054,14 @@ class MainApp(QMainWindow):
         main_layout.addWidget(self._stack, 1)
 
         # Barra de Status
-        self.statusBar().setStyleSheet(f"background: {T()['bg_app']}; color: {T()['text_muted']}; border-top: 1px solid {T()['accent_dim']};")
+        self.statusBar().setStyleSheet(
+            f"background: {T()['bg_app']}; color: {T()['text_muted']}; border-top: 1px solid {T()['accent_dim']};"
+        )
         self.statusBar().showMessage("Pronto")
 
         # MenuBar (Integrated inside the layout if screen is small? For now keep it hidden or move it)
         menubar = self.menuBar()
-        menubar.hide() # We can access actions via shortcuts or module-specific UI
+        menubar.hide()  # We can access actions via shortcuts or module-specific UI
         self._create_menu()
         self.showMaximized()
 
@@ -945,6 +1082,7 @@ class MainApp(QMainWindow):
         if module_id not in self._modules:
             # Lazy Loading do módulo
             mod_class = {
+                "gantt": _GanttModule,
                 "flowsheet": _FlowsheetModule,
                 "eap": _EAPModule,
                 "bpmn": _BPMNModule,
@@ -952,12 +1090,12 @@ class MainApp(QMainWindow):
                 "ishikawa": _IshikawaModule,
                 "w5h2": _W5H2Module,
             }.get(module_id)
-            
+
             if mod_class:
                 mod_widget = mod_class()
                 self._modules[module_id] = mod_widget
                 self._stack.addWidget(mod_widget)
-        
+
         if module_id in self._modules:
             idx = self._stack.indexOf(self._modules[module_id])
             self._stack.setCurrentIndex(idx)
@@ -967,15 +1105,17 @@ class MainApp(QMainWindow):
     def _on_load_example(self, example_name):
         """Manipula o sinal da NavBar para carregar um projeto de exemplo."""
         ans = QMessageBox.question(
-            self, "Carregar Exemplo",
+            self,
+            "Carregar Exemplo",
             f"Isso irá apagar seu desenho atual para carregar o exemplo '{example_name}'.\n\nDeseja continuar?",
-            QMessageBox.Yes | QMessageBox.No
+            QMessageBox.Yes | QMessageBox.No,
         )
-        if ans != QMessageBox.Yes: return
-        
+        if ans != QMessageBox.Yes:
+            return
+
         # 1. Garante que estamos no flowsheet
         self._navigate_to_module("flowsheet")
-        
+
         # 2. Obtém o widget do flowsheet e carrega
         fw = self._modules.get("flowsheet")
         if fw and hasattr(fw, "_inner"):
@@ -989,9 +1129,9 @@ class MainApp(QMainWindow):
             t = T()
             menu_style = f"""
                 QMenu {{
-                    background-color: {t['bg_card']};
-                    color: {t['text']};
-                    border: 1px solid {t['accent_dim']};
+                    background-color: {t["bg_card"]};
+                    color: {t["text"]};
+                    border: 1px solid {t["accent_dim"]};
                     border-radius: 6px;
                     padding: 5px;
                 }}
@@ -1000,12 +1140,12 @@ class MainApp(QMainWindow):
                     border-radius: 4px;
                 }}
                 QMenu::item:selected {{
-                    background-color: {t['accent']};
+                    background-color: {t["accent"]};
                     color: white;
                 }}
                 QMenu::separator {{
                     height: 1px;
-                    background: {t['glass_border']};
+                    background: {t["glass_border"]};
                     margin: 4px 8px;
                 }}
             """
@@ -1042,11 +1182,11 @@ class MainApp(QMainWindow):
         # Submenu Exportar
         export_menu = file_menu.addMenu("Exportar / Imprimir")
         export_menu.setStyleSheet(menu_style)
-        
+
         png_act = QAction("Imagem (PNG)", self)
         png_act.triggered.connect(lambda: self._on_export("png"))
         export_menu.addAction(png_act)
-        
+
         pdf_act = QAction("Documento (PDF)", self)
         pdf_act.setShortcut("Ctrl+P")
         pdf_act.triggered.connect(lambda: self._on_export("pdf"))
@@ -1063,26 +1203,26 @@ class MainApp(QMainWindow):
         exit_act = QAction("Sair", self)
         exit_act.triggered.connect(self.close)
         file_menu.addAction(exit_act)
-        
+
         self.nav_bar._btn_file.setMenu(file_menu)
 
         # --- MENU MÓDULOS ---
         modules_menu = QMenu(self)
         modules_menu.setStyleSheet(menu_style)
         modules_info = [
-            ("welcome",   "Início"),
+            ("welcome", "Início"),
             ("flowsheet", "PFD Flowsheet"),
-            ("bpmn",      "BPMN Modeler"),
-            ("eap",       "Gerador EAP"),
-            ("canvas",    "PM Canvas"),
-            ("w5h2",      "Plano 5W2H"),
-            ("ishikawa",  "Ishikawa"),
+            ("bpmn", "BPMN Modeler"),
+            ("eap", "Gerador EAP"),
+            ("canvas", "PM Canvas"),
+            ("w5h2", "Plano 5W2H"),
+            ("ishikawa", "Ishikawa"),
         ]
         for mid, label in modules_info:
             act = QAction(label, self)
             act.triggered.connect(lambda _, m=mid: self._navigate_to_module(m))
             modules_menu.addAction(act)
-        
+
         self.nav_bar._btn_modules.setMenu(modules_menu)
 
         # Adicionamos ações fantasmas no menubar escondido para manter os atalhos globais (Ctrl+S, etc)
@@ -1096,7 +1236,11 @@ class MainApp(QMainWindow):
     def _on_export(self, fmt):
         mod = self._stack.currentWidget()
         if mod == self._welcome:
-            QMessageBox.warning(self, "Ação Inválida", "Por favor, abra uma ferramenta para exportar seu trabalho.")
+            QMessageBox.warning(
+                self,
+                "Ação Inválida",
+                "Por favor, abra uma ferramenta para exportar seu trabalho.",
+            )
             return
 
         # Tenta obter a view para exportação
@@ -1118,36 +1262,47 @@ class MainApp(QMainWindow):
         if view:
             _export_view(view, fmt, self)
         else:
-            QMessageBox.warning(self, "Exportar", "Este módulo não suporta exportação direta.")
+            QMessageBox.warning(
+                self, "Exportar", "Este módulo não suporta exportação direta."
+            )
 
     def _on_zoom_action(self, action):
         mod = self._stack.currentWidget()
-        if mod == self._welcome: return
-        
+        if mod == self._welcome:
+            return
+
         # Tenta executar métodos de zoom no módulo ou no seu widget interno
         target = mod
         if not hasattr(target, "zoom_in") and hasattr(mod, "_inner"):
             target = mod._inner
-            
+
         try:
             if action == "in":
-                if hasattr(target, "zoom_in"): target.zoom_in()
+                if hasattr(target, "zoom_in"):
+                    target.zoom_in()
             elif action == "out":
-                if hasattr(target, "zoom_out"): target.zoom_out()
+                if hasattr(target, "zoom_out"):
+                    target.zoom_out()
             elif action == "reset":
-                if hasattr(target, "reset_zoom"): target.reset_zoom()
+                if hasattr(target, "reset_zoom"):
+                    target.reset_zoom()
         except:
             pass
 
     def _on_module_help(self):
         mod = self._stack.currentWidget()
         if mod == self._welcome:
-            QMessageBox.information(self, "Ajuda: Início", 
+            QMessageBox.information(
+                self,
+                "Ajuda: Início",
                 "Bem-vindo ao PRO ENG!\n\nSelecione um dos módulos à direita ou "
-                "pelo menu 'Módulos' para iniciar seu projeto.")
+                "pelo menu 'Módulos' para iniciar seu projeto.",
+            )
             return
-            
-        help_txt = getattr(mod, "help_text", "Guia rápido não disponível para este módulo.")
+
+        help_txt = getattr(
+            mod, "help_text", "Guia rápido não disponível para este módulo."
+        )
         title = self.windowTitle().replace("PRO ENG - ", "")
         QMessageBox.information(self, f"Guia: {title}", help_txt)
 
@@ -1167,9 +1322,10 @@ class MainApp(QMainWindow):
 
     def _new_project(self):
         ans = QMessageBox.question(
-            self, "Novo Projeto",
+            self,
+            "Novo Projeto",
             "Sua área de trabalho atual será apagada. Deseja continuar?",
-            QMessageBox.Yes | QMessageBox.No
+            QMessageBox.Yes | QMessageBox.No,
         )
         if ans == QMessageBox.Yes:
             self.project = AppProject()
@@ -1187,37 +1343,47 @@ class MainApp(QMainWindow):
         else:
             try:
                 self.project.save(self.project.filename)
-                self.statusBar().showMessage(f"✅ Projeto Salvo: {os.path.basename(self.project.filename)}", 3000)
-                self.setWindowTitle(f"PRO ENG  - {os.path.basename(self.project.filename)}")
+                self.statusBar().showMessage(
+                    f"✅ Projeto Salvo: {os.path.basename(self.project.filename)}", 3000
+                )
+                self.setWindowTitle(
+                    f"PRO ENG  - {os.path.basename(self.project.filename)}"
+                )
             except Exception as e:
                 QMessageBox.critical(self, "Erro ao Salvar", str(e))
 
     def _save_project_as(self):
         self._sync_all_to_project()
-        path, _ = QFileDialog.getSaveFileName(self, "Salvar Projeto Como", "", "Projeto PRO ENG (*.proeng)")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Salvar Projeto Como", "", "Projeto PRO ENG (*.proeng)"
+        )
         if path:
             if not path.endswith(".proeng"):
                 path += ".proeng"
             try:
                 self.project.save(path)
-                self.statusBar().showMessage(f"✅ Projeto Salvo: {os.path.basename(path)}", 3000)
+                self.statusBar().showMessage(
+                    f"✅ Projeto Salvo: {os.path.basename(path)}", 3000
+                )
                 self.setWindowTitle(f"PRO ENG  - {os.path.basename(path)}")
             except Exception as e:
                 QMessageBox.critical(self, "Erro ao Salvar", str(e))
 
     def _open_project(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Abrir Projeto", "", "Projeto PRO ENG (*.proeng)")
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Abrir Projeto", "", "Projeto PRO ENG (*.proeng)"
+        )
         if path:
             try:
                 self.project.load(path)
                 modules_info = [
-                    ("welcome",   "🏠", "Início"),
+                    ("welcome", "🏠", "Início"),
                     ("flowsheet", "🏭", "PFD Flowsheet"),
-                    ("bpmn",      "🔀", "BPMN Modeler"),
-                    ("eap",       "📋", "Gerador EAP"),
-                    ("canvas",    "📝", "PM Canvas"),
-                    ("w5h2",      "🎯", "Plano 5W2H"),
-                    ("ishikawa",  "🐟", "Ishikawa"),
+                    ("bpmn", "🔀", "BPMN Modeler"),
+                    ("eap", "📋", "Gerador EAP"),
+                    ("canvas", "📝", "PM Canvas"),
+                    ("w5h2", "🎯", "Plano 5W2H"),
+                    ("ishikawa", "🐟", "Ishikawa"),
                 ]
                 for mid, _icon, _label in modules_info:
                     if mid != "welcome":
@@ -1228,7 +1394,9 @@ class MainApp(QMainWindow):
                 # Navega para o Flowsheet automaticamente
                 self._navigate_to_module("flowsheet")
             except Exception as e:
-                QMessageBox.critical(self, "Erro ao Abrir", f"Erro carregando o arquivo: {str(e)}")
+                QMessageBox.critical(
+                    self, "Erro ao Abrir", f"Erro carregando o arquivo: {str(e)}"
+                )
 
     # ═══════════════════════════════════════════════════════════════════
     #   CONTROLE DE UI
@@ -1240,12 +1408,13 @@ class MainApp(QMainWindow):
             return self._welcome
 
         builders = {
+            "gantt": _GanttModule,
             "flowsheet": _FlowsheetModule,
-            "eap":       _EAPModule,
-            "bpmn":      _BPMNModule,
-            "canvas":    _CanvasModule,
-            "ishikawa":  _IshikawaModule,
-            "w5h2":      _W5H2Module,
+            "eap": _EAPModule,
+            "bpmn": _BPMNModule,
+            "canvas": _CanvasModule,
+            "ishikawa": _IshikawaModule,
+            "w5h2": _W5H2Module,
         }
         if module_name not in self._modules:
             w = builders[module_name]()
@@ -1258,9 +1427,9 @@ class MainApp(QMainWindow):
 
         return self._modules[module_name]
 
-
     def _toggle_theme_action(self):
         from proeng.core.themes import T, set_theme
+
         new = "light" if T()["name"] == "dark" else "dark"
         set_theme(new)
         self._on_theme_toggle_refresh()
@@ -1277,67 +1446,74 @@ class MainApp(QMainWindow):
         if hasattr(self, "nav_bar"):
             self.nav_bar._apply_style()
 
-
         # Modules
         for mod in self._modules.values():
             mod.setStyleSheet(f"background:{t['bg_app']};")
             # Refresh the module itself
             if hasattr(mod, "refresh_theme"):
-                try: mod.refresh_theme()
-                except: pass
-            
+                try:
+                    mod.refresh_theme()
+                except:
+                    pass
+
             # Refresh all children
             for w in mod.findChildren(QWidget):
                 if hasattr(w, "refresh_theme"):
-                    try: w.refresh_theme()
-                    except: pass
-            
+                    try:
+                        w.refresh_theme()
+                    except:
+                        pass
+
             # Special case for Graphics Views
             for gv in mod.findChildren(QGraphicsView):
                 try:
                     gv.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
-                    if gv.scene(): gv.scene().update()
-                except: pass
-            
+                    if gv.scene():
+                        gv.scene().update()
+                except:
+                    pass
+
             # Special case for ListWidgets
             for sp in mod.findChildren(QListWidget):
                 if hasattr(sp, "_apply_palette_style"):
-                    try: sp._apply_palette_style()
-                    except: pass
+                    try:
+                        sp._apply_palette_style()
+                    except:
+                        pass
 
     def _setup_palette(self):
         t = T()
         p = QPalette()
-        p.setColor(QPalette.Window,          QColor(t["bg_app"]))
-        p.setColor(QPalette.WindowText,      QColor(t["text"]))
+        p.setColor(QPalette.Window, QColor(t["bg_app"]))
+        p.setColor(QPalette.WindowText, QColor(t["text"]))
         # Usamos bg_input para a base de campos de texto (melhora visibilidade no dark)
-        p.setColor(QPalette.Base,            QColor(t["bg_input"]))
-        p.setColor(QPalette.AlternateBase,   QColor(t["bg_card2"]))
-        p.setColor(QPalette.Text,            QColor(t["text"]))
-        p.setColor(QPalette.Button,          QColor(t["bg_card"]))
-        p.setColor(QPalette.ButtonText,      QColor(t["text"]))
-        p.setColor(QPalette.Highlight,       QColor(t["accent"]))
+        p.setColor(QPalette.Base, QColor(t["bg_input"]))
+        p.setColor(QPalette.AlternateBase, QColor(t["bg_card2"]))
+        p.setColor(QPalette.Text, QColor(t["text"]))
+        p.setColor(QPalette.Button, QColor(t["bg_card"]))
+        p.setColor(QPalette.ButtonText, QColor(t["text"]))
+        p.setColor(QPalette.Highlight, QColor(t["accent"]))
         p.setColor(QPalette.HighlightedText, Qt.white)
         QApplication.instance().setPalette(p)
 
         # Stylesheet Global para Modernidade e Transparência
         glass_border = t.get("glass_border", "rgba(255,255,255,30)")
         global_style = f"""
-            QMainWindow {{ background-color: {t['bg_app']}; }}
+            QMainWindow {{ background-color: {t["bg_app"]}; }}
             
             /* Campos de Texto e Listas Modernos */
             QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QListView, QListWidget {{
-                background-color: {t['bg_input']};
-                color: {t['text']};
-                border: 1px solid {t['accent_dim']};
+                background-color: {t["bg_input"]};
+                color: {t["text"]};
+                border: 1px solid {t["accent_dim"]};
                 border-radius: 8px;
                 padding: 6px;
-                selection-background-color: {t['accent']};
+                selection-background-color: {t["accent"]};
                 selection-color: white;
             }}
             QLineEdit:focus, QTextEdit:focus, QListView:focus {{
-                border: 2px solid {t['accent_bright']};
-                background-color: {t['bg_app']};
+                border: 2px solid {t["accent_bright"]};
+                background-color: {t["bg_app"]};
             }}
             
             QListWidget::item, QListView::item {{
@@ -1345,11 +1521,11 @@ class MainApp(QMainWindow):
                 border-radius: 4px;
             }}
             QListWidget::item:selected, QListView::item:selected {{
-                background-color: {t['accent']};
+                background-color: {t["accent"]};
                 color: white;
             }}
             QListWidget::item:hover, QListView::item:hover {{
-                background-color: {t['bg_card2']};
+                background-color: {t["bg_card2"]};
             }}
 
             /* ScrollBars Minimalistas */
@@ -1358,10 +1534,10 @@ class MainApp(QMainWindow):
                 width: 8px; margin: 0;
             }}
             QScrollBar::handle:vertical {{
-                background: {t['accent_dim']};
+                background: {t["accent_dim"]};
                 min-height: 30px; border-radius: 4px;
             }}
-            QScrollBar::handle:vertical:hover {{ background: {t['accent']}; }}
+            QScrollBar::handle:vertical:hover {{ background: {t["accent"]}; }}
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0px; }}
 
             QScrollBar:horizontal {{
@@ -1369,50 +1545,50 @@ class MainApp(QMainWindow):
                 height: 8px; margin: 0;
             }}
             QScrollBar::handle:horizontal {{
-                background: {t['accent_dim']};
+                background: {t["accent_dim"]};
                 min-width: 30px; border-radius: 4px;
             }}
             QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{ width: 0px; }}
 
             /* Tooltips Modernos */
             QToolTip {{
-                background-color: {t['bg_card']};
-                color: {t['text']};
-                border: 1px solid {t['accent']};
+                background-color: {t["bg_card"]};
+                color: {t["text"]};
+                border: 1px solid {t["accent"]};
                 border-radius: 4px;
                 padding: 4px;
             }}
 
             /* Menus e ComboBoxes */
             QMenu {{
-                background-color: {t['bg_card']};
-                color: {t['text']};
+                background-color: {t["bg_card"]};
+                color: {t["text"]};
                 border: 1px solid {glass_border};
                 border-radius: 6px;
                 padding: 4px;
             }}
             QMenu::item:selected {{
-                background-color: {t['accent']};
+                background-color: {t["accent"]};
                 color: white;
                 border-radius: 4px;
             }}
             
             QMessageBox {{
-                background-color: {t['bg_app']};
+                background-color: {t["bg_app"]};
             }}
             QMessageBox QLabel {{
-                color: {t['text']};
+                color: {t["text"]};
             }}
             QMessageBox QPushButton {{
-                background-color: {t['bg_card']};
-                color: {t['text']};
-                border: 1px solid {t['accent_dim']};
+                background-color: {t["bg_card"]};
+                color: {t["text"]};
+                border: 1px solid {t["accent_dim"]};
                 border-radius: 6px;
                 padding: 6px 16px;
                 min-width: 80px;
             }}
             QMessageBox QPushButton:hover {{
-                background-color: {t['accent']};
+                background-color: {t["accent"]};
                 color: white;
             }}
         """
