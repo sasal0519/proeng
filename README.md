@@ -263,7 +263,7 @@ O ProEng segmenta as causas em 6 categorias pre-definidas:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-| Modulo | Tema Dark (Premium) | Tema Light (Corporativo) |
+| Modulo | Tema Dark | Tema Light  |
 | :--- | :---: | :---: |
 | **Welcome Screen** | ![Welcome Dark](proeng/resources/screenshots/welcome_dark.png) | ![Welcome Light](proeng/resources/screenshots/welcome_light.png) |
 | **Flowsheet (PFD)** | ![Flowsheet Dark](proeng/resources/screenshots/flowsheet_dark.png) | ![Flowsheet Light](proeng/resources/screenshots/flowsheet_light.png) |
