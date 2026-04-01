@@ -1,47 +1,47 @@
 ```
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                      ║
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
 ║  ███╗   ███╗ █████╗ ███╗   ██╗██╗███████╗███████╗███████╗████████╗ ║
 ║  ████╗ ████║██╔══██╗████╗  ██║██║██╔════╝██╔════╝██╔════╝╚══██╔══╝ ║
 ║  ██╔████╔██║███████║██╔██╗ ██║██║█████╗  █████╗  ███████╗   ██║    ║
 ║  ██║╚██╔╝██║██╔══██║██║╚██╗██║██║██╔══╝  ██╔══╝  ╚════██║   ██║    ║
 ║  ██║ ╚═╝ ██║██║  ██║██║ ╚████║██║██║     ███████╗███████║   ██║    ║
 ║  ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚══════╝╚══════╝   ╚═╝    ║
-║                                                                      ║
+║                                                                    ║
 ║          ██████╗ ██████╗  ██████╗ ███████╗███╗   ██╗ ██████╗       ║
 ║          ██╔══██╗██╔══██╗██╔═══██╗██╔════╝████╗  ██║██╔════╝       ║
 ║          ██████╔╝██████╔╝██║   ██║█████╗  ██╔██╗ ██║██║  ███╗      ║
 ║          ██╔═══╝ ██╔══██╗██║   ██║██╔══╝  ██║╚██╗██║██║   ██║      ║
 ║          ██║     ██║  ██║╚██████╔╝███████╗██║ ╚████║╚██████╔╝      ║
 ║          ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝       ║
-║                                                                      ║
-║        Liberdade de Software na Engenharia Industrial                ║
-╚══════════════════════════════════════════════════════════════════════╝
+║                                                                    ║
+║        Liberdade de Software na Engenharia Industrial              ║
+╚════════════════════════════════════════════════════════════════════╝
 ```
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
-│   "O Software Livre e uma questao de liberdade, nao de preco.      │
-│    Para entender o conceito, voce deve pensar em                   │
-│    'liberdade de expressao', nao em 'cerveja gratis'."             │
+│   "O Software Livre é uma questão de liberdade, não de preço.       │
+│    Para entender o conceito, você deve pensar em                    │
+│    'liberdade de expressão', não em 'cerveja grátis'."              │
 │                                                                     │
 │                                          — Richard Stallman         │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-O projeto **ProEng** adere aos principios fundamentais estabelecidos por Richard Stallman no **Manifesto GNU**. Acreditamos que as ferramentas de engenharia, que movem a infraestrutura fisica do mundo, nao devem ser caixas pretas proprietarias que restringem o conhecimento tecnico e a colaboracao humana.
+O projeto **ProEng** adere aos princípios fundamentais estabelecidos por Richard Stallman no **Manifesto GNU**. Acreditamos que as ferramentas de engenharia, que movem a infraestrutura física do mundo, não devem ser caixas pretas proprietárias que restringem o conhecimento técnico e a colaboração humana.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-O PORQUE DESTE MANIFESTO
+O PORQUÊ DESTE MANIFESTO
 ────────────────────────────────────────────────────────────────────────
 
-Na industria moderna, o software de engenharia tornou-se um guardiao do conhecimento. Ao utilizar formatos proprietarios e algoritmos fechados, as empresas de software criam uma dependencia artificial (lock-in) que sufoca a inovacao e impede que engenheiros compreendam, auditem ou melhorem suas proprias ferramentas de trabalho.
+Na indústria moderna, o software de engenharia tornou-se um guardião do conhecimento. Ao utilizar formatos proprietários e algoritmos fechados, as empresas de software criam uma dependência artificial (lock-in) que sufoca a inovação e impede que engenheiros compreendam, auditem ou melhorem suas próprias ferramentas de trabalho.
 
-O **ProEng** foi criado para quebrar esse ciclo, garantindo que o "Gnu" da engenharia industrial seja livre, aberto e comunitario.
+O **ProEng** foi criado para quebrar esse ciclo, garantindo que o "Gnu" da engenharia industrial seja livre, aberto e comunitário.
 
 ---
 
@@ -49,42 +49,42 @@ O **ProEng** foi criado para quebrar esse ciclo, garantindo que o "Gnu" da engen
 ║  AS QUATRO LIBERDADES ESSENCIAIS                                   ║
 ╚════════════════════════════════════════════════════════════════════╝
 
-Como uma obra de Software Livre (Free Software), o ProEng garante a todos os seus usuarios:
+Como uma obra de Software Livre (Free Software), o ProEng garante a todos os seus usuários:
 
 ```
-┌────────────────┬───────────────────────────────────────────────────────────────┐
-│  Liberdade 0   │ Executar o programa para qualquer proposito, sem restricoes.  │
-├────────────────┼───────────────────────────────────────────────────────────────┤
-│  Liberdade 1   │ Estudar como o programa funciona e adapta-lo as suas          │
-│                │ necessidades. O acesso ao codigo-fonte e precondição para isso.│
-├────────────────┼───────────────────────────────────────────────────────────────┤
-│  Liberdade 2   │ Redistribuir copias para que voce possa ajudar seu proximo.   │
-├────────────────┼───────────────────────────────────────────────────────────────┤
-│  Liberdade 3   │ Distribuir copias de suas versoes modificadas a terceiros,    │
-│                │ dando a toda a comunidade a chance de se beneficiar de suas   │
-│                │ alteracoes.                                                   │
-└────────────────┴───────────────────────────────────────────────────────────────┘
+┌────────────────┬──────────────────────────────────────────────────────────────────┐
+│  Liberdade 0   │ Executar o programa para qualquer propósito, sem restrições.     │
+├────────────────┼──────────────────────────────────────────────────────────────────┤
+│  Liberdade 1   │ Estudar como o programa funciona e adaptá-lo às suas             │
+│                │ necessidades. O acesso ao código-fonte é pré-condição para isso. │
+├────────────────┼──────────────────────────────────────────────────────────────────┤
+│  Liberdade 2   │ Redistribuir cópias para que você possa ajudar seu próximo.      │
+├────────────────┼──────────────────────────────────────────────────────────────────┤
+│  Liberdade 3   │ Distribuir cópias de suas versões modificadas a terceiros,       │
+│                │ dando a toda a comunidade a chance de se beneficiar de suas      │
+│                │ alterações.                                                      │
+└────────────────┴──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-COOPERACAO vs. COMPETICAO PROPRIETARIA
+COOPERAÇÃO vs. COMPETIÇÃO PROPRIETÁRIA
 ────────────────────────────────────────────────────────────────────────
 
-O Manifesto GNU argumenta que a cooperacao altruista entre programadores e superior a competicao baseada na restricao de informacoes. No ProEng, aplicamos isso a engenharia:
+O Manifesto GNU argumenta que a cooperação altruísta entre programadores é superior à competição baseada na restrição de informações. No ProEng, aplicamos isso à engenharia:
 
-- **Eliminacao de Redundancia**: Engenheiros nao precisam reinventar a roda (ou o trocador de calor) se o codigo para modela-lo ja estiver disponivel.
-- **Transparencia nas Decisoes**: No PFD e no BPMN, a logica de calculo e visualizacao e aberta, permitindo auditorias de seguranca industrial reais.
-- **Solidariedade Tecnica**: Ao compartilhar melhorias nos modulos (como o Ishikawa ou 5W2H), elevamos o nivel tecnico de toda a categoria profissional.
+- **Eliminação de Redundância**: Engenheiros não precisam reinventar a roda (ou o trocador de calor) se o código para modelá-lo já estiver disponível.
+- **Transparência nas Decisões**: No PFD e no BPMN, a lógica de cálculo e visualização é aberta, permitindo auditorias de segurança industrial reais.
+- **Solidariedade Técnica**: Ao compartilhar melhorias nos módulos (como o Ishikawa ou 5W2H), elevamos o nível técnico de toda a categoria profissional.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-COMPROMISSO COM A LICENCA GPL
+COMPROMISSO COM A LICENÇA GPL
 ────────────────────────────────────────────────────────────────────────
 
-Para garantir que o ProEng permaneca livre para sempre, ele e distribuido sob a **GNU General Public License (GPL) versao 3**. Esta licenca "copyleft" garante que qualquer obra derivada do ProEng tambem deva ser livre, impedindo que partes do projeto sejam capturadas por interesses proprietarios no futuro.
+Para garantir que o ProEng permaneça livre para sempre, ele é distribuído sob a **GNU General Public License (GPL) versão 3**. Esta licença "copyleft" garante que qualquer obra derivada do ProEng também deva ser livre, impedindo que partes do projeto sejam capturadas por interesses proprietários no futuro.
 
 Consulte o arquivo [LICENSE](LICENSE) para os termos completos.
 
@@ -92,7 +92,7 @@ Consulte o arquivo [LICENSE](LICENSE) para os termos completos.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Junte-se a nos na construcao de uma engenharia verdadeiramente
+Junte-se a nós na construção de uma engenharia verdadeiramente
 soberana e livre.
 
 Inspirado em "O Manifesto GNU" de Richard M. Stallman (1985).
