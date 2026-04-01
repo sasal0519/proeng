@@ -1,63 +1,63 @@
 ```
-╔═══════════════════════════════════════════════════════════════════╗
-║                                                                   ║
-║   ██╗      ██╗ ██████╗███████╗███╗   ██╗███████╗███████╗          ║
-║   ██║      ██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝          ║
-║   ██║      ██║██║     █████╗  ██╔██╗ ██║███████╗█████╗            ║
-║   ██║      ██║██║     ██╔══╝  ██║╚██╗██║╚════██║██╔══╝            ║
-║   ███████╗ ██║╚██████╗███████╗██║ ╚████║███████║███████╗          ║
-║   ╚══════╝ ╚═╝ ╚═════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝          ║
-║                                                                   ║
-║   ██████╗ ██████╗ ██╗   ██╗    ██╗   ██╗██████╗                   ║
-║  ██╔════╝ ██╔══██╗██║   ██║    ██║   ██║╚════██╗                  ║
-║  ██║  ███╗██████╔╝██║   ██║    ██║   ██║ █████╔╝                  ║
-║  ██║   ██║██╔═══╝ ██║   ██║    ╚██╗ ██╔╝ ╚═══██╗                  ║
-║  ╚██████╔╝██║     ╚██████╔╝     ╚████╔╝ ██████╔╝                  ║
-║   ╚═════╝ ╚═╝      ╚═════╝       ╚═══╝  ╚═════╝                   ║
-║                                                                   ║
-║          GNU GENERAL PUBLIC LICENSE — Version 3                   ║
-║          29 June 2007                                             ║
-║          Copyright (C) 2007 Free Software Foundation, Inc.        ║
-║          <https://fsf.org/>                                       ║
-╚═══════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║   ██╗      ██╗ ██████╗███████╗███╗   ██╗███████╗███████╗             ║
+║   ██║      ██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝             ║
+║   ██║      ██║██║     █████╗  ██╔██╗ ██║███████╗█████╗               ║
+║   ██║      ██║██║     ██╔══╝  ██║╚██╗██║╚════██║██╔══╝               ║
+║   ███████╗ ██║╚██████╗███████╗██║ ╚████║███████║███████╗             ║
+║   ╚══════╝ ╚═╝ ╚═════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝             ║
+║                                                                      ║
+║   ██████╗ ██████╗ ██╗   ██╗    ██╗   ██╗██████╗                      ║
+║  ██╔════╝ ██╔══██╗██║   ██║    ██║   ██║╚════██╗                     ║
+║  ██║  ███╗██████╔╝██║   ██║    ██║   ██║ █████╔╝                     ║
+║  ██║   ██║██╔═══╝ ██║   ██║    ╚██╗ ██╔╝ ╚═══██╗                     ║
+║  ╚██████╔╝██║     ╚██████╔╝     ╚████╔╝ ██████╔╝                     ║
+║   ╚═════╝ ╚═╝      ╚═════╝       ╚═══╝  ╚═════╝                      ║
+║                                                                      ║
+║          GNU GENERAL PUBLIC LICENSE — Version 3                      ║
+║          29 June 2007                                                ║
+║          Copyright (C) 2007 Free Software Foundation, Inc.           ║
+║          <https://fsf.org/>                                          ║
+╚══════════════════════════════════════════════════════════════════════╝
 ```
 
-O ProEng e um **Software Livre**: voce pode redistribui-lo e/ou modifica-lo
+O ProEng é um **Software Livre**: você pode redistribuí-lo e/ou modificá-lo
 sob os termos da **GNU General Public License** tal como publicada pela Free
-Software Foundation, quer a versao 3 da Licenca, quer (a sua escolha) qualquer
-versao posterior.
+Software Foundation, quer a versão 3 da Licença, quer (à sua escolha) qualquer
+versão posterior.
 
-Este programa e distribuido na esperanca de que seja util, mas SEM QUALQUER
-GARANTIA; sem mesmo a garantia implicita de COMERCIALIZACAO ou ADEQUACAO A UM
-DETERMINADO PROPOSITO. Consulte a GNU General Public License para mais detalhes.
+Este programa é distribuído na esperança de que seja útil, mas SEM QUALQUER
+GARANTIA; sem mesmo a garantia implícita de COMERCIALIZAÇÃO ou ADEQUAÇÃO A UM
+DETERMINADO PROPÓSITO. Consulte a GNU General Public License para mais detalhes.
 
-Voce deve ter recebido uma copia da GNU General Public License junto com este
-programa. Caso contrario, consulte <https://www.gnu.org/licenses/>.
+Você deve ter recebido uma cópia da GNU General Public License junto com este
+programa. Caso contrário, consulte <https://www.gnu.org/licenses/>.
 
 ---
 
 ```
 ╔════════════════════════════════════════════════════════════════════╗
-║  TERMOS E CONDICOES — RESUMO OPERACIONAL                           ║
+║  TERMOS E CONDIÇÕES — RESUMO OPERACIONAL                           ║
 ╚════════════════════════════════════════════════════════════════════╝
 ```
 
 ```
 ┌──────┬──────────────────────────┬────────────────────────────────────────────────────┐
-│  No  │ Liberdade                │ Descricao                                          │
+│  Nº  │ Liberdade                │ Descrição                                          │
 ├──────┼──────────────────────────┼────────────────────────────────────────────────────┤
-│  1   │ Liberdade de Uso         │ Voce pode usar o ProEng para qualquer fim,         │
-│      │                          │ comercial ou pessoal, sem restricoes.              │
+│  1   │ Liberdade de Uso         │ Você pode usar o ProEng para qualquer fim,         │
+│      │                          │ comercial ou pessoal, sem restrições.              │
 ├──────┼──────────────────────────┼────────────────────────────────────────────────────┤
-│  2   │ Acesso ao Codigo         │ O codigo-fonte deve estar disponivel para todos    │
+│  2   │ Acesso ao Código         │ O código-fonte deve estar disponível para todos    │
 │      │                          │ que receberem o software.                          │
 ├──────┼──────────────────────────┼────────────────────────────────────────────────────┤
-│  3   │ Copyleft                 │ Se voce modificar e distribuir o ProEng, suas      │
-│      │                          │ modificacoes tambem devem ser licenciadas sob a    │
-│      │                          │ GPLv3 (ou versao superior).                        │
+│  3   │ Copyleft                 │ Se você modificar e distribuir o ProEng, suas      │
+│      │                          │ modificações também devem ser licenciadas sob a    │
+│      │                          │ GPLv3 (ou versão superior).                        │
 ├──────┼──────────────────────────┼────────────────────────────────────────────────────┤
-│  4   │ Isencao de Garantia      │ O software e fornecido "como esta", sem qualquer  │
-│      │                          │ garantia expressa ou implicita.                    │
+│  4   │ Isenção de Garantia      │ O software é fornecido "como está", sem qualquer   │
+│      │                          │ garantia expressa ou implícita.                    │
 └──────┴──────────────────────────┴────────────────────────────────────────────────────┘
 ```
 
@@ -65,7 +65,7 @@ programa. Caso contrario, consulte <https://www.gnu.org/licenses/>.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Texto legal completo disponivel em:
+Texto legal completo disponível em:
 https://www.gnu.org/licenses/gpl-3.0.txt
 
 ProEng Suite — Industrial Engineering & Project Management
