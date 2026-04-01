@@ -1,36 +1,36 @@
 ```
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                      ║
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
 ║   ██████╗ ██████╗  ██████╗ ███████╗███╗   ██╗ ██████╗              ║
 ║   ██╔══██╗██╔══██╗██╔═══██╗██╔════╝████╗  ██║██╔════╝              ║
 ║   ██████╔╝██████╔╝██║   ██║█████╗  ██╔██╗ ██║██║  ███╗             ║
 ║   ██╔═══╝ ██╔══██╗██║   ██║██╔══╝  ██║╚██╗██║██║   ██║             ║
 ║   ██║     ██║  ██║╚██████╔╝███████╗██║ ╚████║╚██████╔╝             ║
-║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝             ║
-║                                                                      ║
+║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝              ║
+║                                                                    ║
 ║             ███████╗██╗   ██╗██╗████████╗███████╗                  ║
 ║             ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝                  ║
 ║             ███████╗██║   ██║██║   ██║   █████╗                    ║
 ║             ╚════██║██║   ██║██║   ██║   ██╔══╝                    ║
 ║             ███████║╚██████╔╝██║   ██║   ███████╗                  ║
 ║             ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝                  ║
-║                                                                      ║
-║          Industrial Engineering & Project Management                 ║
-║                    Professional Suite  v1.0                          ║
-╚══════════════════════════════════════════════════════════════════════╝
+║                                                                    ║
+║          Industrial Engineering & Project Management               ║
+║                    Professional Suite  v1.0                        ║
+╚════════════════════════════════════════════════════════════════════╝
 ```
 
-> **ProEng** e uma plataforma de engenharia industrial de ponta, desenhada para unificar o planejamento tecnico, a modelagem de processos e a gestao estrategica em um unico ambiente visual de alta fidelidade.
+> **ProEng** é uma plataforma de engenharia industrial de ponta, desenhada para unificar o planejamento técnico, a modelagem de processos e a gestão estratégica em um único ambiente visual de alta fidelidade.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-PREFACIO E VISAO GERAL
+PREFÁCIO E VISÃO GERAL
 ────────────────────────────────────────────────────────────────────────
 
-O projeto **ProEng** nasceu da necessidade de ferramentas de engenharia que nao fossem apenas funcionais, mas tambem esteticamente superiores e intuitivas. Em um mundo onde softwares tecnicos costumam ser cinzas e burocraticos, o ProEng introduz o conceito de **Creative Industrial Engineering** — onde o design auxilia na clareza de pensamento e na deteccao de falhas.
+O projeto **ProEng** nasceu da necessidade de ferramentas de engenharia que não fossem apenas funcionais, mas também esteticamente superiores e intuitivas. Em um mundo onde softwares técnicos costumam ser cinzas e burocráticos, o ProEng introduz o conceito de **Creative Industrial Engineering** — onde o design auxilia na clareza de pensamento e na detecção de falhas.
 
-Esta suite foi construida do zero utilizando o framework **PyQt5**, aproveitando o poder da aceleracao de hardware para renderizar diagramas vetoriais complexos com suavidade e precisao de pixel.
+Esta suíte foi construída do zero utilizando o framework **PyQt5**, aproveitando o poder da aceleração de hardware para renderizar diagramas vetoriais complexos com suavidade e precisão de pixel.
 
 ---
 
@@ -38,19 +38,19 @@ Esta suite foi construida do zero utilizando o framework **PyQt5**, aproveitando
 FILOSOFIA DE DESIGN: INDUSTRIAL GLASSMORPHISM
 ────────────────────────────────────────────────────────────────────────
 
-A estetica do ProEng e um dos seus pilares fundamentais. Ela nao e puramente decorativa; cada escolha de cor e transparencia tem um proposito funcional.
+A estética do ProEng é um dos seus pilares fundamentais. Ela não é puramente decorativa; cada escolha de cor e transparência tem um propósito funcional.
 
 ### O Conceito "Dark Navy & Emerald"
 
-Utilizamos uma paleta baseada em **Azul Marinho Profundo** para o canvas de trabalho. Isso cria um contraste natural com as linhas de processo em verde ou azul brilhante, facilitando a identificacao de conexoes em diagramas densos.
+Utilizamos uma paleta baseada em **Azul Marinho Profundo** para o canvas de trabalho. Isso cria um contraste natural com as linhas de processo em verde ou azul brilhante, facilitando a identificação de conexões em diagramas densos.
 
-- **Fundo da Aplicacao (`bg_app`)**: `#050816` — Um tom de azul petroleo que absorve o brilho excessivo do monitor.
+- **Fundo da Aplicação (`bg_app`)**: `#050816` — Um tom de azul petróleo que absorve o brilho excessivo do monitor.
 - **Efeito de Vidro (`bg_card`)**: `rgba(15, 23, 42, 210)` — Elementos de interface que parecem flutuar sobre o diagrama, permitindo ver a estrutura por baixo sem perder o foco na ferramenta ativa.
 - **Acento Neon (`accent`)**: `#2563EB` e `#10B981` — Cores vibrantes que indicam interatividade e estados ativos.
 
-### Transicao para o Modo Light
+### Transição para o Modo Light
 
-O ProEng oferece paridade total entre temas. No modo **Light**, as cores sao invertidas para tons de cinza suave e azul corporativo, garantindo que o software seja adequado para impressoes tecnicas em papel ou apresentacoes em salas iluminadas.
+O ProEng oferece paridade total entre temas. No modo **Light**, as cores são invertidas para tons de cinza suave e azul corporativo, garantindo que o software seja adequado para impressões técnicas em papel ou apresentações em salas iluminadas.
 
 ---
 
@@ -58,15 +58,15 @@ O ProEng oferece paridade total entre temas. No modo **Light**, as cores sao inv
 ║  ARQUITETURA DO SISTEMA: CORE ENGINE                               ║
 ╚════════════════════════════════════════════════════════════════════╝
 
-O ProEng utiliza uma arquitetura baseada em **Plugins Modulares**, onde o nucleo do sistema apenas gerencia a navegacao e o estado global, enquanto as funcionalidades de engenharia residem em modulos independentes.
+O ProEng utiliza uma arquitetura baseada em **Plugins Modulares**, onde o núcleo do sistema apenas gerencia a navegação e o estado global, enquanto as funcionalidades de engenharia residem em módulos independentes.
 
 ### A Classe `BaseModule`
 
-Todos os modulos do ProEng (Flowsheet, BPMN, etc.) herdam da `BaseModule`. Esta classe define o contrato que todo modulo deve seguir:
+Todos os módulos do ProEng (Flowsheet, BPMN, etc.) herdam da `BaseModule`. Esta classe define o contrato que todo módulo deve seguir:
 
-- `get_state()`: Serializa todos os objetos do canvas em um dicionario Python (JSON-friendly).
+- `get_state()`: Serializa todos os objetos do canvas em um dicionário Python (JSON-friendly).
 - `set_state(state)`: Reconstitui o ambiente de trabalho a partir de um arquivo salvo.
-- `refresh_theme()`: Informa ao modulo que as cores globais mudaram e ele deve se redesenhar.
+- `refresh_theme()`: Informa ao módulo que as cores globais mudaram e ele deve se redesenhar.
 
 ### Estrutura do Projeto
 
@@ -74,182 +74,182 @@ Todos os modulos do ProEng (Flowsheet, BPMN, etc.) herdam da `BaseModule`. Esta 
 PROENG CORE ARCHITECTURE
 ┌─────────────────────────────────────────────────────────────────┐
 │  APPLICATION LAYER                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │  main_app.py │  │  welcome.py  │  │  selection_screen.py │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │  main_app.py │  │  welcome.py  │  │  selection_screen.py │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
 ├─────────────────────────────────────────────────────────────────┤
 │  CORE ENGINE                                                    │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐    │
-│  │ themes   │ │  utils   │ │ toolbar  │ │  base_module   │    │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘    │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │
+│  │ themes   │ │  utils   │ │ toolbar  │ │  base_module   │      │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘      │
 ├─────────────────────────────────────────────────────────────────┤
 │  MODULE LAYER                                                   │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐    │
-│  │flowsheet │ │   bpmn   │ │   eap    │ │    canvas      │    │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘    │
-│  ┌──────────┐ ┌──────────┐                                     │
-│  │ishikawa  │ │  w5h2    │                                     │
-│  └──────────┘ └──────────┘                                     │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │
+│  │flowsheet │ │   bpmn   │ │   eap    │ │    canvas      │      │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘      │
+│  ┌──────────┐ ┌──────────┐                                      │
+│  │ishikawa  │ │  w5h2    │                                      │
+│  └──────────┘ └──────────┘                                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Estrutura de Diretorios Detalhada
+### Estrutura de Diretórios Detalhada
 
-A organizacao de arquivos segue os padroes modernos de desenvolvimento Python:
+A organização de arquivos segue os padrões modernos de desenvolvimento Python:
 
 ```text
 proeng/
 │
-├── core/                       # O "Cerebro" da Aplicacao
+├── core/                       # O "Cérebro" da Aplicação
 │   ├── __init__.py
-│   ├── themes.py               # Definicao de paletas Light e Dark
-│   ├── utils.py                # Utilitarios de desenho, exportacao e conversao colorimetrica
-│   ├── toolbar.py              # Fabrica de barras de ferramentas customizadas
-│   ├── project.py              # Logica de I/O de arquivos e metadados
-│   └── base_module.py          # Interface abstrata para integracao de modulos
+│   ├── themes.py               # Definição de paletas Light e Dark
+│   ├── utils.py                # Utilitários de desenho, exportação e conversão colorimétrica
+│   ├── toolbar.py              # Fábrica de barras de ferramentas customizadas
+│   ├── project.py              # Lógica de I/O de arquivos e metadados
+│   └── base_module.py          # Interface abstrata para integração de módulos
 │
 ├── modules/                    # Ferramentas Especializadas
 │   ├── __init__.py
 │   ├── flowsheet.py            # PFD (Process Flow Diagram)
-│   ├── bpmn.py                 # Fluxogramas de Processos de Negocio
+│   ├── bpmn.py                 # Fluxogramas de Processos de Negócio
 │   ├── eap.py                  # WBS (Work Breakdown Structure)
 │   ├── canvas.py               # Planejamento visual de projetos
 │   ├── ishikawa.py             # Diagramas de Causa e Efeito (6M)
-│   └── w5h2.py                 # Matrizes de Planos de Acao
+│   └── w5h2.py                 # Matrizes de Planos de Ação
 │
-├── ui/                         # A "Pele" da Aplicacao
+├── ui/                         # A "Pele" da Aplicação
 │   ├── main_app.py             # Workspace principal, Sidebar e Logic Switcher
 │   ├── welcome.py              # Hub de entrada com gallery e carrossel
-│   └── selection_screen.py     # Grid visual de escolha de modulos
+│   └── selection_screen.py     # Grid visual de escolha de módulos
 │
-└── resources/                  # Ativos Estaticos
-    └── screenshots/            # Capturas de tela para documentacao interna
+└── resources/                  # Ativos Estáticos
+    └── screenshots/            # Capturas de tela para documentação interna
 ```
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-MODULO DETALHADO: PFD FLOWSHEET
+MÓDULO DETALHADO: PFD FLOWSHEET
 ────────────────────────────────────────────────────────────────────────
 
-O **Process Flow Diagram** e a ferramenta de maior complexidade tecnica. Ele utiliza o motor grafico `QGraphicsScene` para gerenciar objetos interativos.
+O **Process Flow Diagram** é a ferramenta de maior complexidade técnica. Ele utiliza o motor gráfico `QGraphicsScene` para gerenciar objetos interativos.
 
-### Logica de Desenho de Equipamentos
+### Lógica de Desenho de Equipamentos
 
-A funcao `draw_equipment` centraliza a renderizacao de mais de 50 tipos de maquinas industriais.
+A função `draw_equipment` centraliza a renderização de mais de 50 tipos de máquinas industriais.
 
-- **Matematica Vetorial**: Cada equipamento e desenhado usando poligonos (`QPolygonF`) e caminhos (`QPainterPath`) baseados em proporcoes relativas ao tamanho do no.
-- **Gradientes Dinamicos**: Utilizamos `QLinearGradient` para criar superficies que parecem metalicas ou de vidro, reagindo dinamicamente a cor de acento do tema.
+- **Matemática Vetorial**: Cada equipamento é desenhado usando polígonos (`QPolygonF`) e caminhos (`QPainterPath`) baseados em proporções relativas ao tamanho do nó.
+- **Gradientes Dinâmicos**: Utilizamos `QLinearGradient` para criar superfícies que parecem metálicas ou de vidro, reagindo dinamicamente à cor de acento do tema.
 
-### Smart Piping (Tubulacao Inteligente)
+### Smart Piping (Tubulação Inteligente)
 
 A classe `Edge` gerencia a conectividade entre equipamentos.
 
-- **Calculo de Normais**: As tubulacoes saem ortogonalmente das portas (Top, Bottom, Left, Right).
-- **Efeito Mascara (Masking)**: Para evitar que a linha da tubulacao cruze o texto de identificacao (Tag), implementamos um fundo de rotulo que assume a cor exata do canvas (`bg_app`), criando um visual de "corte" tecnico profissional.
+- **Cálculo de Normais**: As tubulações saem ortogonalmente das portas (Top, Bottom, Left, Right).
+- **Efeito Máscara (Masking)**: Para evitar que a linha da tubulação cruze o texto de identificação (Tag), implementamos um fundo de rótulo que assume a cor exata do canvas (`bg_app`), criando um visual de "corte" técnico profissional.
 
-### Portas de Conexao
+### Portas de Conexão
 
-Cada `ProcessNode` possui 12 portas de conexao invisiveis (3 em cada lado) que aparecem apenas durante o "hover" ou durante a criacao de uma linha, reduzindo o ruido visual ("clutter").
+Cada `ProcessNode` possui 12 portas de conexão invisíveis (3 em cada lado) que aparecem apenas durante o "hover" ou durante a criação de uma linha, reduzindo o ruído visual ("clutter").
 
-### Balanco de Massa Automatico
+### Balanço de Massa Automático
 
-O modulo Flowsheet implementa um motor de balanco de massa:
+O módulo Flowsheet implementa um motor de balanço de massa:
 
-- **Ordenacao Topologica**: Algoritmo de Kahn para deteccao de ciclos e processamento correto.
-- **Mistura e Distribuicao**: Para cada no, o sistema soma as entradas e distribui aos componentes nas saidas conforme configuracao de fracao ou vazao fixa.
-- **Verificacao Global**: Ao final, verifica se a massa total de entrada equals a saida + retido.
-- **Autocalculacao**: Apos alteracoes no diagrama, o balanco recalcula automaticamente com debounce de 300ms.
-- **Exportacao Excel**: Exporta todos os dados de balanco para planilha formatada.
+- **Ordenação Topológica**: Algoritmo de Kahn para detecção de ciclos e processamento correto.
+- **Mistura e Distribuição**: Para cada nó, o sistema soma as entradas e distribui aos componentes nas saídas conforme configuração de fração ou vazão fixa.
+- **Verificação Global**: Ao final, verifica se a massa total de entrada equals a saída + retido.
+- **Autocalculação**: Após alterações no diagrama, o balanço recalcula automaticamente com debounce de 300ms.
+- **Exportação Excel**: Exporta todos os dados de balanço para planilha formatada.
 
-### Correcoes Recentes
+### Correções Recentes
 
-- **Bug de Pipes Infinitos**: Corrigida criacao duplicada de pipes ao criar conexoes de saida de equipamentos.
-- **Propagacao de Dados de Saida**: Agora ao criar uma nova corrente de saida, o sistema pre-preenche automaticamente com os dados do balanco de massa calculado, soma das entradas ou dados existentes.
+- **Bug de Pipes Infinitos**: Corrigida criação duplicada de pipes ao criar conexões de saída de equipamentos.
+- **Propagação de Dados de Saída**: Agora ao criar uma nova corrente de saída, o sistema pré-preenche automaticamente com os dados do balanço de massa calculado, soma das entradas ou dados existentes.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-MODULO DETALHADO: BPMN MODELER
+MÓDULO DETALHADO: BPMN MODELER
 ────────────────────────────────────────────────────────────────────────
 
-Focado na eficiencia operacional, o modelador BPMN do ProEng segue rigorosamente a notacao internacional.
+Focado na eficiência operacional, o modelador BPMN do ProEng segue rigorosamente a notação internacional.
 
 ### Sistema de Raias (Lanes)
 
 Diferente de fluxogramas comuns, o BPMN do ProEng organiza as tarefas em **Swimming Lanes**.
 
-- **Pool Management**: Voce pode adicionar ou remover raias dinamicamente.
-- **Headers**: Os cabecalhos de raia utilizam o sistema `_glass_grad` para um visual moderno e transparente.
+- **Pool Management**: Você pode adicionar ou remover raias dinamicamente.
+- **Headers**: Os cabeçalhos de raia utilizam o sistema `_glass_grad` para um visual moderno e transparente.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-MODULO DETALHADO: EAP (WORK BREAKDOWN STRUCTURE)
+MÓDULO DETALHADO: EAP (WORK BREAKDOWN STRUCTURE)
 ────────────────────────────────────────────────────────────────────────
 
-A Estrutura Analitica do Projeto organiza o caos do escopo em uma hierarquia logica.
+A Estrutura Analítica do Projeto organiza o caos do escopo em uma hierarquia lógica.
 
-### Algoritmo de Arvore
+### Algoritmo de Árvore
 
-O modulo EAP gera automaticamente os links entre "Pacotes de Trabalho".
+O módulo EAP gera automaticamente os links entre "Pacotes de Trabalho".
 
-- **Hierarquia Visual**: O nivel pai e sempre destacado com cores mais quentes (Dourado/Amarelo), enquanto os niveis inferiores seguem a paleta da suite.
-- **Selecao e Edicao**: Clique duplo para editar textos, menu de contexto para adicionar sub-tarefas.
+- **Hierarquia Visual**: O nível pai é sempre destacado com cores mais quentes (Dourado/Amarelo), enquanto os níveis inferiores seguem a paleta da suíte.
+- **Seleção e Edição**: Clique duplo para editar textos, menu de contexto para adicionar sub-tarefas.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-MODULO DETALHADO: PROJECT MODEL CANVAS
+MÓDULO DETALHADO: PROJECT MODEL CANVAS
 ────────────────────────────────────────────────────────────────────────
 
-Ferramenta de planejamento agil para alinhar a equipe antes do inicio de qualquer projeto tecnico.
+Ferramenta de planejamento ágil para alinhar a equipe antes do início de qualquer projeto técnico.
 
 ### Os 15 Blocos de Planejamento
 
-- **Fatores Externos**: Stakeholders, Restricoes, Premissas, Riscos.
+- **Fatores Externos**: Stakeholders, Restrições, Premissas, Riscos.
 - **Fatores Internos**: Equipe, Custos, Requisitos.
-- **Objetivos**: Justificativa, Objetivo SMART, Beneficios.
+- **Objetivos**: Justificativa, Objetivo SMART, Benefícios.
 - **Entregas**: Grupo de Entregas e Linha do Tempo.
 
-Cada bloco possui um editor de texto rico que suporta multiplas linhas e redimensionamento dinamico.
+Cada bloco possui um editor de texto rico que suporta múltiplas linhas e redimensionamento dinâmico.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-MODULO DETALHADO: 5W2H ACTION PLAN
+MÓDULO DETALHADO: 5W2H ACTION PLAN
 ────────────────────────────────────────────────────────────────────────
 
-Uma matriz tabular para execucao tatica, onde cada acao e detalhada em 7 dimensoes cruciais.
+Uma matriz tabular para execução tática, onde cada ação é detalhada em 7 dimensões cruciais.
 
 ### Estrutura da Tabela
 
 1. **WHAT**: A tarefa a ser realizada.
-2. **WHY**: O proposito da acao.
-3. **WHERE**: Local de execucao.
+2. **WHY**: O propósito da ação.
+3. **WHERE**: Local de execução.
 4. **WHEN**: Cronograma previsto.
-5. **WHO**: Responsavel (Owner).
-6. **HOW**: Procedimento tecnico.
-7. **HOW MUCH**: Orcamento financeiro ou de RH.
+5. **WHO**: Responsável (Owner).
+6. **HOW**: Procedimento técnico.
+7. **HOW MUCH**: Orçamento financeiro ou de RH.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-MODULO DETALHADO: ISHIKAWA (6M)
+MÓDULO DETALHADO: ISHIKAWA (6M)
 ────────────────────────────────────────────────────────────────────────
 
-O diagrama de Ishikawa (ou Espinha de Peixe) permite identificar a causa raiz de problemas em linhas de producao.
+O diagrama de Ishikawa (ou Espinha de Peixe) permite identificar a causa raiz de problemas em linhas de produção.
 
 ### Os 6 Pilares da Qualidade
 
-O ProEng segmenta as causas em 6 categorias pre-definidas:
+O ProEng segmenta as causas em 6 categorias pré-definidas:
 
-- **Metodos**: Processos e rotinas operacionais.
-- **Maquinas**: Equipamentos, ferramentas e software.
-- **Materiais**: Materia-prima e qualidade de insumos.
-- **Mao de Obra**: Habilidades, treinamento e pessoas.
-- **Medida**: Dados, metricas e calibracao de instrumentos.
-- **Meio Ambiente**: Local de trabalho, clima e condicoes externas.
+- **Métodos**: Processos e rotinas operacionais.
+- **Máquinas**: Equipamentos, ferramentas e software.
+- **Materiais**: Matéria-prima e qualidade de insumos.
+- **Mão de Obra**: Habilidades, treinamento e pessoas.
+- **Medida**: Dados, métricas e calibração de instrumentos.
+- **Meio Ambiente**: Local de trabalho, clima e condições externas.
 
 ---
 
@@ -263,7 +263,7 @@ O ProEng segmenta as causas em 6 categorias pre-definidas:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-| Modulo | Tema Dark (Premium) | Tema Light (Corporativo) |
+| Módulo | Tema Dark (Premium) | Tema Light (Corporativo) |
 | :--- | :---: | :---: |
 | **Welcome Screen** | ![Welcome Dark](proeng/resources/screenshots/welcome_dark.png) | ![Welcome Light](proeng/resources/screenshots/welcome_light.png) |
 | **Flowsheet (PFD)** | ![Flowsheet Dark](proeng/resources/screenshots/flowsheet_dark.png) | ![Flowsheet Light](proeng/resources/screenshots/flowsheet_light.png) |
@@ -284,24 +284,24 @@ O ProEng segmenta as causas em 6 categorias pre-definidas:
 ╔═══════════════════════════════════════════════════════════════╗
 ║  INSTALLATION GUIDE                                           ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  Requirements: Python 3.8+  |  PyQt5  |  1366x768 min        ║
+║  Requirements: Python 3.8+  |  PyQt5  |  1366x768 min         ║
 ╚═══════════════════════════════════════════════════════════════╝
 
 ### Requisitos do Sistema
 
 - **Sistema Operacional**: Windows 10/11, Linux (Ubuntu/Debian) ou macOS.
-- **Python**: Versao 3.8 ou superior recomendada.
-- **Resolucao de Tela**: Minimo 1366x768 (Otimizado para Full HD 1920x1080).
+- **Python**: Versão 3.8 ou superior recomendada.
+- **Resolução de Tela**: Mínimo 1366x768 (Otimizado para Full HD 1920x1080).
 
-### Configuracao do Ambiente
+### Configuração do Ambiente
 
-1. **Download do Codigo**:
+1. **Download do Código**:
     ```bash
     git clone https://github.com/proeng-systems/proeng-suite.git
     cd proeng-suite
     ```
 
-2. **Preparacao do Python** — Crie um ambiente virtual para isolar as dependencias:
+2. **Preparação do Python** — Crie um ambiente virtual para isolar as dependências:
     ```bash
     python -m venv .venv
     # No Windows:
@@ -310,12 +310,12 @@ O ProEng segmenta as causas em 6 categorias pre-definidas:
     source .venv/bin/activate
     ```
 
-3. **Instalacao de Dependencias** — O projeto utiliza apenas o **PyQt5** como dependencia externa pesada:
+3. **Instalação de Dependências** — O projeto utiliza apenas o **PyQt5** como dependência externa pesada:
     ```bash
     pip install pyqt5
     ```
 
-4. **Execucao**:
+4. **Execução**:
     ```bash
     python main.py
     ```
@@ -323,10 +323,10 @@ O ProEng segmenta as causas em 6 categorias pre-definidas:
 ---
 
 ────────────────────────────────────────────────────────────────────────
-MANUAL TECNICO: SISTEMA DE TEMAS (themes.py)
+MANUAL TÉCNICO: SISTEMA DE TEMAS (themes.py)
 ────────────────────────────────────────────────────────────────────────
 
-A customizacao visual e feita atraves de um dicionario centralizado. Abaixo, a descricao de cada chave de cor:
+A customização visual é feita através de um dicionário centralizado. Abaixo, a descrição de cada chave de cor:
 
 ```
 THEME SYSTEM — COLOR KEYS
@@ -369,27 +369,27 @@ KEYBOARD SHORTCUTS
 ---
 
 ────────────────────────────────────────────────────────────────────────
-CONTRIBUICAO E FILOSOFIA
+CONTRIBUIÇÃO E FILOSOFIA
 ────────────────────────────────────────────────────────────────────────
 
-O ProEng e um projeto de **Software Livre** que valoriza a cooperacao altruista. Para contribuir, voce nao apenas segue um fluxo tecnico, mas adere ao compromisso de manter o conhecimento aberto:
+O ProEng é um projeto de **Software Livre** que valoriza a cooperação altruísta. Para contribuir, você não apenas segue um fluxo técnico, mas adere ao compromisso de manter o conhecimento aberto:
 
-1. **Audite o Codigo**: Como ferramenta de engenharia, a seguranca depende da sua revisao.
-2. **Melhore e Compartilhe**: Se criou um novo simbolo ou correcao, envie-o para que todos se beneficiem.
-3. **Respeite a Liberdade**: Qualquer contribuicao sera licenciada sob os mesmos termos da GPLv3.
+1. **Audite o Código**: Como ferramenta de engenharia, a segurança depende da sua revisão.
+2. **Melhore e Compartilhe**: Se criou um novo símbolo ou correção, envie-o para que todos se beneficiem.
+3. **Respeite a Liberdade**: Qualquer contribuição será licenciada sob os mesmos termos da GPLv3.
 
-- **Fork & Pull Request**: O fluxo classico de colaboracao via GitHub e bem-vindo.
-- **Inspirado em Stallman**: Veja nosso [MANIFESTO.md](MANIFESTO.md) para entender nossa visao etica.
+- **Fork & Pull Request**: O fluxo clássico de colaboração via GitHub é bem-vindo.
+- **Inspirado em Stallman**: Veja nosso [MANIFESTO.md](MANIFESTO.md) para entender nossa visão ética.
 
 ---
 
 ────────────────────────────────────────────────────────────────────────
-LICENCA DE USO: SOFTWARE LIVRE (GPLv3)
+LICENÇA DE USO: SOFTWARE LIVRE (GPLv3)
 ────────────────────────────────────────────────────────────────────────
 
-Este software e um **Free Software** (Software Livre), distribuido sob a licenca **GNU General Public License v3.0**.
+Este software é um **Free Software** (Software Livre), distribuído sob a licença **GNU General Public License v3.0**.
 
-Diferente de licencas permissivas, a GPLv3 garante que o ProEng permaneca livre para sempre. Isso significa que voce tem a liberdade de usar, estudar e modificar o software para qualquer fim, desde que mantenha essas liberdades disponiveis para os outros. Consulte o arquivo [LICENSE](LICENSE) para os termos completos.
+Diferente de licenças permissivas, a GPLv3 garante que o ProEng permaneça livre para sempre. Isso significa que você tem a liberdade de usar, estudar e modificar o software para qualquer fim, desde que mantenha essas liberdades disponíveis para os outros. Consulte o arquivo [LICENSE](LICENSE) para os termos completos.
 
 ---
 
@@ -397,7 +397,7 @@ Diferente de licencas permissivas, a GPLv3 garante que o ProEng permaneca livre 
 CONTATO E SUPORTE
 ────────────────────────────────────────────────────────────────────────
 
-Para duvidas tecnicas, bugs ou sugestoes de novos equipamentos:
+Para dúvidas técnicas, bugs ou sugestões de novos equipamentos:
 
 - **Issues**: [GitHub Issues Page]
 
