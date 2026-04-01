@@ -1,23 +1,23 @@
 ```
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                      ║
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
 ║   ██████╗ ██████╗  ██████╗ ███████╗███╗   ██╗ ██████╗              ║
 ║   ██╔══██╗██╔══██╗██╔═══██╗██╔════╝████╗  ██║██╔════╝              ║
 ║   ██████╔╝██████╔╝██║   ██║█████╗  ██╔██╗ ██║██║  ███╗             ║
 ║   ██╔═══╝ ██╔══██╗██║   ██║██╔══╝  ██║╚██╗██║██║   ██║             ║
 ║   ██║     ██║  ██║╚██████╔╝███████╗██║ ╚████║╚██████╔╝             ║
-║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝             ║
-║                                                                      ║
+║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝              ║
+║                                                                    ║
 ║             ███████╗██╗   ██╗██╗████████╗███████╗                  ║
 ║             ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝                  ║
 ║             ███████╗██║   ██║██║   ██║   █████╗                    ║
 ║             ╚════██║██║   ██║██║   ██║   ██╔══╝                    ║
 ║             ███████║╚██████╔╝██║   ██║   ███████╗                  ║
 ║             ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝                  ║
-║                                                                      ║
-║          Industrial Engineering & Project Management                 ║
-║                    Professional Suite  v1.0                          ║
-╚══════════════════════════════════════════════════════════════════════╝
+║                                                                    ║
+║          Industrial Engineering & Project Management               ║
+║                    Professional Suite  v1.0                        ║
+╚════════════════════════════════════════════════════════════════════╝
 ```
 
 > **ProEng** e uma plataforma de engenharia industrial de ponta, desenhada para unificar o planejamento tecnico, a modelagem de processos e a gestao estrategica em um unico ambiente visual de alta fidelidade.
@@ -40,9 +40,8 @@ FILOSOFIA DE DESIGN: INDUSTRIAL GLASSMORPHISM
 
 A estetica do ProEng e um dos seus pilares fundamentais. Ela nao e puramente decorativa; cada escolha de cor e transparencia tem um proposito funcional.
 
-### O Conceito "Dark Navy & Emerald"
 
-Utilizamos uma paleta baseada em **Azul Marinho Profundo** para o canvas de trabalho. Isso cria um contraste natural com as linhas de processo em verde ou azul brilhante, facilitando a identificacao de conexoes em diagramas densos.
+Utilizei uma paleta baseada em **Azul Marinho Profundo** para o canvas de trabalho. Isso cria um contraste natural com as linhas de processo em verde ou azul brilhante, facilitando a identificacao de conexoes em diagramas densos.
 
 - **Fundo da Aplicacao (`bg_app`)**: `#050816` — Um tom de azul petroleo que absorve o brilho excessivo do monitor.
 - **Efeito de Vidro (`bg_card`)**: `rgba(15, 23, 42, 210)` — Elementos de interface que parecem flutuar sobre o diagrama, permitindo ver a estrutura por baixo sem perder o foco na ferramenta ativa.
@@ -74,22 +73,22 @@ Todos os modulos do ProEng (Flowsheet, BPMN, etc.) herdam da `BaseModule`. Esta 
 PROENG CORE ARCHITECTURE
 ┌─────────────────────────────────────────────────────────────────┐
 │  APPLICATION LAYER                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │  main_app.py │  │  welcome.py  │  │  selection_screen.py │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │  main_app.py │  │  welcome.py  │  │  selection_screen.py │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
 ├─────────────────────────────────────────────────────────────────┤
 │  CORE ENGINE                                                    │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐    │
-│  │ themes   │ │  utils   │ │ toolbar  │ │  base_module   │    │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘    │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │
+│  │ themes   │ │  utils   │ │ toolbar  │ │  base_module   │      │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘      │
 ├─────────────────────────────────────────────────────────────────┤
 │  MODULE LAYER                                                   │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐    │
-│  │flowsheet │ │   bpmn   │ │   eap    │ │    canvas      │    │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘    │
-│  ┌──────────┐ ┌──────────┐                                     │
-│  │ishikawa  │ │  w5h2    │                                     │
-│  └──────────┘ └──────────┘                                     │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │
+│  │flowsheet │ │   bpmn   │ │   eap    │ │    canvas      │      │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘      │
+│  ┌──────────┐ ┌──────────┐                                      │
+│  │ishikawa  │ │  w5h2    │                                      │
+│  └──────────┘ └──────────┘                                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -284,7 +283,7 @@ O ProEng segmenta as causas em 6 categorias pre-definidas:
 ╔═══════════════════════════════════════════════════════════════╗
 ║  INSTALLATION GUIDE                                           ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  Requirements: Python 3.8+  |  PyQt5  |  1366x768 min        ║
+║  Requirements: Python 3.8+  |  PyQt5  |  1366x768 min         ║
 ╚═══════════════════════════════════════════════════════════════╝
 
 ### Requisitos do Sistema
