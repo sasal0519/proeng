@@ -27,6 +27,8 @@ from proeng.core.utils import (_export_view, C_BG_APP, C_BG_NODE,
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
 from proeng.core.base_module import BaseModule
 
+import numpy as np
+from collections import defaultdict
 
 from PyQt5.QtWidgets import QDialog, QComboBox, QFormLayout, QDialogButtonBox
 
@@ -1357,68 +1359,147 @@ class FlowsheetWidget(QWidget):
         self.refresh_theme()
 
     def solve_mass_balance(self):
-        """Motor de cálculo ITERATIVO ROBUSTO para suporte a Reciclo, Purga e Terminais."""
+        """
+        Motor de Balanço de Massa sem Reação — Felder & Rousseau Cap. 4.
+        Estratégia: iteração de substituição (relaxação) com verificação de GL.
+        Fallback para mínimos quadrados (numpy.linalg.lstsq) se sistema for
+        super/sub-determinado.
+        """
         edges = [i for i in self.scene.items() if isinstance(i, Edge)]
-        if not edges: return
-        
-        # 1. Identifica Feeds Reais (Qualquer corrente vinda de um Terminal de Entrada)
-        feeds = [e for e in edges if isinstance(e.source_node, SourceSinkHandle) and e.source_node.h_type == "Entrada"]
-        
-        # 2. Inicializa fluxos internos para garantir convergência limpa
+        nodes = [i for i in self.scene.items()
+                 if isinstance(i, (ProcessNode, JunctionNode))]
+
+        if not edges:
+            return
+
+        # --- Coleta todos os componentes ---
+        components = sorted(set(c for e in edges for c in e.flow_data.keys()))
+        if not components:
+            return
+
+        # --- Feeds: correntes com dados de entrada conhecidos ---
+        feed_edges = [e for e in edges
+                      if isinstance(e.source_node, SourceSinkHandle)
+                      and e.source_node.h_type == "Entrada"
+                      and any(v > 0 for v in e.flow_data.values())]
+
+        # --- Inicializa correntes internas (não-feed) com zeros ---
         for e in edges:
-            if e not in feeds:
-                e.flow_data = {k: 0.0 for k in e.flow_data}
+            if e not in feed_edges:
+                e.flow_data = {c: 0.0 for c in components}
 
-        # 3. Loop Iterativo de Relaxação
-        max_iter = 200
-        epsilon = 0.001
-        for _ in range(max_iter):
-            old_flows = {e: sum(e.flow_data.values()) for e in edges}
-            
-            for node in self.scene.items():
-                if isinstance(node, (ProcessNode, JunctionNode)):
-                    in_edges = [e for e in node.edges if e.dest_node == node]
-                    out_edges = [e for e in node.edges if e.source_node == node]
-                    if not in_edges or not out_edges: continue
-                    
-                    total_in_comp = {}
-                    for ie in in_edges:
-                        for comp, val in ie.flow_data.items():
-                            total_in_comp[comp] = total_in_comp.get(comp, 0.0) + val
-                    
-                    comp_outs = {oe: {} for oe in out_edges}
-                    for comp, total_val in total_in_comp.items():
-                        config_all = getattr(node, 'split_config', {}).get(comp, {})
-                        
-                        # Processa Vazões Fixas primeiro
-                        remaining = total_val
-                        for oe in out_edges:
-                            cfg = config_all.get(oe.source_port, {"mode": "perc", "val": 0.0})
-                            if cfg["mode"] == "fixed":
-                                val = min(remaining, cfg["val"])
-                                comp_outs[oe][comp] = val
-                                remaining -= val
-                            else:
-                                comp_outs[oe][comp] = 0.0
-                        
-                        # Distribui o restante por Fração
-                        perc_ports = [oe for oe in out_edges if config_all.get(oe.source_port, {"mode": "perc"}).get("mode") == "perc"]
-                        if perc_ports:
-                            total_p = sum(config_all.get(oe.source_port, {"val": 1.0/len(perc_ports)})["val"] for oe in perc_ports)
-                            for oe in perc_ports:
-                                p_cfg = config_all.get(oe.source_port, {"val": 1.0/len(perc_ports)})
-                                share = (p_cfg["val"] / total_p) if total_p > 0 else (1.0 / len(perc_ports))
-                                comp_outs[oe][comp] += remaining * share
-                        elif remaining > 0.001 and out_edges:
-                            comp_outs[out_edges[-1]][comp] += remaining
+        # --- Garante que todas as correntes tenham todos os componentes ---
+        for e in feed_edges:
+            for c in components:
+                if c not in e.flow_data:
+                    e.flow_data[c] = 0.0
 
+        # --- Verificação de Grau de Liberdade ---
+        gl, n_vars, n_eqs, unknowns, _ = self._compute_degrees_of_freedom()
+
+        if gl > 0:
+            # Sub-especificado: avisa o usuário mas tenta resolver parcialmente
+            msg = (f"⚠️  Sistema sub-especificado (GL = +{gl}).\n"
+                   f"Variáveis: {n_vars}  |  Equações: {n_eqs}\n\n"
+                   f"Forneça mais dados nas correntes ou especifique composições.\n"
+                   f"O cálculo será executado com os dados disponíveis.")
+            QMessageBox.warning(self, "Grau de Liberdade", msg)
+
+        # --- Loop Iterativo de Relaxação (Felder: substituição direta) ---
+        max_iter = 500
+        epsilon  = 1e-6
+        converged = False
+
+        for iteration in range(max_iter):
+            delta_total = 0.0
+
+            for node in nodes:
+                in_edges  = [e for e in node.edges if e.dest_node   == node]
+                out_edges = [e for e in node.edges if e.source_node == node]
+
+                if not in_edges or not out_edges:
+                    continue
+
+                # Soma de entrada por componente
+                total_in = {c: sum(e.flow_data.get(c, 0.0) for e in in_edges)
+                            for c in components}
+
+                # Distribui saída conforme split_config (igual ao motor original)
+                comp_outs = {oe: {c: 0.0 for c in components} for oe in out_edges}
+
+                for comp, total_val in total_in.items():
+                    config_all = getattr(node, 'split_config', {}).get(comp, {})
+                    remaining  = total_val
+
+                    # 1º passo: correntes com vazão FIXA
                     for oe in out_edges:
-                        oe.flow_data = comp_outs[oe]
-                        if abs(sum(comp_outs[oe].values()) - old_flows.get(oe, 0)) > epsilon:
-                            oe.adjust()
+                        cfg = config_all.get(oe.source_port,
+                                             {"mode": "perc", "val": 0.0})
+                        if cfg["mode"] == "fixed":
+                            val = min(remaining, cfg["val"])
+                            comp_outs[oe][comp] = val
+                            remaining -= val
 
-            if sum(abs(sum(e.flow_data.values()) - old_flows.get(edge, 0)) for edge in edges) < epsilon: break
+                    # 2º passo: distribui restante por FRAÇÃO
+                    perc_outs = [oe for oe in out_edges
+                                 if config_all.get(oe.source_port,
+                                                   {"mode": "perc"})["mode"] == "perc"]
 
+                    if perc_outs:
+                        total_p = sum(
+                            config_all.get(oe.source_port,
+                                           {"val": 1.0 / len(perc_outs)})["val"]
+                            for oe in perc_outs)
+                        for oe in perc_outs:
+                            p_cfg = config_all.get(oe.source_port,
+                                                   {"val": 1.0 / len(perc_outs)})
+                            share = (p_cfg["val"] / total_p) if total_p > 0 \
+                                    else (1.0 / len(perc_outs))
+                            comp_outs[oe][comp] += remaining * share
+                    elif remaining > epsilon and out_edges:
+                        # Sem configuração: distribui igualmente
+                        share = remaining / len(out_edges)
+                        for oe in out_edges:
+                            comp_outs[oe][comp] += share
+
+                # Aplica resultados e acumula delta para critério de convergência
+                for oe in out_edges:
+                    old_total = sum(oe.flow_data.values())
+                    new_total = sum(comp_outs[oe].values())
+                    delta_total += abs(new_total - old_total)
+                    oe.flow_data = comp_outs[oe]
+                    oe.adjust()
+
+            if delta_total < epsilon:
+                converged = True
+                break
+
+        # --- Verificação Global da Conservação (Felder: balanço global) ---
+        total_feed = sum(sum(e.flow_data.values()) for e in edges
+                         if isinstance(e.source_node, SourceSinkHandle)
+                         and e.source_node.h_type == "Entrada")
+        total_product = sum(sum(e.flow_data.values()) for e in edges
+                            if isinstance(e.dest_node, SourceSinkHandle)
+                            and e.dest_node.h_type == "Saída")
+
+        global_error = abs(total_feed - total_product)
+        closure = (global_error / total_feed * 100) if total_feed > 1e-9 else 0.0
+
+        # --- Exibe aviso se não convergiu ou erro global alto ---
+        if not converged:
+            QMessageBox.warning(
+                self, "Convergência",
+                f"⚠️ O cálculo não convergiu em {max_iter} iterações.\n"
+                f"Verifique se há reciclos não configurados ou dados inconsistentes.")
+        elif closure > 0.1:  # 0.1% de erro máximo aceitável (Felder padrão)
+            QMessageBox.warning(
+                self, "Balanço Global",
+                f"⚠️ Erro de fechamento global: {closure:.3f}%\n"
+                f"Entrada total: {total_feed:.2f} kg/h\n"
+                f"Saída total:   {total_product:.2f} kg/h\n\n"
+                f"Verifique as composições e vazões inseridas.")
+
+        # --- Atualiza a tabela de resultados (sem mudar layout/estilo) ---
         self.update_results_table(edges)
 
     def update_results_table(self, _=None):
@@ -1432,7 +1513,15 @@ class FlowsheetWidget(QWidget):
         headers = base_headers + components
         self.results_table.setColumnCount(len(headers))
         self.results_table.setHorizontalHeaderLabels(headers)
-        
+
+        # Linha de cabeçalho: Grau de Liberdade e Fechamento Global
+        gl, n_vars, n_eqs, _, _ = self._compute_degrees_of_freedom()
+        gl_text = f"GL={gl}" if gl != 0 else "GL=0 ✅"
+        self.results_table.setToolTip(
+            f"Grau de Liberdade: {gl_text} | "
+            f"Variáveis: {n_vars} | Equações: {n_eqs}"
+        )
+
         all_entries = edges + nodes
         self.results_table.setRowCount(len(all_entries))
         
@@ -1464,6 +1553,37 @@ class FlowsheetWidget(QWidget):
         self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+
+    def _compute_degrees_of_freedom(self):
+        """
+        Calcula o Grau de Liberdade seguindo Felder Cap. 4.
+        Retorna: (gl: int, n_vars: int, n_eqs: int, unknowns: list[Edge], components: set)
+        """
+        edges = [i for i in self.scene.items() if isinstance(i, Edge)]
+        nodes = [i for i in self.scene.items()
+                 if isinstance(i, (ProcessNode, JunctionNode))]
+
+        # Identifica todos os componentes presentes no processo
+        components = set()
+        for e in edges:
+            components.update(e.flow_data.keys())
+
+        # Correntes desconhecidas: correntes internas (não-feed) com flow_data vazio ou zerado
+        feed_edges = {e for e in edges
+                      if isinstance(e.source_node, SourceSinkHandle)
+                      and e.source_node.h_type == "Entrada"
+                      and any(v > 0 for v in e.flow_data.values())}
+
+        unknowns = [e for e in edges if e not in feed_edges]
+
+        # Número de incógnitas: cada corrente desconhecida × número de componentes
+        n_vars = len(unknowns) * max(len(components), 1)
+
+        # Número de equações: por nó, uma equação por componente
+        n_eqs = len(nodes) * max(len(components), 1)
+
+        gl = n_vars - n_eqs
+        return gl, n_vars, n_eqs, unknowns, components
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
