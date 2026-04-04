@@ -55,7 +55,6 @@ from PyQt5.QtGui import (
     QPixmap,
     QPainterPath,
     QDrag,
-    QLinearGradient,
 )
 from PyQt5.QtCore import (
     Qt,
@@ -334,15 +333,15 @@ class TerminalConfigDialog(QDialog):
             QLabel {{ color: {t["text"]}; font-weight: bold; }}
             QComboBox, QLineEdit {{ 
                 background: {t["bg_card"]}; 
-                border: 1px solid {t["accent"]}; 
-                border-radius: 4px; 
+                border: 2px solid {t["accent"]}; 
+                border-radius: 0px; 
                 padding: 6px; 
                 color: {t["text"]}; 
             }}
             QPushButton {{ 
                 background: {t["bg_card"]}; 
                 color: {t["text"]}; 
-                border-radius: 4px; 
+                border-radius: 0px; 
                 padding: 6px 15px; 
                 min-width: 80px;
             }}
@@ -741,23 +740,10 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
     pen_color = theme["text"] if is_icon else theme["accent"]
     _bg_node = theme["bg_card"]
 
-    # Efeito "Glass Neon" Industrial Dinâmico
-    grad = QLinearGradient(QPointF(-size, -size), QPointF(size, size))
-    c_base = QColor(theme["accent"])
-
-    # Opacidade ajustada para o tema (mais sutil no Light)
-    alpha1 = 60 if theme["name"] == "dark" else 40
-    alpha2 = 20 if theme["name"] == "dark" else 10
-
-    c_fill1 = QColor(c_base.red(), c_base.green(), c_base.blue(), alpha1)
-    c_fill2 = QColor(c_base.red(), c_base.green(), c_base.blue(), alpha2)
-    grad.setColorAt(0, c_fill1)
-    grad.setColorAt(1, c_fill2)
-
     pw = 1.2 if is_icon else 1.8
     default_pen = QPen(QColor(pen_color), pw, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
     painter.setPen(default_pen)
-    painter.setBrush(QBrush(grad))
+    painter.setBrush(QBrush(QColor(_bg_node)))
 
     st = EQUIPMENT_ALIASES.get(symbol_type, symbol_type)
 
@@ -1355,18 +1341,18 @@ class ConnectorPort(QGraphicsEllipseItem):
         self.node = node
         self.port_id = port_id
         self.setAcceptHoverEvents(True)
-        self.setBrush(QBrush(QColor(0, 150, 255)))
-        self.setPen(QPen(QColor(255, 255, 255), 1))
+        self.setBrush(QBrush(QColor(T()["accent"])))
+        self.setPen(QPen(QColor(T()["text"]), 1))
         self.setCursor(QCursor(Qt.CrossCursor))
         self.setZValue(10)
         self.setVisible(False)
 
     def hoverEnterEvent(self, event):
-        self.setBrush(QBrush(QColor(0, 255, 255)))
+        self.setBrush(QBrush(QColor(T()["accent_bright"])))
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
-        self.setBrush(QBrush(QColor(0, 150, 255)))
+        self.setBrush(QBrush(QColor(T()["accent"])))
         super().hoverLeaveEvent(event)
 
     def mousePressEvent(self, event):
@@ -1395,9 +1381,7 @@ class SourceSinkHandle(QGraphicsItem):
         # Adiciona uma porta real para permitir reconectar arrastando
         self.ports = {"tip": ConnectorPort(self, "tip")}
         self.ports["tip"].setPos(0, 0)
-        self.ports["tip"].setBrush(
-            QBrush(QColor(0, 255, 255))
-        )  # Cor ciano para terminais
+        self.ports["tip"].setBrush(QBrush(QColor(T()["accent_bright"])))
         self.ports["tip"].setVisible(False)
 
     def add_edge(self, edge):
@@ -1454,7 +1438,7 @@ class JunctionNode(QGraphicsEllipseItem):
         self.edges = []
         self.ports = {"tip": ConnectorPort(self, "tip")}
         self.ports["tip"].setPos(0, 0)
-        self.ports["tip"].setBrush(QBrush(QColor(0, 255, 255)))  # Ciano Neon
+        self.ports["tip"].setBrush(QBrush(QColor(T()["accent_bright"])))
         self.ports["tip"].setVisible(False)
         self._bg = T()["accent"]
         self.custom_name = "Junção"
@@ -3059,9 +3043,8 @@ class FlowsheetWidget(QWidget):
         self.canvas.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
 
         # Estilo Glassmorphism Compacto e Uniforme para a Tabela
-        rgba = QColor(t["bg_card"])
-        glass_bg = f"rgba({rgba.red()}, {rgba.green()}, {rgba.blue()}, 200)"
-        glass_border = f"rgba({rgba.red()}, {rgba.green()}, {rgba.blue()}, 255)"
+        glass_bg = t["bg_card"]
+        glass_border = t["bg_card"]
 
         self.results_table.setStyleSheet(f"""
             QTableWidget {{

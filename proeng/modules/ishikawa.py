@@ -1,32 +1,74 @@
 # -*- coding: utf-8 -*-
 """Módulo Ishikawa — Diagrama Espinha de Peixe (Causa e Efeito)."""
+
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QMessageBox, QGraphicsView, QGraphicsScene, QGraphicsItem,
-    QListWidget, QListWidgetItem, QSplitter, QGraphicsPathItem, QMenu,
-    QListView, QLineEdit, QLabel, QStackedWidget, QTextEdit,
-    QGraphicsRectItem, QInputDialog, QFileDialog, QSizePolicy
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QMessageBox,
+    QGraphicsView,
+    QGraphicsScene,
+    QGraphicsItem,
+    QListWidget,
+    QListWidgetItem,
+    QSplitter,
+    QGraphicsPathItem,
+    QMenu,
+    QListView,
+    QLineEdit,
+    QLabel,
+    QStackedWidget,
+    QTextEdit,
+    QGraphicsRectItem,
+    QInputDialog,
+    QFileDialog,
+    QSizePolicy,
 )
 from PyQt5.QtGui import (
-    QPen, QBrush, QColor, QPainter, QPalette, QCursor, QPolygonF,
-    QFont, QFontMetrics, QIcon, QPixmap, QPainterPath, QDrag, QLinearGradient
+    QPen,
+    QBrush,
+    QColor,
+    QPainter,
+    QPalette,
+    QCursor,
+    QPolygonF,
+    QFont,
+    QFontMetrics,
+    QIcon,
+    QPixmap,
+    QPainterPath,
+    QDrag,
 )
 from PyQt5.QtCore import (
-    Qt, QRectF, QPointF, QMimeData, QByteArray, QDataStream,
-    QIODevice, QSize, QPoint, QTimer, pyqtSignal, QObject, QSizeF
+    Qt,
+    QRectF,
+    QPointF,
+    QMimeData,
+    QByteArray,
+    QDataStream,
+    QIODevice,
+    QSize,
+    QPoint,
+    QTimer,
+    pyqtSignal,
+    QObject,
+    QSizeF,
 )
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import (_export_view, _c, _glass_grad)
+from proeng.core.utils import _export_view, _c, _solid_fill, _nb_paint_node, _is_nb
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
 from proeng.core.base_module import BaseModule
 
 
 class IshikawaSignals(QObject):
-    add_child   = pyqtSignal(int)
+    add_child = pyqtSignal(int)
     delete_node = pyqtSignal(int)
-    edit_start  = pyqtSignal(int)
+    edit_start = pyqtSignal(int)
     commit_text = pyqtSignal(int, str)
 
 
@@ -40,9 +82,9 @@ class IshikawaFloatingEditor(QLineEdit):
 
     def _apply_style(self):
         try:
-            t   = T()
-            bg  = t["bg_card2"]
-            fg  = t["text"]
+            t = T()
+            bg = t["bg_card2"]
+            fg = t["text"]
             bdr = t["accent_bright"]
         except Exception:
             bg, fg, bdr = "#1A0A0A", "#FAE8E8", "#CC2222"
@@ -61,23 +103,35 @@ class IshikawaFloatingEditor(QLineEdit):
         self._apply_style()
         self._target_id, self._original, self._done = target_id, current_text, False
         rv = view.mapFromScene(scene_rect).boundingRect()
-        self.setGeometry(rv.x(), rv.y() + rv.height()//2 - 18, max(160, rv.width()), 36)
+        self.setGeometry(
+            rv.x(), rv.y() + rv.height() // 2 - 18, max(160, rv.width()), 36
+        )
         self.setText(current_text)
-        self.selectAll(); self.show(); self.raise_(); self.setFocus()
+        self.selectAll()
+        self.show()
+        self.raise_()
+        self.setFocus()
 
     def _commit(self, text=None):
-        if self._done: return
+        if self._done:
+            return
         self._done = True
         self.hide()
-        self.committed.emit(self._target_id,
-                            (text if text is not None else self.text()).strip())
+        self.committed.emit(
+            self._target_id, (text if text is not None else self.text()).strip()
+        )
 
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter): self._commit()
-        elif event.key() == Qt.Key_Escape: self._commit(self._original)
-        else: super().keyPressEvent(event)
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            self._commit()
+        elif event.key() == Qt.Key_Escape:
+            self._commit(self._original)
+        else:
+            super().keyPressEvent(event)
 
-    def focusOutEvent(self, event): self._commit(); super().focusOutEvent(event)
+    def focusOutEvent(self, event):
+        self._commit()
+        super().focusOutEvent(event)
 
 
 class IshikawaNode(QGraphicsItem):
@@ -86,20 +140,20 @@ class IshikawaNode(QGraphicsItem):
     def __init__(self, node_id, text, level, signals, zoom):
         super().__init__()
         self.node_id = node_id
-        self.text    = text
-        self.level   = level
+        self.text = text
+        self.level = level
         self.signals = signals
-        self.zoom    = zoom
+        self.zoom = zoom
         self.hovered = False
 
         if self.level == 0:
-            self._font   = QFont("Segoe UI", max(8, int(14 * zoom)), QFont.Bold)
+            self._font = QFont("Segoe UI", max(8, int(14 * zoom)), QFont.Bold)
             self.base_w, self.base_h = 200 * zoom, 72 * zoom
         elif self.level == 1:
-            self._font   = QFont("Segoe UI", max(7, int(10 * zoom)), QFont.Bold)
+            self._font = QFont("Segoe UI", max(7, int(10 * zoom)), QFont.Bold)
             self.base_w, self.base_h = 130 * zoom, 38 * zoom
         else:
-            self._font   = QFont("Segoe UI", max(6, int(8 * zoom)))
+            self._font = QFont("Segoe UI", max(6, int(8 * zoom)))
             self.base_w, self.base_h = 110 * zoom, 28 * zoom
 
         self._calc_size()
@@ -108,16 +162,27 @@ class IshikawaNode(QGraphicsItem):
         self.setZValue(10)
 
     def _calc_size(self):
-        sample = self.text if self.text else ("Efeito / Problema" if self.level == 0 else "Nova Causa")
+        sample = (
+            self.text
+            if self.text
+            else ("Efeito / Problema" if self.level == 0 else "Nova Causa")
+        )
         fm = QFontMetrics(self._font)
-        
+
         # Max width for Ishikawa nodes
         max_node_w = (240 if self.level == 0 else 160) * self.zoom
         pad_x = (40 if self.level == 0 else 24) * self.zoom
         pad_y = (30 if self.level == 0 else 18) * self.zoom
-        
-        text_rect = fm.boundingRect(0, 0, int(max_node_w - pad_x), 1000, Qt.AlignCenter | Qt.TextWordWrap, sample)
-        
+
+        text_rect = fm.boundingRect(
+            0,
+            0,
+            int(max_node_w - pad_x),
+            1000,
+            Qt.AlignCenter | Qt.TextWordWrap,
+            sample,
+        )
+
         self.w = max(self.base_w, text_rect.width() + pad_x)
         self.h = max(self.base_h, text_rect.height() + pad_y)
 
@@ -130,69 +195,104 @@ class IshikawaNode(QGraphicsItem):
         painter.setRenderHint(QPainter.Antialiasing)
         r = QRectF(0, 0, self.w, self.h)
 
-        # Aplicar motor de vidro universal para máxima clareza em todos os modos
-        painter.setBrush(QBrush(_glass_grad(r, self.hovered or self.level==0)))
-        painter.setPen(QPen(Qt.NoPen))
-        radius = 12 if self.level >= 1 else 15
-        painter.drawRoundedRect(r, radius, radius)
+        if _is_nb(t):
+            _nb_paint_node(painter, r, self.hovered or self.level == 0)
+            bw = t.get("border_width", 3)
+            if self.level <= 1:
+                strip_h = 6 * self.zoom
+                painter.save()
+                painter.setBrush(
+                    QBrush(QColor(t["accent_bright"] if self.hovered else t["accent"]))
+                )
+                painter.setPen(QPen(Qt.NoPen))
+                painter.drawRect(QRectF(bw, bw, self.w - bw * 2, strip_h))
+                painter.restore()
+        else:
+            painter.setBrush(QBrush(_solid_fill(r, self.hovered or self.level == 0)))
+            painter.setPen(QPen(Qt.NoPen))
+            radius = 12 if self.level >= 1 else 15
+            painter.drawRoundedRect(r, radius, radius)
 
-        # Accent strip topo (CLIPPED)
-        if self.level <= 1:
-            painter.save()
-            clip_path = QPainterPath()
-            clip_path.addRoundedRect(r, 12, 12)
-            painter.setClipPath(clip_path)
+            if self.level <= 1:
+                painter.save()
+                clip_path = QPainterPath()
+                clip_path.addRoundedRect(r, 12, 12)
+                painter.setClipPath(clip_path)
 
-            sg = QLinearGradient(0, 0, self.w, 0)
-            sg.setColorAt(0, QColor(t["accent_bright"] if self.hovered else t["accent"]))
-            sg.setColorAt(0.6, QColor(0, 0, 0, 0))
-            painter.setBrush(QBrush(sg)); painter.setPen(Qt.NoPen)
-            painter.drawRect(QRectF(0, 0, self.w, 4 * self.zoom))
-            painter.restore()
+                painter.setBrush(
+                    QBrush(QColor(t["accent_bright"] if self.hovered else t["accent"]))
+                )
+                painter.setPen(Qt.NoPen)
+                painter.drawRect(QRectF(0, 0, self.w, 4 * self.zoom))
+                painter.restore()
 
-        # Texto
-        display = self.text if self.text else ("✎ Efeito/Problema" if self.level == 0 else "✎ Nomear")
+        display = (
+            self.text
+            if self.text
+            else ("✎ Efeito/Problema" if self.level == 0 else "✎ Nomear")
+        )
         painter.setPen(_c("text" if self.text else "text_dim"))
         painter.setFont(self._font)
-        # Increased padding to avoid rounded corner clipping
         px = 15 * self.zoom if self.level == 0 else 8 * self.zoom
         py = 10 * self.zoom if self.level == 0 else 4 * self.zoom
         inner = r.adjusted(px, py, -px, -py)
         painter.drawText(inner, Qt.AlignCenter | Qt.TextWordWrap, display)
 
-        # Botões hover
         if self.hovered:
-            bs = 20 * self.zoom; hbs = bs / 2
+            bs = 20 * self.zoom
+            hbs = bs / 2
             painter.setFont(QFont("Consolas", max(7, int(12 * self.zoom)), QFont.Bold))
 
             if self.level < 2:
                 add_r = QRectF(self.w - hbs, -hbs, bs, bs)
-                painter.setBrush(QBrush(QColor(t["btn_add"]))); painter.setPen(Qt.NoPen)
-                painter.drawRoundedRect(add_r, 4, 4)
+                if _is_nb(t):
+                    painter.setBrush(QBrush(QColor(t["btn_add"])))
+                    painter.setPen(QPen(QColor("#000000"), 2))
+                    painter.drawRect(add_r)
+                else:
+                    painter.setBrush(QBrush(QColor(t["btn_add"])))
+                    painter.setPen(Qt.NoPen)
+                    painter.drawRoundedRect(add_r, 4, 4)
                 painter.setPen(QColor("#FFF"))
                 painter.drawText(add_r, Qt.AlignCenter, "+")
 
             if self.level > 0:
                 del_r = QRectF(-hbs, -hbs, bs, bs)
-                painter.setBrush(QBrush(QColor(t["btn_del"]))); painter.setPen(Qt.NoPen)
-                painter.drawRoundedRect(del_r, 4, 4)
+                if _is_nb(t):
+                    painter.setBrush(QBrush(QColor(t["btn_del"])))
+                    painter.setPen(QPen(QColor("#000000"), 2))
+                    painter.drawRect(del_r)
+                else:
+                    painter.setBrush(QBrush(QColor(t["btn_del"])))
+                    painter.setPen(Qt.NoPen)
+                    painter.drawRoundedRect(del_r, 4, 4)
                 painter.setPen(QColor("#FFF"))
                 painter.drawText(del_r, Qt.AlignCenter, "−")
 
-    def hoverEnterEvent(self, e): self.hovered = True;  self.update()
-    def hoverLeaveEvent(self, e): self.hovered = False; self.update()
+    def hoverEnterEvent(self, e):
+        self.hovered = True
+        self.update()
+
+    def hoverLeaveEvent(self, e):
+        self.hovered = False
+        self.update()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton and self.hovered:
-            bs = 20 * self.zoom; hbs = bs / 2
+            bs = 20 * self.zoom
+            hbs = bs / 2
             add_r = QRectF(self.w - hbs, -hbs, bs, bs)
             del_r = QRectF(-hbs, -hbs, bs, bs)
             if self.level < 2 and add_r.contains(event.pos()):
                 QTimer.singleShot(0, lambda: self.signals.add_child.emit(self.node_id))
-                event.accept(); return
+                event.accept()
+                return
             if self.level > 0 and del_r.contains(event.pos()):
-                QTimer.singleShot(0, lambda: self.signals.delete_node.emit(self.node_id))
-                event.accept(); return
+                QTimer.singleShot(
+                    0, lambda: self.signals.delete_node.emit(self.node_id)
+                )
+                event.accept()
+                return
         super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
@@ -205,22 +305,32 @@ class IshikawaWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.sigs     = IshikawaSignals()
+        self.sigs = IshikawaSignals()
         self.sigs.add_child.connect(self._on_add_child)
         self.sigs.delete_node.connect(self._on_delete_node)
         self.sigs.edit_start.connect(self._on_edit_start)
         self.sigs.commit_text.connect(self._on_commit_text)
 
-        self.zoom_level    = 1.0
-        self.next_id       = 2
-        self.node_dims     = {}
+        self.zoom_level = 1.0
+        self.next_id = 2
+        self.node_dims = {}
         self.node_positions = {}
 
         # Estrutura inicial com 6 categorias clássicas M
-        self.nodes = {1: {"text": "EFEITO / PROBLEMA", "level": 0, "children": [], "parent": None}}
-        cat_names = ["Método", "Máquina", "Material", "Mão de Obra", "Meio Ambiente", "Medição"]
+        self.nodes = {
+            1: {"text": "EFEITO / PROBLEMA", "level": 0, "children": [], "parent": None}
+        }
+        cat_names = [
+            "Método",
+            "Máquina",
+            "Material",
+            "Mão de Obra",
+            "Meio Ambiente",
+            "Medição",
+        ]
         for name in cat_names:
-            nid = self.next_id; self.next_id += 1
+            nid = self.next_id
+            self.next_id += 1
             self.nodes[nid] = {"text": name, "level": 1, "children": [], "parent": 1}
             self.nodes[1]["children"].append(nid)
 
@@ -231,9 +341,10 @@ class IshikawaWidget(QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(0); layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.scene = QGraphicsScene()
-        self.view  = QGraphicsView(self.scene)
+        self.view = QGraphicsView(self.scene)
         self.view.setRenderHint(QPainter.Antialiasing)
         self.view.setDragMode(QGraphicsView.ScrollHandDrag)
         self.view.setStyleSheet("border:none;")
@@ -251,16 +362,20 @@ class IshikawaWidget(QWidget):
 
     def refresh_theme(self):
         self._apply_view_bg()
-        
-        if hasattr(self, '_float_editor'):
+
+        if hasattr(self, "_float_editor"):
             self._float_editor._apply_style()
 
         # Precisamos redesenhar para atualizar as cores das linhas e setas (que não são itens custom)
-        if hasattr(self, 'scene'):
+        if hasattr(self, "scene"):
             self._draw_diagram()
 
-    def zoom_in(self):  self._scale(1.15)
-    def zoom_out(self): self._scale(1 / 1.15)
+    def zoom_in(self):
+        self._scale(1.15)
+
+    def zoom_out(self):
+        self._scale(1 / 1.15)
+
     def reset_zoom(self):
         self.view.resetTransform()
         self.zoom_level = 1.0
@@ -277,7 +392,8 @@ class IshikawaWidget(QWidget):
             self.zoom_in() if event.angleDelta().y() > 0 else self.zoom_out()
         else:
             self.view.verticalScrollBar().setValue(
-                self.view.verticalScrollBar().value() - event.angleDelta().y() // 3)
+                self.view.verticalScrollBar().value() - event.angleDelta().y() // 3
+            )
 
     def _export_scene(self, fmt):
         _export_view(self.view, fmt, self)
@@ -287,8 +403,8 @@ class IshikawaWidget(QWidget):
     # ──────────────────────────────────────────────────────────────
     def _draw_diagram(self):
         self.scene.clear()
-        t  = T()
-        z  = self.zoom_level
+        t = T()
+        z = self.zoom_level
 
         # 1. Pré-calcular dimensões
         self.node_dims.clear()
@@ -297,27 +413,34 @@ class IshikawaWidget(QWidget):
             self.node_dims[nid] = (tmp.w, tmp.h)
 
         # 2. Geometria base
-        spine_end_x  = 1100 * z
-        spine_y      = 480  * z
-        cat_ids      = self.nodes[1]["children"]
-        top_cats     = [c for i, c in enumerate(cat_ids) if i % 2 == 0]
-        bot_cats     = [c for i, c in enumerate(cat_ids) if i % 2 != 0]
-        n_slots      = max(len(top_cats), len(bot_cats), 1)
-        spine_step   = max(260 * z, 260 * z)
-        spine_start  = spine_end_x - (n_slots + 1) * spine_step
+        spine_end_x = 1100 * z
+        spine_y = 480 * z
+        cat_ids = self.nodes[1]["children"]
+        top_cats = [c for i, c in enumerate(cat_ids) if i % 2 == 0]
+        bot_cats = [c for i, c in enumerate(cat_ids) if i % 2 != 0]
+        n_slots = max(len(top_cats), len(bot_cats), 1)
+        spine_step = max(260 * z, 260 * z)
+        spine_start = spine_end_x - (n_slots + 1) * spine_step
 
         # 3. Espinha central
-        pen_spine = QPen(QColor(t["accent_bright"]),
-                         max(2, int(5 * z)), Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+        pen_spine = QPen(
+            QColor(t["accent_bright"]),
+            max(2, int(5 * z)),
+            Qt.SolidLine,
+            Qt.RoundCap,
+            Qt.RoundJoin,
+        )
         self.scene.addLine(spine_start, spine_y, spine_end_x, spine_y, pen_spine)
 
         # Seta na ponta
         asz = 18 * z
-        arrow = QPolygonF([
-            QPointF(spine_end_x, spine_y),
-            QPointF(spine_end_x - asz, spine_y - asz * 0.5),
-            QPointF(spine_end_x - asz, spine_y + asz * 0.5),
-        ])
+        arrow = QPolygonF(
+            [
+                QPointF(spine_end_x, spine_y),
+                QPointF(spine_end_x - asz, spine_y - asz * 0.5),
+                QPointF(spine_end_x - asz, spine_y + asz * 0.5),
+            ]
+        )
         self.scene.addPolygon(arrow, QPen(Qt.NoPen), QBrush(QColor(t["accent_bright"])))
 
         # 4. Nó cabeça
@@ -327,8 +450,12 @@ class IshikawaWidget(QWidget):
         self.node_positions[1] = (hx, hy)
 
         # 5. Ramos e causas
-        pen_branch = QPen(QColor(t["line"]),   max(1, int(3 * z)), Qt.SolidLine, Qt.RoundCap)
-        pen_cause  = QPen(QColor(t["line_eap"]), max(1, int(2 * z)), Qt.SolidLine, Qt.RoundCap)
+        pen_branch = QPen(
+            QColor(t["line"]), max(1, int(3 * z)), Qt.SolidLine, Qt.RoundCap
+        )
+        pen_cause = QPen(
+            QColor(t["line_eap"]), max(1, int(2 * z)), Qt.SolidLine, Qt.RoundCap
+        )
 
         def draw_branch(cat_list, is_top):
             sign = -1 if is_top else 1
@@ -336,8 +463,8 @@ class IshikawaWidget(QWidget):
                 ax = spine_end_x - (k + 1) * spine_step
                 ay = spine_y
 
-                n_causes  = len(self.nodes[cid]["children"])
-                branch_h  = max(220 * z, (n_causes * 75 + 120) * z)
+                n_causes = len(self.nodes[cid]["children"])
+                branch_h = max(220 * z, (n_causes * 75 + 120) * z)
                 ox = ax - branch_h * 0.75
                 oy = spine_y + sign * branch_h
 
@@ -355,8 +482,8 @@ class IshikawaWidget(QWidget):
                 if causes:
                     dy = (ay - oy) / (len(causes) + 1)
                     for j, scid in enumerate(causes):
-                        py  = oy + (j + 1) * dy
-                        px  = ox + ((py - oy) / (ay - oy)) * (ax - ox)
+                        py = oy + (j + 1) * dy
+                        px = ox + ((py - oy) / (ay - oy)) * (ax - ox)
                         seg = max(120 * z, 120 * z)
 
                         # Linha horizontal da causa
@@ -365,10 +492,16 @@ class IshikawaWidget(QWidget):
                         # Pequena seta na causa
                         ca = 7 * z
                         self.scene.addPolygon(
-                            QPolygonF([QPointF(px, py),
-                                       QPointF(px - ca, py - ca * 0.5),
-                                       QPointF(px - ca, py + ca * 0.5)]),
-                            QPen(Qt.NoPen), QBrush(QColor(t["line_eap"])))
+                            QPolygonF(
+                                [
+                                    QPointF(px, py),
+                                    QPointF(px - ca, py - ca * 0.5),
+                                    QPointF(px - ca, py + ca * 0.5),
+                                ]
+                            ),
+                            QPen(Qt.NoPen),
+                            QBrush(QColor(t["line_eap"])),
+                        )
 
                         sw, sh = self.node_dims[scid]
                         self.node_positions[scid] = (px - seg, py - sh - 4 * z)
@@ -378,13 +511,17 @@ class IshikawaWidget(QWidget):
 
         # 6. Renderizar nós
         for nid, (nx, ny) in self.node_positions.items():
-            item = IshikawaNode(nid, self.nodes[nid]["text"],
-                                self.nodes[nid]["level"], self.sigs, z)
+            item = IshikawaNode(
+                nid, self.nodes[nid]["text"], self.nodes[nid]["level"], self.sigs, z
+            )
             item.setPos(nx, ny)
             self.scene.addItem(item)
 
         self.scene.setSceneRect(
-            self.scene.itemsBoundingRect().adjusted(-120*z, -120*z, 120*z, 120*z))
+            self.scene.itemsBoundingRect().adjusted(
+                -120 * z, -120 * z, 120 * z, 120 * z
+            )
+        )
         self.view.centerOn(spine_end_x - (n_slots * spine_step) / 2, spine_y)
 
     # ──────────────────────────────────────────────────────────────
@@ -392,16 +529,28 @@ class IshikawaWidget(QWidget):
     # ──────────────────────────────────────────────────────────────
     def _on_add_child(self, parent_id):
         new_level = self.nodes[parent_id]["level"] + 1
-        nid = self.next_id; self.next_id += 1
-        self.nodes[nid] = {"text": "", "level": new_level, "children": [], "parent": parent_id}
+        nid = self.next_id
+        self.next_id += 1
+        self.nodes[nid] = {
+            "text": "",
+            "level": new_level,
+            "children": [],
+            "parent": parent_id,
+        }
         self.nodes[parent_id]["children"].append(nid)
         self._draw_diagram()
         QTimer.singleShot(60, lambda: self._on_edit_start(nid))
 
     def _on_delete_node(self, node_id):
-        if QMessageBox.question(self, "Excluir",
-                                "Excluir este nó e todos os seus filhos?",
-                                QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+        if (
+            QMessageBox.question(
+                self,
+                "Excluir",
+                "Excluir este nó e todos os seus filhos?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            == QMessageBox.Yes
+        ):
             pid = self.nodes[node_id]["parent"]
             if pid is not None:
                 self.nodes[pid]["children"].remove(node_id)
@@ -414,11 +563,13 @@ class IshikawaWidget(QWidget):
         del self.nodes[nid]
 
     def _on_edit_start(self, node_id):
-        if node_id not in self.node_positions: return
+        if node_id not in self.node_positions:
+            return
         nw, nh = self.node_dims[node_id]
-        x, y   = self.node_positions[node_id]
-        self._float_editor.open(node_id, self.nodes[node_id]["text"],
-                                QRectF(x, y, nw, nh), self.view)
+        x, y = self.node_positions[node_id]
+        self._float_editor.open(
+            node_id, self.nodes[node_id]["text"], QRectF(x, y, nw, nh), self.view
+        )
 
     def _on_commit_text(self, node_id, text):
         if node_id in self.nodes:
@@ -440,21 +591,25 @@ class _IshikawaModule(BaseModule):
             "• O layout das espinhas é posicionado e escalonado automaticamente.\n"
             "• Use o menu 'Exibir' para Zoom."
         )
-        layout = QVBoxLayout(self); layout.setContentsMargins(0,0,0,0); layout.setSpacing(0)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self._inner)
 
-    def reset_zoom(self): self._inner.update_zoom(1.0)
-    def zoom_in(self): self._inner.zoom_in()
-    def zoom_out(self): self._inner.zoom_out()
+    def reset_zoom(self):
+        self._inner.update_zoom(1.0)
 
+    def zoom_in(self):
+        self._inner.zoom_in()
 
-
+    def zoom_out(self):
+        self._inner.zoom_out()
 
     def get_state(self):
         return {
             "schema": "ishikawa.v1",
             "nodes": self._inner.nodes,
-            "next_id": self._inner.next_id
+            "next_id": self._inner.next_id,
         }
 
     def set_state(self, state):
@@ -462,13 +617,29 @@ class _IshikawaModule(BaseModule):
             return
         nodes = {}
         for k, v in state.get("nodes", {}).items():
-            try: k_int = int(k)
-            except: k_int = k
+            try:
+                k_int = int(k)
+            except:
+                k_int = k
             nodes[k_int] = v
-            
+
         if not nodes:
-            nodes = {1: {"text": "EFEITO / PROBLEMA", "level": 0, "children": [], "parent": None}}
-            cat_names = ["Método", "Máquina", "Material", "Mão de Obra", "Meio Ambiente", "Medição"]
+            nodes = {
+                1: {
+                    "text": "EFEITO / PROBLEMA",
+                    "level": 0,
+                    "children": [],
+                    "parent": None,
+                }
+            }
+            cat_names = [
+                "Método",
+                "Máquina",
+                "Material",
+                "Mão de Obra",
+                "Meio Ambiente",
+                "Medição",
+            ]
             next_id = 2
             for name in cat_names:
                 nodes[next_id] = {"text": name, "level": 1, "children": [], "parent": 1}
@@ -480,11 +651,14 @@ class _IshikawaModule(BaseModule):
 
         self._inner.nodes = nodes
         self._inner._draw_diagram()
+
     def refresh_theme(self):
         if hasattr(self._inner, "refresh_theme"):
             self._inner.refresh_theme()
+
     def get_view(self):
         return getattr(self._inner, "view", None)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -493,4 +667,3 @@ if __name__ == "__main__":
     w.resize(1400, 900)
     w.show()
     sys.exit(app.exec_())
-

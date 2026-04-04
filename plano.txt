@@ -1,0 +1,38 @@
+Atue como um especialista em design UI/UX e desenvolvedor front-end. Preciso reformular a tela inicial (dashboard) do meu programa, aplicando rigorosamente a estética do Neo-Brutalismo. O objetivo é criar uma interface utilitária, ousada e com alto contraste, abandonando qualquer suavidade ou gradiente.
+
+Siga estas diretrizes para a transformação:
+
+Estrutura e Layout:
+
+Organize a tela em módulos retangulares distintos, como blocos arquitetônicos interlocking, com tamanhos variados para criar hierarquia visual.
+
+Toda a interface deve ter um fundo de textura crua e clara (como concreto leve ou bege áspero).
+
+Bordas e Sombras (Hard Edges):
+
+Aplique bordas pretas, grossas e uniformes (mínimo 3px) a todos os contêineres e botões.
+
+Implemente sombras sólidas, duras e pretas (sem desfoque/blur) com um deslocamento agressivo (ex: box-shadow: 8px 8px 0px #000), para que os blocos pareçam "flutuar" como volumes 3D físicos.
+
+Paleta de Cores Brutalista:
+
+Use um fundo geral de tom neutro (cru).
+
+Defina cores de destaque sólidas, vibrantes e primárias para preencher módulos específicos (ex: um bloco 'Acesso Rápido' em amarelo mostarda, um bloco 'Projetos' em verde floresta sólido, e um bloco 'Perfil' em azul elétrico).
+
+Evite qualquer tipo de gradiente ou transparência.
+
+Tipografia e Conteúdo:
+
+Use exclusivamente fontes sem serifa (sans-serif) pesadas, geométricas e em negrito (bold) para todos os títulos, garantindo legibilidade e impacto.
+
+O texto deve ter contraste máximo (geralmente preto puro sobre as cores de fundo).
+
+Mantenha espaçamento interno (padding) generoso para que o texto nunca toque nas bordas duras, reforçando a aparência utilitária.
+
+Interatividade (Microinterações):
+
+Para botões e elementos clicáveis, ao passar o mouse (hover), a sombra dura deve desaparecer, e o elemento deve se deslocar ligeiramente para baixo e para a direita (simulando o clique físico de um botão que afunda). Inclua uma nota visual mostrando esse estado de hover.
+
+Os ícones devem ser simples, em arte de linha preta, e contidos em seus próprios sub-blocos quadrados.
+ alem disso corrija os temas claro e escuro para funcionarem dinamicamente da forma correta

@@ -55,9 +55,9 @@ from PyQt5.QtCore import (
     QPauseAnimation,
 )
 
-from proeng.core.themes import T
+from proeng.core.themes import T, cycle_theme
 from proeng.core.project import AppProject
-from proeng.core.utils import _export_view, _c
+from proeng.core.utils import _export_view, _c, _is_nb
 from proeng.core.base_module import BaseModule
 
 
@@ -71,11 +71,22 @@ class SidebarItem(QPushButton):
         self.setCheckable(True)
         self.setCursor(Qt.PointingHandCursor)
         self.setFixedHeight(40)
+        self._hovered = False
         self._refresh()
 
     def set_collapsed(self, collapsed):
         self.is_collapsed = collapsed
         self._refresh()
+
+    def enterEvent(self, e):
+        self._hovered = True
+        self._refresh()
+        super().enterEvent(e)
+
+    def leaveEvent(self, e):
+        self._hovered = False
+        self._refresh()
+        super().leaveEvent(e)
 
     def _refresh(self):
         t = T()
@@ -86,20 +97,35 @@ class SidebarItem(QPushButton):
         )
         self.setText(txt)
 
-        # Estilo Dinâmico Premium
-        self.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent; color: {t["text_dim"]};
-                border: none; border-radius: 8px;
-                text-align: left; padding-left: 12px;
-                font-family: 'Segoe UI'; font-size: 11px; font-weight: 600;
-            }}
-            QPushButton:hover {{ background: {t["bg_card"]}; color: {t["accent_bright"]}; }}
-            QPushButton:checked {{ 
-                background: {t["accent_dim"]}; color: {t["accent_bright"]}; 
-                border-left: 3px solid {t["accent_bright"]}; 
-            }}
-        """)
+        bw = t.get("border_width", 3)
+        ff = t.get("font_family", "'Inter', 'Segoe UI', 'Arial', sans-serif")
+        if self._hovered:
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background: {t["accent"]}; color: #FFFFFF;
+                    border: {bw}px solid {t["glass_border"]}; border-radius: 0px;
+                    text-align: left; padding-left: 12px;
+                    font-family: {ff}; font-size: 11px; font-weight: 900;
+                }}
+            """)
+        elif self.isChecked():
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background: {t["bg_card2"]}; color: {t["accent"]};
+                    border: {bw}px solid {t["glass_border"]}; border-radius: 0px;
+                    text-align: left; padding-left: 12px;
+                    font-family: {ff}; font-size: 11px; font-weight: 900;
+                }}
+            """)
+        else:
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background: {t["bg_card"]}; color: {t["text"]};
+                    border: {bw}px solid {t["glass_border"]}; border-radius: 0px;
+                    text-align: left; padding-left: 12px;
+                    font-family: {ff}; font-size: 11px; font-weight: 900;
+                }}
+            """)
 
 
 class Sidebar(QFrame):
@@ -162,18 +188,16 @@ class Sidebar(QFrame):
 
     def _apply_style(self):
         t = T()
+        bw = t.get("border_width", 3)
+        bdr = t["glass_border"]
         self.setStyleSheet(f"""
             QFrame {{ 
                 background: {t["bg_card"]}; 
-                border-right: 1px solid {t["accent_dim"]};
-            }}
-            QPushButton#toggle {{
-                background: transparent; border: 1px solid {t["accent_dim"]};
-                border-radius: 6px; color: {t["accent"]}; font-size: 14px;
+                border-right: {bw + 1}px solid {bdr};
             }}
         """)
         self.btn_toggle.setStyleSheet(
-            f"background: transparent; color: {t['accent']}; font-size: 18px; border: none;"
+            f"background: {t['accent']}; color: #FFFFFF; font-size: 18px; font-weight: 900; border: {bw}px solid {bdr}; border-radius: 0px;"
         )
 
 
@@ -255,16 +279,14 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
     p = QPainter(px)
     p.setRenderHint(QPainter.Antialiasing)
 
-    # Fundo gradient
-    grad = QLinearGradient(0, 0, size.width(), size.height())
-    grad.setColorAt(0, c1)
-    grad.setColorAt(1, c2)
+    # Fundo solido
+    p.fillRect(QRectF(0, 0, size.width(), size.height()), QBrush(c1))
     path = QPainterPath()
     path.addRoundedRect(QRectF(0, 0, size.width(), size.height()), 12, 12)
-    p.fillPath(path, QBrush(grad))
+    p.fillPath(path, QBrush(c1))
 
     # Grid de mock
-    p.setPen(QPen(QColor(255, 255, 255, 20), 1))
+    p.setPen(QPen(QColor("#333333"), 1))
     step_x = size.width() // 6
     step_y = size.height() // 5
     for i in range(1, 6):
@@ -430,28 +452,27 @@ class ModuleCard(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Preview image
         self._preview_lbl = QLabel()
         self._preview_lbl.setFixedHeight(105)
         self._refresh_preview()
         self._preview_lbl.setScaledContents(True)
         layout.addWidget(self._preview_lbl)
 
-        # Info area
         info_widget = QWidget()
         info_widget.setObjectName("cardInfo")
         info_layout = QVBoxLayout(info_widget)
-        info_layout.setContentsMargins(12, 8, 12, 10)
-        info_layout.setSpacing(4)
+        info_layout.setContentsMargins(16, 12, 16, 14)
+        info_layout.setSpacing(6)
 
+        ff = t_font = T().get("font_family", "'Inter', 'Segoe UI', 'Arial', sans-serif")
         title_lbl = QLabel(info["name"])
-        title_lbl.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        title_lbl.setFont(QFont(ff.replace("'", ""), 11, QFont.Bold))
         title_lbl.setAlignment(Qt.AlignCenter)
         title_lbl.setWordWrap(True)
         info_layout.addWidget(title_lbl)
 
         desc_lbl = QLabel(info["desc"])
-        desc_lbl.setFont(QFont("Segoe UI", 8))
+        desc_lbl.setFont(QFont(ff.replace("'", ""), 9))
         desc_lbl.setAlignment(Qt.AlignCenter)
         desc_lbl.setWordWrap(True)
         desc_lbl.setMinimumHeight(46)
@@ -465,29 +486,59 @@ class ModuleCard(QFrame):
 
     def _refresh_preview(self):
         t = T()
-        # Preferência por screenshots reais de alta fidelidade
         path = f"proeng/resources/screenshots/{self.module_id}_{t['name']}.png"
         if os.path.exists(path):
             self._preview_lbl.setPixmap(QPixmap(path))
         else:
-            # Fallback para o desenho programático detalhado
             px = _generate_module_preview(self.module_id, QSize(240, 105))
             self._preview_lbl.setPixmap(px)
 
     def _update_style(self, hovered: bool):
         t = T()
-        glass_border = t.get("glass_border", "rgba(255,255,255,30)")
-        border_color = t["accent_bright"] if hovered else glass_border
+        bw = t.get("border_width", 3)
+        border_color = t["glass_border"]
         bg_color = t["bg_card2"] if hovered else t["bg_card"]
+        ff = t.get("font_family", "'Segoe UI', 'Arial', sans-serif")
+
         self.setStyleSheet(f"""
             QFrame#moduleCard {{
                 background-color: {bg_color};
-                border-radius: 12px;
-                border: 1px solid {border_color};
+                border-radius: 0px;
+                border: {bw}px solid {border_color};
             }}
-            QWidget#cardInfo {{ background: transparent; border-radius: 0 0 12px 12px; }}
-            QLabel {{ color: {t["text"]}; background: transparent; border: none; }}
+            QWidget#cardInfo {{ background: transparent; }}
+            QLabel {{ color: {t["text"]}; background: transparent; border: none; font-family: {ff}; font-weight: bold; }}
         """)
+        self.update()
+
+    def paintEvent(self, event):
+        t = T()
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing, False)
+
+        bw = t.get("border_width", 3)
+        sx = t.get("shadow_offset_x", 6)
+        sy = t.get("shadow_offset_y", 6)
+
+        if self._hovered:
+            p.translate(4, 4)
+
+        r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
+
+        if not self._hovered:
+            p.save()
+            p.setBrush(QColor(t["shadow"]))
+            p.setPen(QPen(Qt.NoPen))
+            p.drawRect(
+                QRectF(r.left() + sx * 0.5, r.top() + sy * 0.5, r.width(), r.height())
+            )
+            p.restore()
+
+        p.setBrush(QColor(t["bg_card2"] if self._hovered else t["bg_card"]))
+        p.setPen(QPen(QColor("#000000"), bw))
+        p.drawRect(r)
+        p.end()
+        super().paintEvent(event)
 
     def enterEvent(self, e):
         self._hovered = True
@@ -519,49 +570,81 @@ class GalleryItem(QFrame):
         self.setCursor(Qt.PointingHandCursor)
 
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setContentsMargins(12, 12, 12, 12)
+        lay.setSpacing(8)
 
         self.img_lbl = QLabel()
         self.img_lbl.setScaledContents(True)
-        self.img_lbl.setFixedSize(300, 170)
+        self.img_lbl.setFixedSize(290, 155)
         lay.addWidget(self.img_lbl)
 
+        ff = T().get("font_family", "'Inter', 'Segoe UI', 'Arial', sans-serif")
         self.title_lbl = QLabel(title)
         self.title_lbl.setAlignment(Qt.AlignCenter)
         self.title_lbl.setWordWrap(True)
-        self.title_lbl.setFont(QFont("Segoe UI", 9, QFont.Bold))
-        self.title_lbl.setStyleSheet("padding: 2px 4px;")
+        self.title_lbl.setFont(QFont(ff.replace("'", ""), 10, QFont.Bold))
+        self.title_lbl.setStyleSheet("padding: 4px;")
         lay.addWidget(self.title_lbl)
 
         self._refresh()
 
     def _refresh(self):
         t = T()
-        # Tenta carregar screenshot real primeiro
         path = f"proeng/resources/screenshots/{self.module_key}_{t['name']}.png"
         if os.path.exists(path):
             self.img_lbl.setPixmap(QPixmap(path))
         else:
-            # Fallback para o desenho programático se o arquivo não existir
-            px = _generate_module_preview(self.module_key, QSize(300, 170))
+            px = _generate_module_preview(self.module_key, QSize(290, 155))
             self.img_lbl.setPixmap(px)
 
-        self.title_lbl.setStyleSheet(f"color: {t['text']};")
+        self.title_lbl.setStyleSheet(
+            f"color: {t['text']}; font-family: {t.get('font_family', "'Segoe UI', 'Arial', sans-serif")};"
+        )
         self._style()
 
     def _style(self):
         t = T()
-        glass_border = t.get("glass_border", "rgba(255,255,255,30)")
-        border = t["accent_bright"] if self._hover else glass_border
-        bg_col1 = t["bg_card2"] if self._hover else t["bg_card"]
-        bg_col2 = t["bg_app"]
+        bw = t.get("border_width", 3)
+        border_color = "#000000"
+        bg_color = t["bg_card2"] if self._hover else t["bg_card"]
+
         self.setStyleSheet(f"""
-            QFrame {{ 
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {bg_col1}, stop:1 {bg_col2}); 
-                border: 1px solid {border}; 
-                border-radius: 12px; 
+            QFrame {{
+                background: {bg_color};
+                border: {bw}px solid {border_color};
+                border-radius: 0px;
             }}
         """)
+        self.update()
+
+    def paintEvent(self, event):
+        t = T()
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing, False)
+
+        bw = t.get("border_width", 3)
+        sx = t.get("shadow_offset_x", 6)
+        sy = t.get("shadow_offset_y", 6)
+
+        if self._hover:
+            p.translate(4, 4)
+
+        r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
+
+        if not self._hover:
+            p.save()
+            p.setBrush(QColor(t["shadow"]))
+            p.setPen(QPen(Qt.NoPen))
+            p.drawRect(
+                QRectF(r.left() + sx * 0.5, r.top() + sy * 0.5, r.width(), r.height())
+            )
+            p.restore()
+
+        p.setBrush(QColor(t["bg_card2"] if self._hover else t["bg_card"]))
+        p.setPen(QPen(QColor("#000000"), bw))
+        p.drawRect(r)
+        p.end()
+        super().paintEvent(event)
 
     def enterEvent(self, e):
         self._hover = True
@@ -669,14 +752,14 @@ class ScreenshotCarousel(QWidget):
 
     def _build_ui(self):
         self.main_lay = QVBoxLayout(self)
-        self.main_lay.setContentsMargins(15, 40, 15, 15)  # Mais respiro no topo
-        self.main_lay.setSpacing(12)
+        self.main_lay.setContentsMargins(10, 20, 10, 10)
+        self.main_lay.setSpacing(8)
 
-        # Container de imagem proporcional (40% da largura, mantendo aspecto 1.5)
+        # Container de imagem proporcional
         self.frame = QFrame()
-        self.frame.setFixedHeight(410)
+        self.frame.setFixedHeight(280)
         self.frame_lay = QVBoxLayout(self.frame)
-        self.frame_lay.setContentsMargins(10, 10, 10, 10)
+        self.frame_lay.setContentsMargins(8, 8, 8, 8)
 
         self.img_lbl = QLabel()
         self.img_lbl.setScaledContents(True)
@@ -688,27 +771,27 @@ class ScreenshotCarousel(QWidget):
         # Indicadores (Dots)
         self.dots_lay = QHBoxLayout()
         self.dots_lay.setAlignment(Qt.AlignCenter)
-        self.dots_lay.setSpacing(8)
+        self.dots_lay.setSpacing(6)
         self.dots = []
         for _ in range(len(self.items_data)):
             dot = QFrame()
-            dot.setFixedSize(8, 8)
-            dot.setStyleSheet(f"border-radius: 4px; background: {T()['accent_dim']};")
+            dot.setFixedSize(6, 6)
+            dot.setStyleSheet(f"border-radius: 3px; background: {T()['accent_dim']};")
             self.dots.append(dot)
             self.dots_lay.addWidget(dot)
         self.main_lay.addLayout(self.dots_lay)
 
         self.title_lbl = QLabel()
-        self.title_lbl.setFont(QFont("Segoe UI", 16, QFont.Bold))
+        self.title_lbl.setFont(QFont("Arial", 10, QFont.Bold))
         self.title_lbl.setAlignment(Qt.AlignCenter)
         self.title_lbl.setWordWrap(True)
         self.main_lay.addWidget(self.title_lbl)
 
         self.desc_lbl = QLabel()
-        self.desc_lbl.setFont(QFont("Segoe UI", 11))
+        self.desc_lbl.setFont(QFont("Arial", 8))
         self.desc_lbl.setAlignment(Qt.AlignCenter)
         self.desc_lbl.setWordWrap(True)
-        self.desc_lbl.setMinimumHeight(45)
+        self.desc_lbl.setMinimumHeight(30)
         self.main_lay.addWidget(self.desc_lbl)
 
         self._refresh()
@@ -739,13 +822,13 @@ class ScreenshotCarousel(QWidget):
             f"color: {t['text_dim']}; font-style: italic; padding: 0 10px;"
         )
 
-        # Moldura com efeito Glass
-        glass_border = t.get("glass_border", "rgba(255,255,255,40)")
+        # Moldura com borda solida
+        bw = t.get("border_width", 3)
         self.frame.setStyleSheet(f"""
             QFrame {{
                 background: {t["bg_card"]};
-                border: 1px solid {glass_border};
-                border-radius: 24px;
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: 0px;
             }}
         """)
 
@@ -782,6 +865,290 @@ class ScreenshotCarousel(QWidget):
         self._refresh()
 
 
+class BrutalistModuleCard(QFrame):
+    clicked = pyqtSignal(str)
+
+    def __init__(self, module_id: str, block_color: str, parent=None):
+        super().__init__(parent)
+        info = MODULE_PREVIEWS[module_id]
+        self.module_id = module_id
+        self.block_color = block_color
+        self.setMinimumSize(220, 180)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setObjectName("brutCard")
+        self._hovered = False
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        color_strip = QFrame()
+        color_strip.setFixedHeight(14)
+        color_strip.setObjectName("colorStrip")
+        color_strip.setStyleSheet(f"background: {block_color}; border: none;")
+        layout.addWidget(color_strip)
+
+        info_widget = QWidget()
+        info_widget.setObjectName("cardInfo")
+        info_layout = QVBoxLayout(info_widget)
+        info_layout.setContentsMargins(14, 14, 14, 14)
+        info_layout.setSpacing(6)
+
+        icon_lbl = QLabel(info["icon"])
+        icon_lbl.setFont(QFont("Courier New", 22, QFont.Bold))
+        icon_lbl.setStyleSheet("color: #000000; background: transparent; border: none;")
+        info_layout.addWidget(icon_lbl)
+
+        title_lbl = QLabel(info["name"])
+        title_lbl.setFont(QFont("Courier New", 11, QFont.Bold))
+        title_lbl.setStyleSheet(
+            "color: #000000; background: transparent; border: none;"
+        )
+        info_layout.addWidget(title_lbl)
+
+        desc_lbl = QLabel(info["desc"])
+        desc_lbl.setFont(QFont("Courier New", 8))
+        desc_lbl.setWordWrap(True)
+        desc_lbl.setStyleSheet("color: #333333; background: transparent; border: none;")
+        desc_lbl.setMinimumHeight(40)
+        info_layout.addWidget(desc_lbl)
+        info_layout.addStretch(1)
+
+        layout.addWidget(info_widget)
+        self._update_style(False)
+
+    def _update_style(self, hovered: bool):
+        offset = 10 if hovered else 8
+        self.setStyleSheet(f"""
+            QFrame#brutCard {{
+                background-color: #FFFFFF;
+                border: 4px solid #000000;
+                border-radius: 0px;
+            }}
+            QWidget#cardInfo {{ background: transparent; }}
+        """)
+        self.setGraphicsEffect(None)
+        from PyQt5.QtWidgets import QGraphicsDropShadowEffect
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(0)
+        shadow.setXOffset(offset)
+        shadow.setYOffset(offset)
+        shadow.setColor(QColor("#000000"))
+        self.setGraphicsEffect(shadow)
+
+    def enterEvent(self, e):
+        self._hovered = True
+        self._update_style(True)
+        super().enterEvent(e)
+
+    def leaveEvent(self, e):
+        self._hovered = False
+        self._update_style(False)
+        super().leaveEvent(e)
+
+    def mousePressEvent(self, e):
+        if e.button() == Qt.LeftButton:
+            self.clicked.emit(self.module_id)
+        super().mousePressEvent(e)
+
+
+class BrutalistQuickAccess(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("quickAccess")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(12)
+
+        title = QLabel("ACESSO RAPIDO")
+        title.setFont(QFont("Courier New", 14, QFont.Bold))
+        title.setStyleSheet("color: #000000; background: transparent; border: none;")
+        layout.addWidget(title)
+
+        sep = QFrame()
+        sep.setFrameShape(QFrame.HLine)
+        sep.setStyleSheet("background: #000000; border: none; max-height: 3px;")
+        layout.addWidget(sep)
+
+        self.btn_new = QPushButton("+  NOVO PROJETO")
+        self.btn_new.setFixedHeight(48)
+        self.btn_new.setCursor(Qt.PointingHandCursor)
+        self.btn_new.setFont(QFont("Courier New", 12, QFont.Bold))
+
+        self.btn_open = QPushButton(">  ABRIR PROJETO")
+        self.btn_open.setFixedHeight(48)
+        self.btn_open.setCursor(Qt.PointingHandCursor)
+        self.btn_open.setFont(QFont("Courier New", 12, QFont.Bold))
+
+        layout.addWidget(self.btn_new)
+        layout.addWidget(self.btn_open)
+        layout.addStretch()
+
+        self._style()
+
+    def _style(self):
+        self.setStyleSheet(f"""
+            QFrame#quickAccess {{
+                background: #FFD600;
+                border: 4px solid #000000;
+            }}
+            QPushButton {{
+                background: #FFFFFF;
+                color: #000000;
+                border: 3px solid #000000;
+                border-radius: 0px;
+                font-weight: bold;
+                font-family: 'Courier New';
+            }}
+            QPushButton:hover {{
+                background: #000000;
+                color: #FFD600;
+            }}
+        """)
+        from PyQt5.QtWidgets import QGraphicsDropShadowEffect
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(0)
+        shadow.setXOffset(8)
+        shadow.setYOffset(8)
+        shadow.setColor(QColor("#000000"))
+        self.setGraphicsEffect(shadow)
+
+
+class BrutalistProfileBlock(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("profileBlock")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(10)
+
+        title = QLabel("STATUS")
+        title.setFont(QFont("Courier New", 14, QFont.Bold))
+        title.setStyleSheet("color: #FFFFFF; background: transparent; border: none;")
+        layout.addWidget(title)
+
+        sep = QFrame()
+        sep.setFrameShape(QFrame.HLine)
+        sep.setStyleSheet("background: #FFFFFF; border: none; max-height: 3px;")
+        layout.addWidget(sep)
+
+        self.status_lbl = QLabel("PRONTO")
+        self.status_lbl.setFont(QFont("Courier New", 20, QFont.Bold))
+        self.status_lbl.setStyleSheet(
+            "color: #FFFFFF; background: transparent; border: none;"
+        )
+        layout.addWidget(self.status_lbl)
+
+        self.info_lbl = QLabel("Nenhum projeto aberto")
+        self.info_lbl.setFont(QFont("Courier New", 9))
+        self.info_lbl.setWordWrap(True)
+        self.info_lbl.setStyleSheet(
+            "color: #E0E0E0; background: transparent; border: none;"
+        )
+        layout.addWidget(self.info_lbl)
+        layout.addStretch()
+
+        self._style()
+
+    def _style(self):
+        self.setStyleSheet(f"""
+            QFrame#profileBlock {{
+                background: #1565C0;
+                border: 4px solid #000000;
+            }}
+        """)
+        from PyQt5.QtWidgets import QGraphicsDropShadowEffect
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(0)
+        shadow.setXOffset(8)
+        shadow.setYOffset(8)
+        shadow.setColor(QColor("#000000"))
+        self.setGraphicsEffect(shadow)
+
+    def update_status(self, project_name):
+        if project_name:
+            self.status_lbl.setText("ATIVO")
+            self.info_lbl.setText(project_name)
+        else:
+            self.status_lbl.setText("PRONTO")
+            self.info_lbl.setText("Nenhum projeto aberto")
+
+
+class BrutalistExampleBar(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("exampleBar")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 16, 20, 16)
+        layout.setSpacing(10)
+
+        title = QLabel("PROJETOS EXEMPLO")
+        title.setFont(QFont("Courier New", 11, QFont.Bold))
+        title.setStyleSheet("color: #000000; background: transparent; border: none;")
+        layout.addWidget(title)
+
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(8)
+
+        self.ex_buttons = []
+        examples = [
+            ("R", "Refinaria"),
+            ("A", "Amonia"),
+            ("E", "ETA"),
+            ("C", "Caldeira"),
+            ("M", "Mineracao"),
+        ]
+        for letter, name in examples:
+            btn = QPushButton(f"[{letter}] {name}")
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setFont(QFont("Courier New", 9, QFont.Bold))
+            btn.setFixedHeight(36)
+            real_name = {
+                "Refinaria": "Refinaria",
+                "Amonia": "Producao de Amonia",
+                "ETA": "Tratamento de Agua (ETA)",
+                "Caldeira": "Caldeira Industrial",
+                "Mineracao": "Linha de Mineracao",
+            }[name]
+            btn.clicked.connect(lambda _, n=real_name: None)
+            btn_row.addWidget(btn)
+            self.ex_buttons.append(btn)
+
+        layout.addLayout(btn_row)
+        self._style()
+
+    def _style(self):
+        self.setStyleSheet(f"""
+            QFrame#exampleBar {{
+                background: #FFFFFF;
+                border: 4px solid #000000;
+            }}
+            QPushButton {{
+                background: #F5F0E8;
+                color: #000000;
+                border: 3px solid #000000;
+                border-radius: 0px;
+                font-weight: bold;
+                font-family: 'Courier New';
+            }}
+            QPushButton:hover {{
+                background: #E65100;
+                color: #FFFFFF;
+            }}
+        """)
+        from PyQt5.QtWidgets import QGraphicsDropShadowEffect
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(0)
+        shadow.setXOffset(6)
+        shadow.setYOffset(6)
+        shadow.setColor(QColor("#000000"))
+        self.setGraphicsEffect(shadow)
+
+
 class WelcomeScreen(QWidget):
     open_module = pyqtSignal(str)
     new_project = pyqtSignal()
@@ -794,42 +1161,46 @@ class WelcomeScreen(QWidget):
 
     def _build_ui(self):
         t = T()
+        is_nb = t["name"] == "neo_brutalist"
+
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # ── Header Ultra-Compacto e Centralizado ───────────────────────────
+        # ═══════════════════════════════════════════════════════════════════
+        # HEADER - Logo e botões principais
         header = QWidget()
-        header.setMinimumHeight(280)
+        header.setMinimumHeight(120)
         header_main_layout = QVBoxLayout(header)
-        header_main_layout.setContentsMargins(0, 20, 0, 20)
-        header_main_layout.setSpacing(5)
+        header_main_layout.setContentsMargins(20, 15, 20, 15)
+        header_main_layout.setSpacing(6)
         header_main_layout.setAlignment(Qt.AlignCenter)
 
+        # Logo
         self.logo_lbl = QLabel("PRO ENG")
-        self.logo_lbl.setFont(QFont("Segoe UI", 24, QFont.Bold))
+        self.logo_lbl.setFont(QFont("Arial", 22, QFont.Black))
         self.logo_lbl.setAlignment(Qt.AlignCenter)
 
-        self.sub_lbl = QLabel(
-            "Solução integrada para modelagem e engenharia estratégica."
-        )
-        self.sub_lbl.setFont(QFont("Segoe UI", 10))
+        # Subtítulo
+        self.sub_lbl = QLabel("Engenharia Estrategica")
+        self.sub_lbl.setFont(QFont("Arial", 8, QFont.Bold))
         self.sub_lbl.setAlignment(Qt.AlignCenter)
-        self.sub_lbl.setStyleSheet("color: rgba(255,255,255,180); margin-bottom: 10px;")
 
-        # Botões Principais (Novo / Abrir)
+        # Botões principais
         btn_row = QHBoxLayout()
         btn_row.setAlignment(Qt.AlignCenter)
-        btn_row.setSpacing(15)
+        btn_row.setSpacing(10)
 
-        self.btn_new = QPushButton("Novo Projeto")
-        self.btn_new.setFixedSize(220, 42)
+        self.btn_new = QPushButton("NOVO")
+        self.btn_new.setFixedSize(100, 32)
         self.btn_new.setCursor(Qt.PointingHandCursor)
+        self.btn_new.setFont(QFont("Arial", 10, QFont.Bold))
         self.btn_new.clicked.connect(self.new_project.emit)
 
-        self.btn_open = QPushButton("Abrir Projeto...")
-        self.btn_open.setFixedSize(210, 42)
+        self.btn_open = QPushButton("ABRIR")
+        self.btn_open.setFixedSize(100, 32)
         self.btn_open.setCursor(Qt.PointingHandCursor)
+        self.btn_open.setFont(QFont("Arial", 10, QFont.Bold))
         self.btn_open.clicked.connect(self.open_project.emit)
 
         btn_row.addWidget(self.btn_new)
@@ -838,65 +1209,20 @@ class WelcomeScreen(QWidget):
         header_main_layout.addWidget(self.logo_lbl)
         header_main_layout.addWidget(self.sub_lbl)
         header_main_layout.addLayout(btn_row)
-        header_main_layout.addSpacing(15)
-
-        # Seção de Exemplos Centralizada (Compacta)
-        ex_title = QLabel("PROJETOS DE EXEMPLO")
-        ex_title.setFont(QFont("Segoe UI", 10, QFont.Bold))
-        ex_title.setAlignment(Qt.AlignCenter)
-        ex_title.setStyleSheet(
-            f"color: {t['accent']}; letter-spacing: 1px; margin-bottom: 5px;"
-        )
-        header_main_layout.addWidget(ex_title)
-
-        ex_row = QHBoxLayout()
-        ex_row.setAlignment(Qt.AlignCenter)
-        ex_row.setSpacing(6)
-
-        self.ex_buttons = []
-        examples = [
-            ("Refinaria", "R"),
-            ("Amônia", "A"),
-            ("ETA", "E"),
-            ("Caldeira", "C"),
-            ("Mineração", "M"),
-        ]
-        for name, icon in examples:
-            btn = QPushButton(f"{icon}  {name}")
-            btn.setFixedSize(110, 32)
-            btn.setCursor(Qt.PointingHandCursor)
-            real_name = name if name != "Amônia" else "Produção de Amônia"
-            if name == "ETA":
-                real_name = "Tratamento de Água (ETA)"
-            if name == "Caldeira":
-                real_name = "Caldeira Industrial"
-            if name == "Mineração":
-                real_name = "Linha de Mineração"
-
-            btn.clicked.connect(lambda _, n=real_name: self.load_example.emit(n))
-            ex_row.addWidget(btn)
-            self.ex_buttons.append(btn)
-
-        header_main_layout.addLayout(ex_row)
         main_layout.addWidget(header)
 
-        # ── Separator ───────────────────────────────────────────────────────
-        sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
-        sep.setFixedHeight(1)
-        main_layout.addWidget(sep)
+        # ═══════════════════════════════════════════════════════════════════
+        # CONTEÚDO PRINCIPAL
+        content_container = QWidget()
+        content_layout = QHBoxLayout(content_container)
+        content_layout.setContentsMargins(20, 15, 20, 15)
+        content_layout.setSpacing(20)
 
-        # ── Área de Conteúdo Lado a Lado (Proporcional) ──────────────────────
-        content_row = QHBoxLayout()
-        content_row.setContentsMargins(60, 20, 60, 40)
-        content_row.setSpacing(60)
-        main_layout.addLayout(content_row, 1)
-
-        # Esquerda: Carrossel (Aumentado para 40% da largura)
+        # ESQUERDA: Carrossel
         self.carousel = ScreenshotCarousel()
-        content_row.addWidget(self.carousel, 40)
+        content_layout.addWidget(self.carousel, 45)
 
-        # Direita: Grid de Módulos (60%)
+        # DIREITA: Grid de Módulos
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
@@ -905,95 +1231,276 @@ class WelcomeScreen(QWidget):
         cards_container = QWidget()
         cards_container.setStyleSheet("background: transparent;")
         grid = QGridLayout(cards_container)
-        grid.setContentsMargins(0, 10, 0, 10)
-        grid.setSpacing(30)
+        grid.setContentsMargins(10, 10, 10, 10)
+        grid.setSpacing(15)
         grid.setAlignment(Qt.AlignCenter)
 
-        label_tools = QLabel("SELECIONE UMA FERRAMENTA")
-        label_tools.setFont(QFont("Segoe UI", 12, QFont.Bold))
-        label_tools.setStyleSheet(
-            f"color: {t['accent']}; letter-spacing: 1px;"
-        )  # Usando accent principal para melhor contraste
+        label_tools = QLabel("FERRAMENTAS")
+        label_tools.setFont(QFont("Arial", 10, QFont.Bold))
         label_tools.setAlignment(Qt.AlignCenter)
         grid.addWidget(label_tools, 0, 0, 1, 3, Qt.AlignCenter)
 
         module_ids = list(MODULE_PREVIEWS.keys())
+        block_colors = [
+            "#2E7D32",
+            "#1565C0",
+            "#C62828",
+            "#E65100",
+            "#6A1B9A",
+            "#00838F",
+        ]
+
         for i, mid in enumerate(module_ids):
-            card = ModuleCard(mid)
+            card = ModuleCardNB(mid, block_colors[i % len(block_colors)])
             card.clicked.connect(self.open_module.emit)
             row = (i // 3) + 1
             col = i % 3
-            grid.addWidget(card, row, col, Qt.AlignCenter)
+            grid.addWidget(card, row, col)
 
-        # colunas com peso igual
         for c in range(3):
             grid.setColumnStretch(c, 1)
 
         scroll.setWidget(cards_container)
-        # Lado Direito: Grid de Módulos (com screenshots industriais)
-        content_row.addWidget(scroll, 60)
+        content_layout.addWidget(scroll, 55)
 
-        self.refresh_theme()  # Apply all styles after widgets are created
+        main_layout.addWidget(content_container, 1)
+
+        self.refresh_theme()
+
+    def _create_block(self, bg_color, title_text, title_height):
+        block = QFrame()
+        block.setFrameShape(QFrame.NoFrame)
+        block.setStyleSheet(f"""
+            QFrame {{
+                background-color: {bg_color};
+                border: 4px solid #000000;
+            }}
+        """)
+
+        if title_text:
+            lay = QVBoxLayout(block)
+            lay.setContentsMargins(0, 0, 0, 0)
+            lay.setSpacing(0)
+
+            title = QLabel(title_text)
+            title.setFixedHeight(title_height)
+            title.setFont(QFont("Arial", 11, QFont.Bold))
+            title.setAlignment(Qt.AlignCenter)
+            title.setStyleSheet("""
+                background-color: #000000;
+                color: #FFFFFF;
+                letter-spacing: 2px;
+            """)
+            lay.addWidget(title)
+
+            content = QWidget()
+            lay.addWidget(content)
+
+            block._content_layout = QVBoxLayout(content)
+            block._content_layout.setContentsMargins(15, 15, 15, 15)
+            block._content_layout.setSpacing(10)
+
+            return block
+        return block
 
     def refresh_theme(self):
         t = T()
-        glass_border = t.get("glass_border", "rgba(255,255,255,30)")
+        is_nb = t["name"] == "neo_brutalist"
 
-        # Estilo do Logo e Subtítulo
-        self.logo_lbl.setStyleSheet(
-            f"color: {t['accent_bright']}; letter-spacing: 2px; font-weight: 800;"
+        if is_nb:
+            self.setStyleSheet(f"background-color: {t['bg_app']};")
+
+            # Estilo Logo
+            ff = t.get("font_family", "Arial, sans-serif")
+            self.logo_lbl.setStyleSheet(
+                f"color: #000000; font-size: 22px; font-family: {ff}; font-weight: 900;"
+            )
+            self.sub_lbl.setStyleSheet(
+                f"color: #333333; font-size: 8px; font-family: {ff}; font-weight: bold;"
+            )
+
+            # Botões principais
+            self.btn_new.setStyleSheet("""
+                QPushButton {
+                    background-color: #FF5722;
+                    color: #FFFFFF;
+                    border: 3px solid #000000;
+                    border-radius: 0px;
+                    padding: 4px 8px;
+                    font-weight: bold;
+                    font-family: Arial;
+                }
+                QPushButton:hover {
+                    background-color: #E64A19;
+                    border: 3px solid #000000;
+                }
+            """)
+
+            self.btn_open.setStyleSheet("""
+                QPushButton {
+                    background-color: #FFFFFF;
+                    color: #000000;
+                    border: 3px solid #000000;
+                    border-radius: 0px;
+                    padding: 4px 8px;
+                    font-weight: bold;
+                    font-family: Arial;
+                }
+                QPushButton:hover {
+                    background-color: #E0E0E0;
+                    border: 3px solid #000000;
+                }
+            """)
+
+            # Atualizar cards de módulos
+            for card in self.findChildren(ModuleCardNB):
+                card._update_style()
+
+            # Atualizar carousel
+            if hasattr(self, "carousel"):
+                self.carousel.refresh_theme()
+        else:
+            # Estilo para outros temas (glassmorphism)
+            glass_border = t.get("glass_border", "#CCCCCC")
+            self.setStyleSheet(f"background-color: {t['bg_app']};")
+
+            self.logo_lbl.setStyleSheet(
+                f"color: {t['text']}; font-size: 24px; font-family: Segoe UI; font-weight: bold;"
+            )
+            self.sub_lbl.setStyleSheet(f"color: {t['text_dim']};")
+
+            self.btn_new.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {t["accent"]};
+                    color: white;
+                    border: 2px solid {glass_border};
+                    border-radius: 6px;
+                    padding: 12px 24px;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    background-color: {t["accent_bright"]};
+                }}
+            """)
+
+            self.btn_open.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {t["bg_card"]};
+                    color: {t["text"]};
+                    border: 2px solid {glass_border};
+                    border-radius: 6px;
+                    padding: 12px 24px;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    background-color: {t["bg_card2"]};
+                }}
+            """)
+
+
+class ModuleCardNB(QFrame):
+    clicked = pyqtSignal(str)
+
+    def __init__(self, module_id: str, accent_color: str, parent=None):
+        super().__init__(parent)
+        info = MODULE_PREVIEWS[module_id]
+        self.module_id = module_id
+        self.accent_color = accent_color
+        self._hovered = False
+        self.setCursor(Qt.PointingHandCursor)
+
+        self.setMinimumSize(180, 160)
+        self.setMaximumWidth(200)
+
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(0)
+
+        # Área de ícone
+        icon_area = QWidget()
+        icon_area.setFixedHeight(60)
+        icon_area.setStyleSheet(
+            f"background-color: {accent_color}; border-bottom: 4px solid #000000;"
         )
-        self.sub_lbl.setStyleSheet(f"color: {t['text_dim']};")
+        icon_lay = QVBoxLayout(icon_area)
+        icon_lay.setContentsMargins(10, 10, 10, 10)
 
-        # Botões Modernos
-        btn_base = f"""
-            QPushButton {{
-                background-color: {t["bg_card"]};
-                color: {t["text"]};
-                border: 1px solid {glass_border};
-                border-radius: 12px;
-                padding: 10px;
-            }}
-            QPushButton:hover {{
-                background-color: {t["accent"]};
-                color: white;
-                border-color: {t["accent_bright"]};
-            }}
-        """
-        self.btn_new.setStyleSheet(
-            btn_base
-            + f"QPushButton {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {t['accent']}, stop:1 {t['accent_bright']}); color: white; border: 2px solid {t['accent']}; font-weight: 800; }}"
-        )
-        self.btn_open.setStyleSheet(btn_base)
+        icon_lbl = QLabel(info.get("icon", "📊"))
+        icon_lbl.setAlignment(Qt.AlignCenter)
+        icon_lbl.setStyleSheet("font-size: 28px;")
+        icon_lay.addWidget(icon_lbl)
 
-        ex_style = f"""
-            QPushButton {{
-                background-color: {t["bg_card"]};
-                color: {t["text_dim"]};
-                border: 1px solid {glass_border};
-                border-radius: 21px; /* Pill */
-                font-family: 'Segoe UI'; font-size: 11px; font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: {t["accent_dim"]};
-                color: {t["accent_bright"]};
-                border-color: {t["accent_bright"]};
-            }}
-        """
-        for b in self.ex_buttons:
-            b.setStyleSheet(ex_style)
+        lay.addWidget(icon_area)
 
-        # Refresh components
-        self.carousel.refresh_theme()
-        # Gallery logic
-        gallery = self.findChild(ScreenshotGallery)
-        if gallery:
-            gallery.refresh_theme()
+        # Info
+        info_widget = QWidget()
+        info_layout = QVBoxLayout(info_widget)
+        info_layout.setContentsMargins(12, 12, 12, 12)
+        info_layout.setSpacing(6)
 
-        for card in self.findChildren(ModuleCard):
-            card._refresh_preview()
-            if hasattr(card, "_update_style"):
-                card._update_style(False)
+        title_lbl = QLabel(info["name"])
+        title_lbl.setFont(QFont("Arial", 11, QFont.Bold))
+        title_lbl.setAlignment(Qt.AlignCenter)
+        title_lbl.setWordWrap(True)
+        info_layout.addWidget(title_lbl)
+
+        desc_lbl = QLabel(info["desc"])
+        desc_lbl.setFont(QFont("Arial", 8))
+        desc_lbl.setAlignment(Qt.AlignCenter)
+        desc_lbl.setWordWrap(True)
+        desc_lbl.setMinimumHeight(36)
+        info_layout.addWidget(desc_lbl)
+
+        lay.addWidget(info_widget)
+        self._update_style()
+
+    def _update_style(self):
+        t = T()
+        is_nb = t["name"] == "neo_brutalist"
+
+        if is_nb:
+            if self._hovered:
+                self.setStyleSheet("""
+                    QFrame {
+                        background-color: #FFFFFF;
+                        border: 4px solid #000000;
+                    }
+                    QLabel { color: #000000; background: transparent; }
+                """)
+            else:
+                self.setStyleSheet("""
+                    QFrame {
+                        background-color: #FFFFFF;
+                        border: 4px solid #000000;
+                    }
+                    QLabel { color: #000000; background: transparent; }
+                """)
+        else:
+            border_col = t.get("glass_border", "#CCCCCC")
+            bg = t["bg_card2"] if self._hovered else t["bg_card"]
+            self.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {bg};
+                    border: 2px solid {border_col};
+                    border-radius: 8px;
+                }}
+                QLabel {{ color: {t["text"]}; background: transparent; }}
+            """)
+
+    def enterEvent(self, e):
+        self._hovered = True
+        self._update_style()
+        super().enterEvent(e)
+
+    def leaveEvent(self, e):
+        self._hovered = False
+        self._update_style()
+        super().leaveEvent(e)
+
+    def mousePressEvent(self, e):
+        if e.button() == Qt.LeftButton:
+            self.clicked.emit(self.module_id)
+        super().mousePressEvent(e)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1127,24 +1634,25 @@ class MainApp(QMainWindow):
     def _create_menu(self):
         try:
             t = T()
+            bw = t.get("border_width", 3)
             menu_style = f"""
                 QMenu {{
                     background-color: {t["bg_card"]};
                     color: {t["text"]};
-                    border: 1px solid {t["accent_dim"]};
-                    border-radius: 6px;
+                    border: {bw}px solid {t["glass_border"]};
+                    border-radius: 0px;
                     padding: 5px;
                 }}
                 QMenu::item {{
                     padding: 6px 24px;
-                    border-radius: 4px;
+                    border-radius: 0px;
                 }}
                 QMenu::item:selected {{
                     background-color: {t["accent"]};
                     color: white;
                 }}
                 QMenu::separator {{
-                    height: 1px;
+                    height: 2px;
                     background: {t["glass_border"]};
                     margin: 4px 8px;
                 }}
@@ -1428,10 +1936,9 @@ class MainApp(QMainWindow):
         return self._modules[module_name]
 
     def _toggle_theme_action(self):
-        from proeng.core.themes import T, set_theme
+        from proeng.core.themes import T, cycle_theme
 
-        new = "light" if T()["name"] == "dark" else "dark"
-        set_theme(new)
+        cycle_theme()
         self._on_theme_toggle_refresh()
 
     def _on_theme_toggle_refresh(self):
@@ -1486,39 +1993,47 @@ class MainApp(QMainWindow):
         p = QPalette()
         p.setColor(QPalette.Window, QColor(t["bg_app"]))
         p.setColor(QPalette.WindowText, QColor(t["text"]))
-        # Usamos bg_input para a base de campos de texto (melhora visibilidade no dark)
         p.setColor(QPalette.Base, QColor(t["bg_input"]))
         p.setColor(QPalette.AlternateBase, QColor(t["bg_card2"]))
         p.setColor(QPalette.Text, QColor(t["text"]))
         p.setColor(QPalette.Button, QColor(t["bg_card"]))
         p.setColor(QPalette.ButtonText, QColor(t["text"]))
         p.setColor(QPalette.Highlight, QColor(t["accent"]))
-        p.setColor(QPalette.HighlightedText, Qt.white)
+        if _is_nb(t):
+            p.setColor(QPalette.HighlightedText, QColor(t["text"]))
+        else:
+            p.setColor(QPalette.HighlightedText, Qt.white)
         QApplication.instance().setPalette(p)
 
-        # Stylesheet Global para Modernidade e Transparência
-        glass_border = t.get("glass_border", "rgba(255,255,255,30)")
+        # Stylesheet Global — Neo-Brutalist (sem gradientes, sem transparencia)
+        glass_border = t.get("glass_border", "#CCCCCC")
+        is_nb = _is_nb(t)
+        bw = t.get("border_width", 3)
+        br = t.get("border_radius", 0)
+        shadow = t.get("shadow", "#000000")
+        sx = t.get("shadow_offset_x", 4)
+        sy = t.get("shadow_offset_y", 4)
         global_style = f"""
             QMainWindow {{ background-color: {t["bg_app"]}; }}
             
-            /* Campos de Texto e Listas Modernos */
+            /* Campos de Texto e Listas */
             QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QListView, QListWidget {{
                 background-color: {t["bg_input"]};
                 color: {t["text"]};
-                border: 1px solid {t["accent_dim"]};
-                border-radius: 8px;
-                padding: 6px;
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                padding: 8px;
                 selection-background-color: {t["accent"]};
                 selection-color: white;
             }}
             QLineEdit:focus, QTextEdit:focus, QListView:focus {{
-                border: 2px solid {t["accent_bright"]};
+                border: {bw + 1}px solid {t["accent_bright"]};
                 background-color: {t["bg_app"]};
             }}
             
             QListWidget::item, QListView::item {{
                 padding: 8px;
-                border-radius: 4px;
+                border-radius: {br}px;
             }}
             QListWidget::item:selected, QListView::item:selected {{
                 background-color: {t["accent"]};
@@ -1528,49 +2043,55 @@ class MainApp(QMainWindow):
                 background-color: {t["bg_card2"]};
             }}
 
-            /* ScrollBars Minimalistas */
+            /* ScrollBars */
             QScrollBar:vertical {{
-                border: none; background: transparent;
-                width: 8px; margin: 0;
+                border: {bw}px solid {t["glass_border"]};
+                background: {t["bg_card"]};
+                width: {12 + bw * 2}px;
+                margin: 0;
             }}
             QScrollBar::handle:vertical {{
-                background: {t["accent_dim"]};
-                min-height: 30px; border-radius: 4px;
+                background: {t["accent"]};
+                min-height: 30px;
+                border-radius: {br}px;
             }}
-            QScrollBar::handle:vertical:hover {{ background: {t["accent"]}; }}
+            QScrollBar::handle:vertical:hover {{ background: {t["accent_bright"]}; }}
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0px; }}
 
             QScrollBar:horizontal {{
-                border: none; background: transparent;
-                height: 8px; margin: 0;
+                border: {bw}px solid {t["glass_border"]};
+                background: {t["bg_card"]};
+                height: {12 + bw * 2}px;
+                margin: 0;
             }}
             QScrollBar::handle:horizontal {{
-                background: {t["accent_dim"]};
-                min-width: 30px; border-radius: 4px;
+                background: {t["accent"]};
+                min-width: 30px;
+                border-radius: {br}px;
             }}
             QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{ width: 0px; }}
 
-            /* Tooltips Modernos */
+            /* Tooltips */
             QToolTip {{
                 background-color: {t["bg_card"]};
                 color: {t["text"]};
-                border: 1px solid {t["accent"]};
-                border-radius: 4px;
-                padding: 4px;
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                padding: 6px;
             }}
 
             /* Menus e ComboBoxes */
             QMenu {{
                 background-color: {t["bg_card"]};
                 color: {t["text"]};
-                border: 1px solid {glass_border};
-                border-radius: 6px;
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
                 padding: 4px;
             }}
             QMenu::item:selected {{
                 background-color: {t["accent"]};
                 color: white;
-                border-radius: 4px;
+                border-radius: {br}px;
             }}
             
             QMessageBox {{
@@ -1582,14 +2103,165 @@ class MainApp(QMainWindow):
             QMessageBox QPushButton {{
                 background-color: {t["bg_card"]};
                 color: {t["text"]};
-                border: 1px solid {t["accent_dim"]};
-                border-radius: 6px;
-                padding: 6px 16px;
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                padding: 8px 20px;
                 min-width: 80px;
             }}
             QMessageBox QPushButton:hover {{
                 background-color: {t["accent"]};
                 color: white;
+            }}
+
+            /* QComboBox */
+            QComboBox {{
+                background-color: {t["bg_input"]};
+                color: {t["text"]};
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                padding: 6px;
+            }}
+            QComboBox::drop-down {{
+                border: none;
+                padding-right: 8px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {t["bg_card"]};
+                color: {t["text"]};
+                border: {bw}px solid {t["glass_border"]};
+                selection-background-color: {t["accent"]};
+                selection-color: white;
+            }}
+
+            /* QTableWidget */
+            QTableWidget {{
+                background-color: {t["bg_input"]};
+                color: {t["text"]};
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                gridline-color: {t["glass_border"]};
+            }}
+            QTableWidget::item {{
+                padding: 6px;
+            }}
+            QHeaderView::section {{
+                background-color: {t["bg_card2"]};
+                color: {t["text"]};
+                border: 1px solid {t["glass_border"]};
+                padding: 6px;
+                font-weight: bold;
+            }}
+
+            /* QDateEdit */
+            QDateEdit {{
+                background-color: {t["bg_input"]};
+                color: {t["text"]};
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                padding: 6px;
+            }}
+
+            /* QCheckBox */
+            QCheckBox {{
+                color: {t["text"]};
+                spacing: 8px;
+            }}
+            QCheckBox::indicator {{
+                width: 18px;
+                height: 18px;
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                background: {t["bg_input"]};
+            }}
+            QCheckBox::indicator:checked {{
+                background: {t["accent"]};
+                border-color: {t["glass_border"]};
+            }}
+
+            /* QPushButton — Neo-Brutalist with hover/press microinteraction */
+            QPushButton {{
+                background-color: {t["bg_card"]};
+                color: {t["text"]};
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                padding: 8px 16px;
+                font-weight: bold;
+                font-family: {t.get("font_family", "'Inter', sans-serif")};
+            }}
+            QPushButton:hover {{
+                background-color: {t["accent"]};
+                color: #FFFFFF;
+                border-color: {t["glass_border"]};
+            }}
+            QPushButton:pressed {{
+                background-color: {t["accent_bright"]};
+                color: #FFFFFF;
+            }}
+
+            /* QSplitter */
+            QSplitter::handle {{
+                background-color: {t["glass_border"]};
+            }}
+            QSplitter::handle:horizontal {{
+                width: {bw}px;
+            }}
+            QSplitter::handle:vertical {{
+                height: {bw}px;
+            }}
+
+            /* QSlider */
+            QSlider::groove:horizontal {{
+                border: {bw}px solid {t["glass_border"]};
+                background: {t["bg_card"]};
+                height: 8px;
+                border-radius: {br}px;
+            }}
+            QSlider::handle:horizontal {{
+                background: {t["accent"]};
+                border: {bw}px solid {t["glass_border"]};
+                width: 18px;
+                margin: -6px 0;
+                border-radius: {br}px;
+            }}
+            QSlider::groove:vertical {{
+                border: {bw}px solid {t["glass_border"]};
+                background: {t["bg_card"]};
+                width: 8px;
+                border-radius: {br}px;
+            }}
+            QSlider::handle:vertical {{
+                background: {t["accent"]};
+                border: {bw}px solid {t["glass_border"]};
+                height: 18px;
+                margin: 0 -6px;
+                border-radius: {br}px;
+            }}
+
+            /* QDialog */
+            QDialog {{
+                background-color: {t["bg_app"]};
+                color: {t["text"]};
+            }}
+
+            /* QTabWidget */
+            QTabWidget::pane {{
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+            }}
+            QTabBar::tab {{
+                background-color: {t["bg_card"]};
+                color: {t["text"]};
+                border: {bw}px solid {t["glass_border"]};
+                border-radius: {br}px;
+                padding: 8px 16px;
+                margin-right: 4px;
+            }}
+            QTabBar::tab:selected {{
+                background-color: {t["accent"]};
+                color: white;
+            }}
+            QTabBar::tab:hover {{
+                background-color: {t["bg_card2"]};
             }}
         """
         QApplication.instance().setStyleSheet(global_style)

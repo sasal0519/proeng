@@ -82,7 +82,6 @@ from PyQt5.QtGui import (
     QPixmap,
     QPainterPath,
     QDrag,
-    QLinearGradient,
 )
 from PyQt5.QtWidgets import QGraphicsTextItem, QGraphicsLineItem
 from PyQt5.QtCore import (
@@ -116,29 +115,10 @@ from PyQt5.QtCore import (
     QObject,
     QSizeF,
     QDate,
-    QGraphicsTextItem,
-    QGraphicsLineItem,
-)
-from PyQt5.QtCore import (
-    Qt,
-    QRectF,
-    QPointF,
-    QMimeData,
-    QByteArray,
-    QDataStream,
-    QIODevice,
-    QSize,
-    QPoint,
-    QTimer,
-    pyqtSignal,
-    QObject,
-    QSizeF,
-    QDate,
-    QGraphicsLineItem,
 )
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import _export_view, _c, _glass_grad
+from proeng.core.utils import _export_view, _c, _solid_fill
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
 from proeng.core.base_module import BaseModule
 

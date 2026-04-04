@@ -1,24 +1,67 @@
 # -*- coding: utf-8 -*-
 """Barra de navegação e botão de alternância de tema."""
-import sys
+
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QMessageBox, QGraphicsView, QGraphicsScene, QGraphicsItem,
-    QListWidget, QListWidgetItem, QSplitter, QGraphicsPathItem, QMenu,
-    QListView, QLineEdit, QLabel, QStackedWidget, QTextEdit,
-    QGraphicsRectItem, QInputDialog, QFileDialog, QSizePolicy
+    QWidget,
+    QHBoxLayout,
+    QPushButton,
+    QLabel,
 )
 from PyQt5.QtGui import (
-    QPen, QBrush, QColor, QPainter, QPalette, QCursor, QPolygonF,
-    QFont, QFontMetrics, QIcon, QPixmap, QPainterPath, QDrag, QLinearGradient
+    QPen,
+    QBrush,
+    QColor,
+    QPainter,
+    QFont,
 )
 from PyQt5.QtCore import (
-    Qt, QRectF, QPointF, QMimeData, QByteArray, QDataStream,
-    QIODevice, QSize, QPoint, QTimer, pyqtSignal, QObject, QSizeF
+    Qt,
+    QRectF,
+    QPointF,
+    pyqtSignal,
 )
 
-from proeng.core.themes import T, THEMES, _ACTIVE, set_theme
+from proeng.core.themes import T, THEMES, set_theme, cycle_theme
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
+
+
+def _draw_icon_sun(p, x, y, size, col):
+    pen = QPen(QColor(col), 2, Qt.SolidLine, Qt.RoundCap)
+    p.setPen(pen)
+    p.setBrush(Qt.NoBrush)
+    cx, cy = x + size / 2, y + size / 2
+    r = size * 0.22
+    p.drawEllipse(QPointF(cx, cy), r, r)
+    import math
+
+    for a in range(0, 360, 45):
+        rad = math.radians(a)
+        p.drawLine(
+            QPointF(cx + (r + 2) * math.cos(rad), cy + (r + 2) * math.sin(rad)),
+            QPointF(cx + (r + 6) * math.cos(rad), cy + (r + 6) * math.sin(rad)),
+        )
+
+
+def _draw_icon_moon(p, x, y, size, col):
+    pen = QPen(QColor(col), 2, Qt.SolidLine, Qt.RoundCap)
+    p.setPen(pen)
+    p.setBrush(Qt.NoBrush)
+    cx, cy = x + size / 2, y + size / 2
+    r = size * 0.32
+    p.drawEllipse(QPointF(cx, cy), r, r)
+    t = T()
+    p.setBrush(QColor(t["bg_app"]))
+    p.setPen(QPen(Qt.NoPen))
+    p.drawEllipse(QPointF(cx + 3, cy - 2), r * 0.8, r * 0.8)
+
+
+def _draw_icon_nb(p, x, y, size, col):
+    pen = QPen(QColor(col), 2.5, Qt.SolidLine, Qt.RoundCap)
+    p.setPen(pen)
+    p.setBrush(Qt.NoBrush)
+    m = 3
+    p.drawRect(QRectF(x + m, y + m, size - m * 2, size - m * 2))
+    p.drawLine(QPointF(x + m, y + m), QPointF(x + size - m, y + size - m))
 
 
 class ThemeToggle(QPushButton):
@@ -34,40 +77,69 @@ class ThemeToggle(QPushButton):
         self.clicked.connect(self._toggle)
 
     def _toggle(self):
-        # We only emit the signal; the central MainApp will handle the theme switch
-        # and tell everyone (including this button's parent) to refresh.
         self.theme_changed.emit()
         self.update()
 
     def event(self, e):
         from PyQt5.QtCore import QEvent
-        if e.type() == QEvent.HoverEnter:  self._hov = True;  self.update()
-        elif e.type() == QEvent.HoverLeave: self._hov = False; self.update()
+
+        if e.type() == QEvent.HoverEnter:
+            self._hov = True
+            self.update()
+        elif e.type() == QEvent.HoverLeave:
+            self._hov = False
+            self.update()
         return super().event(e)
 
     def paintEvent(self, _):
         t = T()
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing, False)
+
+        bw = t.get("border_width", 3)
+        sx = t.get("shadow_offset_x", 6)
+        sy = t.get("shadow_offset_y", 6)
+
+        if self._hov:
+            p.translate(3, 3)
+
         r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
-        
-        # Visual clean: botão quadrado, sem preenchimento.
-        p.setBrush(Qt.NoBrush)
-        border_color = QColor(t["accent_bright"] if self._hov else t.get("glass_border", "rgba(255,255,255,40)"))
-        p.setPen(QPen(border_color, 1.0))
+
+        if not self._hov:
+            p.save()
+            p.setBrush(QColor(t["shadow"]))
+            p.setPen(QPen(Qt.NoPen))
+            p.drawRect(
+                QRectF(r.left() + sx * 0.5, r.top() + sy * 0.5, r.width(), r.height())
+            )
+            p.restore()
+
+        p.setBrush(QColor(t["bg_card"]))
+        p.setPen(QPen(QColor(t["glass_border"]), bw))
         p.drawRect(r)
-        
-        is_dark = (t["name"] == "dark")
-        label = "CLARO" if is_dark else "ESCURO"
-        p.setFont(QFont("Segoe UI", 9, QFont.Bold))
+
+        p.setBrush(QColor(t["accent"] if self._hov else t["accent_bright"]))
+        p.setPen(QPen(Qt.NoPen))
+        p.drawRect(QRectF(r.left(), r.top(), r.width(), 4))
+
+        theme_name = t["name"]
+        icon_col = t["text"]
+        if theme_name == "dark":
+            _draw_icon_sun(p, r.left() + 10, r.top() + 9, 18, icon_col)
+        elif theme_name == "light":
+            _draw_icon_moon(p, r.left() + 10, r.top() + 9, 18, icon_col)
+        else:
+            _draw_icon_nb(p, r.left() + 10, r.top() + 9, 18, icon_col)
+
+        label_map = {"dark": "DARK", "light": "LIGHT", "neo_brutalist": "NEO"}
+        label = label_map.get(theme_name, "TEMA")
+        ff = t.get("font_family", "'Inter', sans-serif")
+        p.setFont(QFont(ff, 9, QFont.Bold))
         p.setPen(QColor(t["text"]))
-        p.drawText(r, Qt.AlignCenter, label)
+        lbl_r = QRectF(r.left() + 34, r.top(), r.width() - 40, r.height())
+        p.drawText(lbl_r, Qt.AlignVCenter | Qt.AlignLeft, label)
         p.end()
 
-
-# ═══════════════════════════════════════════════════════════════════
-#   NAVBAR
-# ═══════════════════════════════════════════════════════════════════
 
 class NavBar(QWidget):
     example_requested = pyqtSignal(str)
@@ -81,20 +153,19 @@ class NavBar(QWidget):
 
     def _setup(self, toggle_theme_fn):
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(14, 8, 0, 8) # No margin right for window controls
+        lay.setContentsMargins(14, 8, 0, 8)
         lay.setSpacing(10)
 
         self._btn_back = QPushButton("Inicio")
         self._btn_back.clicked.connect(self._go_home)
         lay.addWidget(self._btn_back)
 
-        sep = QWidget(); sep.setFixedSize(1, 24)
-        sep.setStyleSheet("background: rgba(128,128,128,0.3);")
+        sep = QWidget()
+        sep.setFixedSize(1, 24)
         lay.addWidget(sep)
 
-        # Botões de Menu (Reposicionados à esquerda)
         self._btn_file = QPushButton("Arquivo")
-        self._btn_modules = QPushButton("Módulos")
+        self._btn_modules = QPushButton("Modulos")
         self._btn_help = QPushButton("Ajuda")
         if self._help_fn:
             self._btn_help.clicked.connect(self._help_fn)
@@ -108,8 +179,8 @@ class NavBar(QWidget):
         self._lbl = QLabel("")
         lay.addWidget(self._lbl)
 
-        sep2 = QWidget(); sep2.setFixedSize(1, 24)
-        sep2.setStyleSheet("background: rgba(128,128,128,0.3);")
+        sep2 = QWidget()
+        sep2.setFixedSize(1, 24)
         lay.addWidget(sep2)
 
         self._toggle = ThemeToggle()
@@ -118,29 +189,28 @@ class NavBar(QWidget):
         self._toggle.theme_changed.connect(self._apply_style)
         self._toggle.theme_changed.connect(self.update)
         lay.addWidget(self._toggle)
-        
+
         lay.addSpacing(10)
-        
-        # Window Controls
+
         self._win_ctrls = QWidget()
         ctrl_lay = QHBoxLayout(self._win_ctrls)
         ctrl_lay.setContentsMargins(0, 0, 0, 0)
         ctrl_lay.setSpacing(0)
-        
-        self._btn_min = QPushButton("−") # Unicode Minus for Minimize
-        self._btn_max = QPushButton("□") # Unicode Square for Maximize
-        self._btn_close = QPushButton("✕") # Unicode X for Close
-        
+
+        self._btn_min = QPushButton("-")
+        self._btn_max = QPushButton("[]")
+        self._btn_close = QPushButton("X")
+
         for btn in [self._btn_min, self._btn_max, self._btn_close]:
             btn.setFixedSize(50, 40)
             btn.setFlat(True)
             btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
             ctrl_lay.addWidget(btn)
-            
+
         self._btn_min.clicked.connect(self._min_window)
         self._btn_max.clicked.connect(self._max_window)
         self._btn_close.clicked.connect(self._close_window)
-        
+
         lay.addWidget(self._win_ctrls)
 
         self._apply_style()
@@ -148,107 +218,103 @@ class NavBar(QWidget):
 
     def _apply_style(self):
         t = T()
+        bw = t.get("border_width", 3)
+        bdr = t["glass_border"]
+        ff = t.get("font_family", "'Inter', sans-serif")
+
         self.setStyleSheet(f"""
             QWidget {{
                 background: {t["toolbar_bg"]};
-                border-bottom: 1px solid {t.get('glass_border', 'rgba(255,255,255,20)')};
+                border-bottom: {bw}px solid {bdr};
             }}
-        """)
-        self._btn_back.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent;
-                color: {t["text"]};
-                border: none;
-                border-radius: 0px; 
-                padding-left: 20px; padding-right: 20px;
-                height: 42px;
-                font-family: 'Segoe UI'; font-size: 15px; font-weight: 700;
-            }}
-            QPushButton:hover {{
-                background: transparent;
-                color: {t["accent_bright"]};
-            }}
-        """)
-        self._brand.setStyleSheet(f"""
-            color: {t["accent_bright"]}; font-family: 'Segoe UI';
-            font-size: 14px; font-weight: 700;
-            background: transparent; border: none; letter-spacing: 1px;
-        """)
-        self._lbl.setStyleSheet(f"""
-            color: {t["text_dim"]}; font-family: 'Segoe UI';
-            font-size: 12px; font-weight: 600; background: transparent; border: none;
         """)
 
-        menu_btn_style = f"""
+        sep_style = f"background: {bdr};"
+        for child in self.findChildren(QWidget):
+            if child.objectName() == "" and child.sizeHint().width() == 1:
+                child.setStyleSheet(sep_style)
+
+        btn_style = f"""
             QPushButton {{
-                background: transparent;
+                background: {t["bg_card"]};
                 color: {t["text"]};
-                border: none;
+                border: {bw}px solid {bdr};
                 border-radius: 0px;
                 padding-left: 20px; padding-right: 20px;
-                height: 42px;
-                font-family: 'Segoe UI';
-                font-size: 15px;
-                font-weight: 700;
+                font-family: {ff}; font-size: 13px; font-weight: 900;
             }}
             QPushButton:hover {{
-                background: transparent;
-                color: {t["accent_bright"]};
+                background: {t["accent"]};
+                color: #FFFFFF;
+                border-color: {bdr};
             }}
             QPushButton::menu-indicator {{ image: none; }}
         """
-        self._btn_file.setStyleSheet(menu_btn_style)
-        self._btn_modules.setStyleSheet(menu_btn_style)
-        self._btn_help.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent;
+        self._btn_back.setStyleSheet(btn_style)
+        self._btn_file.setStyleSheet(btn_style)
+        self._btn_modules.setStyleSheet(btn_style)
+        self._btn_help.setStyleSheet(btn_style)
+
+        self._brand.setStyleSheet(f"""
+            QLabel {{
                 color: {t["text"]};
-                border: none;
-                border-radius: 0px;
-                padding-left: 20px; padding-right: 20px;
-                height: 42px;
-                font-family: 'Segoe UI';
-                font-size: 15px;
-                font-weight: 700;
-            }}
-            QPushButton:hover {{
-                background: transparent;
-                color: {t["accent_bright"]};
+                font-family: {ff};
+                font-size: 16px;
+                font-weight: 900;
+                background: {t["bg_card"]};
+                border: {bw}px solid {bdr};
+                padding: 5px 10px;
+                letter-spacing: 1px;
             }}
         """)
-        
+        self._lbl.setStyleSheet(f"""
+            QLabel {{
+                color: {t["text"]};
+                font-family: {ff};
+                font-size: 12px;
+                font-weight: bold;
+                background: {t["bg_card"]};
+                border: {bw}px solid {bdr};
+                padding: 5px;
+            }}
+        """)
+
         win_btn_style = f"""
             QPushButton {{
-                background: transparent;
+                background: {t["bg_card"]};
                 color: {t["text"]};
-                border: none;
-                border-radius: 0;
+                border: {bw}px solid {bdr};
+                border-radius: 0px;
+                font-weight: bold;
             }}
             QPushButton:hover {{
-                background: {t.get("btn_win_h", "rgba(255,255,255,20)")};
+                background: {t.get("btn_close_h", "#e81123")};
+                color: #FFFFFF;
             }}
         """
         self._btn_min.setStyleSheet(win_btn_style)
         self._btn_max.setStyleSheet(win_btn_style)
-        self._btn_close.setStyleSheet(win_btn_style + f"QPushButton:hover {{ background: {t.get('btn_close_h', '#e81123')}; color: white; }}")
+        self._btn_close.setStyleSheet(win_btn_style)
 
     def _min_window(self):
         win = self.window()
-        if win: win.showMinimized()
+        if win:
+            win.showMinimized()
 
     def _max_window(self):
         win = self.window()
         if win:
             if win.isMaximized():
                 win.showNormal()
-                self._btn_max.setText("□")
+                self._btn_max.setText("[]")
             else:
                 win.showMaximized()
-                self._btn_max.setText("❐") # Restore icon
+                self._btn_max.setText("[ ]")
 
     def _close_window(self):
         win = self.window()
-        if win: win.close()
+        if win:
+            win.close()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -260,7 +326,6 @@ class NavBar(QWidget):
         if self._moving and event.buttons() & Qt.LeftButton:
             win = self.window()
             if win.isMaximized():
-                # Optional: Handle un-maximize on drag like Windows
                 pass
             diff = event.globalPos() - self._start_pos
             win.move(win.pos() + diff)
@@ -272,25 +337,12 @@ class NavBar(QWidget):
         super().mouseReleaseEvent(event)
 
     def paintEvent(self, event):
-        # Subtle accent line at the bottom
         t = T()
         p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-        y = self.height() - 1
-        g = QLinearGradient(0, y, self.width(), y)
-        g.setColorAt(0.0,  QColor(t['accent_bright']).lighter(150))
-        g.setColorAt(0.2,  QColor(t["accent_bright"]))
-        g.setColorAt(0.8,  QColor(t["accent_bright"]))
-        g.setColorAt(1.0,  QColor(t['accent_bright']).lighter(150))
-        # Reduce opacity for the line
-        pen = QPen(QBrush(g), 0.8)
-        p.setOpacity(0.4)
-        p.setPen(pen)
+        p.setRenderHint(QPainter.Antialiasing, False)
+        bw = t.get("border_width", 3)
+        y = self.height() - bw
+        p.setPen(QPen(QColor(t["glass_border"]), bw))
         p.drawLine(0, y, self.width(), y)
         p.end()
         super().paintEvent(event)
-
-
-# ═══════════════════════════════════════════════════════════════════
-#   TELA DE SELEÇÃO
-

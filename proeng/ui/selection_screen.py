@@ -63,8 +63,17 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtWidgets import QScrollArea, QFrame
 
-from proeng.core.themes import T, THEMES, _ACTIVE
+from proeng.core.themes import T, THEMES, _ACTIVE, cycle_theme
 from proeng.ui.nav_bar import ThemeToggle
+
+
+def _draw_icon_arrow(p, x, y, size, col):
+    pen = QPen(QColor(col), 2.5, Qt.SolidLine, Qt.RoundCap)
+    p.setPen(pen)
+    p.setBrush(Qt.NoBrush)
+    p.drawLine(QPointF(x, y + size / 2), QPointF(x + size, y + size / 2))
+    p.drawLine(QPointF(x + size - 6, y + size / 2 - 5), QPointF(x + size, y + size / 2))
+    p.drawLine(QPointF(x + size - 6, y + size / 2 + 5), QPointF(x + size, y + size / 2))
 
 
 class ModuleCard(QPushButton):
@@ -72,7 +81,7 @@ class ModuleCard(QPushButton):
         super().__init__()
         self._emoji = emoji
         self._title = title
-        self._desc = desc  # já tem \n inseridos pelo chamador
+        self._desc = desc
         self._hov = False
         self.setMinimumSize(240, 128)
         self.setMaximumHeight(148)
@@ -96,45 +105,46 @@ class ModuleCard(QPushButton):
     def paintEvent(self, _):
         t = T()
         p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
+        p.setRenderHint(QPainter.Antialiasing, False)
+
+        bw = t.get("border_width", 3)
+        sx = t.get("shadow_offset_x", 6)
+        sy = t.get("shadow_offset_y", 6)
+        hsx = t.get("shadow_hover_offset_x", 2)
+        hsy = t.get("shadow_hover_offset_y", 2)
+
         r = QRectF(self.rect()).adjusted(2, 2, -2, -2)
 
-        # Fundo (Glassmorphism)
-        g = QLinearGradient(r.topLeft(), r.bottomRight())
         if self._hov:
-            g.setColorAt(0, QColor(t["bg_card2"]))
-            g.setColorAt(1, QColor(t["bg_card"]))
+            p.setBrush(QColor(t["shadow"]))
+            p.setPen(QPen(Qt.NoPen))
+            p.drawRect(r.translated(hsx, hsy))
         else:
-            g.setColorAt(0, QColor(t["bg_card"]))
-            g.setColorAt(1, QColor(t["bg_app"]))
-        p.setBrush(QBrush(g))
+            p.setBrush(QColor(t["shadow"]))
+            p.setPen(QPen(Qt.NoPen))
+            p.drawRect(r.translated(sx, sy))
 
-        # Borda sutil de vidro
-        glass_color = QColor(t.get("glass_border", "rgba(255,255,255,40)"))
-        p.setPen(
-            QPen(glass_color if not self._hov else QColor(t["accent_bright"]), 1.2)
-        )
-        p.drawRoundedRect(r, 16, 16)
+        p.setBrush(QBrush(QColor(t["bg_card"])))
+        p.setPen(QPen(QColor(t["glass_border"]), bw))
+        p.drawRect(r)
 
-        # Accent strip topo
-        sg = QLinearGradient(r.left(), 0, r.right(), 0)
-        sg.setColorAt(0, QColor(t["accent_bright"] if self._hov else t["accent"]))
-        sg.setColorAt(0.55, QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(sg))
+        p.setBrush(QBrush(QColor(t["accent"] if self._hov else t["accent_bright"])))
         p.setPen(QPen(Qt.NoPen))
-        p.drawRoundedRect(QRectF(r.left(), r.top(), r.width(), 3), 2, 2)
+        p.drawRect(QRectF(r.left(), r.top(), r.width(), 6))
 
-        # Emoji
-        p.setFont(QFont("Segoe UI", 18))
+        ff = t.get("font_family", "'Segoe UI', sans-serif").replace("'", "")
+
+        icon_box = QRectF(r.left() + 12, r.top() + 16, 36, 36)
+        p.setPen(QPen(QColor(t["glass_border"]), 2))
+        p.setBrush(Qt.NoBrush)
+        p.drawRect(icon_box)
+        p.setFont(QFont(ff, 16, QFont.Bold))
         p.setPen(QColor(t["text"]))
-        p.drawText(
-            QRectF(r.left() + 14, r.top() + 8, 42, 42), Qt.AlignCenter, self._emoji
-        )
+        p.drawText(icon_box, Qt.AlignCenter, self._emoji)
 
-        # Título — 1 linha com elide
-        p.setFont(QFont("Segoe UI", 12, QFont.Bold))
-        p.setPen(QColor(t["accent_bright"] if self._hov else t["text"]))
-        title_rect = QRectF(r.left() + 64, r.top() + 10, r.width() - 84, 24)
+        p.setFont(QFont(ff, 12, QFont.Bold))
+        p.setPen(QColor(t["text"]))
+        title_rect = QRectF(r.left() + 58, r.top() + 14, r.width() - 76, 22)
         fm = QFontMetrics(p.font())
         p.drawText(
             title_rect,
@@ -142,21 +152,16 @@ class ModuleCard(QPushButton):
             fm.elidedText(self._title, Qt.ElideRight, int(title_rect.width())),
         )
 
-        # Descrição — word-wrap, altura máx controlada
-        p.setFont(QFont("Segoe UI", 9))
-        p.setPen(QColor(t["accent"] if self._hov else t["text_dim"]))
+        p.setFont(QFont(ff, 9, QFont.Normal))
+        p.setPen(QColor(t["text_dim"]))
         desc_top = r.top() + 40
         desc_h = r.bottom() - desc_top - 10
-        desc_r = QRectF(r.left() + 64, desc_top, r.width() - 82, max(desc_h, 28))
+        desc_r = QRectF(r.left() + 58, desc_top, r.width() - 76, max(desc_h, 28))
         p.drawText(desc_r, Qt.AlignLeft | Qt.AlignTop | Qt.TextWordWrap, self._desc)
 
-        # Seta →
         if self._hov:
-            p.setPen(QPen(QColor(t["accent_bright"]), 2, Qt.SolidLine, Qt.RoundCap))
-            ax = r.right() - 16
-            ay = r.bottom() - 18
-            p.drawLine(QPointF(ax - 8, ay - 5), QPointF(ax, ay))
-            p.drawLine(QPointF(ax - 8, ay + 5), QPointF(ax, ay))
+            _draw_icon_arrow(p, r.right() - 28, r.bottom() - 22, 16, t["text"])
+
         p.end()
 
 
@@ -243,13 +248,13 @@ class GalleryItem(QFrame):
 
     def update_style(self):
         t = T()
-        border = t["accent"] if self._hover else t["accent_dim"]
+        border = "#000000" if self._hover else t.get("glass_border", "#000000")
         bg = t["bg_card2"] if self._hover else t["bg_card"]
         self.setStyleSheet(f"""
             QFrame {{
                 background-color: {bg};
-                border: 2px solid {border};
-                border-radius: 12px;
+                border: 3px solid {border};
+                border-radius: 0px;
             }}
         """)
 
@@ -475,69 +480,55 @@ class SelectionScreen(QWidget):
 
     def _apply_styles(self):
         t = T()
+        bw = t.get("border_width", 3)
+        ff = t.get("font_family", "'Segoe UI', 'Arial', sans-serif")
 
-        # Root background
         self.setStyleSheet(f"QWidget {{ background-color: {t['bg_app']}; }}")
 
-        # Accent bars (Modern gradients)
-        self._top_bar.setStyleSheet(
-            f"QWidget {{ background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
-            f"stop:0 {t['accent_bright']}, stop:0.4 {t['accent']}, stop:1 transparent); }}"
-        )
-        self._bot_bar.setStyleSheet(
-            f"QWidget {{ background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
-            f"stop:0 transparent, stop:0.6 {t['accent']}, stop:1 {t['accent_bright']}); }}"
-        )
+        self._top_bar.setStyleSheet(f"QWidget {{ background: {t['accent']}; }}")
+        self._bot_bar.setStyleSheet(f"QWidget {{ background: {t['accent']}; }}")
 
-        # Topbar
         self._topbar_widget.setStyleSheet(
-            f"QWidget {{ background: {t['bg_card']}; border-bottom: 1px solid {t['accent_dim']}; }}"
+            f"QWidget {{ background: {t['bg_card']}; border-bottom: {bw}px solid {t['glass_border']}; }}"
         )
         self._brand_lbl.setStyleSheet(
-            f"QLabel {{ color: {t['accent_bright']}; font-family: 'Consolas';"
-            f" font-size: 14px; font-weight: bold; background: transparent; border: none; }}"
+            f"QLabel {{ color: {t['text']}; font-family: {ff};"
+            f" font-size: 16px; font-weight: 900; background: {t['bg_app']}; border: {bw}px solid {t['glass_border']}; padding: 5px 10px; }}"
         )
 
-        # Content area background
         self._content.setStyleSheet(f"QWidget {{ background-color: {t['bg_app']}; }}")
 
-        # Badge
         self._badge.setStyleSheet(
-            f"QLabel {{ color: {t['accent_bright']}; font-family: 'Segoe UI';"
-            f" font-size: 11px; font-weight: bold;"
-            f" background: transparent;"
-            f" border: 1px solid {t['accent_dim']}; border-radius: 20px;"
+            f"QLabel {{ color: #FFFFFF; font-family: {ff};"
+            f" font-size: 11px; font-weight: 900;"
+            f" background: {t['accent']}; border: {bw}px solid {t['glass_border']};"
             f" padding: 4px 18px; }}"
         )
 
-        # Título principal
         self._t1.setStyleSheet(
-            f"QLabel {{ color: {t['text']}; font-family: 'Segoe UI';"
-            f" font-size: 44px; font-weight: 900; background: transparent; }}"
+            f"QLabel {{ color: {t['text']}; font-family: {ff};"
+            f" font-size: 48px; font-weight: 900; background: transparent; letter-spacing: 2px; }}"
         )
 
-        # Subtítulo accent
         self._t2.setStyleSheet(
-            f"QLabel {{ color: {t['accent_bright']}; font-family: 'Segoe UI';"
-            f" font-size: 26px; font-weight: 700; background: transparent; }}"
+            f"QLabel {{ color: {t['accent']}; font-family: {ff};"
+            f" font-size: 28px; font-weight: 900; background: transparent; }}"
         )
 
-        # Descrição
         self._sub.setStyleSheet(
-            f"QLabel {{ color: {t['text_muted']}; font-family: 'Segoe UI';"
-            f" font-size: 12px; background: transparent; }}"
+            f"QLabel {{ color: {t['text_dim']}; font-family: {ff};"
+            f" font-size: 12px; font-weight: bold; background: transparent; }}"
         )
 
         self._gallery_title.setStyleSheet(
-            f"QLabel {{ color: {t['accent_bright']}; font-family: 'Consolas';"
-            f" font-size: 10px; font-weight: bold; background: transparent; }}"
+            f"QLabel {{ color: {t['text']}; font-family: {ff};"
+            f" font-size: 12px; font-weight: 900; background: {t['bg_card']}; border: {bw}px solid {t['glass_border']}; padding: 5px; }}"
         )
 
-        # Feature pills (Modern glass pills)
         pill_s = (
-            f"QLabel {{ color: {t['text_dim']}; font-family: 'Segoe UI'; font-size: 11px;"
-            f" background: {t['bg_card']}; border: 1px solid {t.get('glass_border', 'rgba(255,255,255,30)')};"
-            f" border-radius: 14px; padding: 4px 14px; font-weight: 600; }}"
+            f"QLabel {{ color: {t['text']}; font-family: {ff}; font-size: 11px;"
+            f" background: {t['bg_card']}; border: {bw}px solid {t['glass_border']};"
+            f" padding: 4px 14px; font-weight: bold; }}"
         )
         for p in self._pills:
             p.setStyleSheet(pill_s)

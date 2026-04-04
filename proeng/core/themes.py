@@ -1,186 +1,181 @@
 # -*- coding: utf-8 -*-
-"""Sistema de temas — Dark Industrial e Light Blue."""
-import sys
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QMessageBox, QGraphicsView, QGraphicsScene, QGraphicsItem,
-    QListWidget, QListWidgetItem, QSplitter, QGraphicsPathItem, QMenu,
-    QListView, QLineEdit, QLabel, QStackedWidget, QTextEdit,
-    QGraphicsRectItem, QInputDialog, QFileDialog, QSizePolicy
-)
-from PyQt5.QtGui import (
-    QPen, QBrush, QColor, QPainter, QPalette, QCursor, QPolygonF,
-    QFont, QFontMetrics, QIcon, QPixmap, QPainterPath, QDrag, QLinearGradient
-)
-from PyQt5.QtCore import (
-    Qt, QRectF, QPointF, QMimeData, QByteArray, QDataStream,
-    QIODevice, QSize, QPoint, QTimer, pyqtSignal, QObject, QSizeF
-)
+"""Sistema de temas — Dark, Light e Neo Brutalist.
 
-
-#   SISTEMA DE TEMAS  ·  Dark Industrial  vs  Light Blue
-# ═══════════════════════════════════════════════════════════════════
+Regras: SEM gradientes, SEM transparencia. Cores solidas apenas.
+Tipografia: sans-serif pesada, geometrica, bold.
+"""
 
 THEMES = {
     "dark": {
-        "name":          "dark",
-        # Fundo principal mais sóbrio e neutro
-        "bg_app":        "#050816",     # Azul petróleo quase preto
-        # Cartões com glass leve, porém menos “fantasia”
-        "bg_card":       "rgba(15, 23, 42, 210)",   # Slate escuro
-        "bg_card2":      "rgba(30, 64, 175, 220)",  # Azul mais forte no hover
-        "bg_input":      "#020617",     # Fundo quase preto para inputs
-        "glass_border":  "rgba(148, 163, 184, 80)",
-        # Paleta de acento mais corporativa (azul petróleo)
-        "accent":        "#2563EB",     # Blue 600
-        "accent_bright": "#38BDF8",     # Sky 400
-        "accent_dim":    "rgba(37, 99, 235, 110)",
-        # Tipografia
-        "text":          "#E5E7EB",     # Gray-200
-        "text_dim":      "#9CA3AF",     # Gray-400
-        "text_muted":    "#6B7280",     # Gray-500
-        # Linhas e elementos estruturais
-        "line":          "#38BDF8",
-        "line_eap":      "#4B5563",
-        # Botões de ação
-        "btn_add":       "#22C55E",
-        "btn_sib":       "#0EA5E9",
-        "btn_del":       "#EF4444",
-        # Nós de diagramas
-        "node_bg":       "rgba(15, 23, 42, 230)",
-        "node_border":   "rgba(148, 163, 184, 180)",
-        "node_text":     "#F9FAFB",
-        # Barra superior mais discreta
-        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 rgba(5,8,22,255),stop:1 rgba(15,23,42,255))",
-        "toolbar_sep":   "rgba(148,163,184,60)",
-        "toolbar_btn":   "rgba(15,23,42,255)",
-        "toolbar_btn_h": "rgba(30,64,175,255)",
-        # Assinaturas/suporte
-        "sig_bg_l":      "rgba(5,8,22,0)",
-        "sig_bg_r":      "rgba(15,23,42,230)",
-        "sig_border":    "rgba(148,163,184,80)",
-        "sig_text":      "rgba(229,231,235,200)",
-        # Controles de janela
-        "btn_close_h":   "#EF4444",
-        "btn_win_h":     "rgba(148,163,184,60)",
+        "name": "dark",
+        "bg_app": "#0a0a0a",
+        "bg_card": "#1a1a1a",
+        "bg_card2": "#2a2a2a",
+        "bg_input": "#111111",
+        "glass_border": "#00ff88",
+        "accent": "#00ff88",
+        "accent_bright": "#00ccff",
+        "accent_dim": "#00aa55",
+        "text": "#ffffff",
+        "text_dim": "#cccccc",
+        "text_muted": "#888888",
+        "line": "#00ff88",
+        "line_eap": "#666666",
+        "btn_add": "#00ff88",
+        "btn_sib": "#00ccff",
+        "btn_del": "#ff4444",
+        "node_bg": "#1a1a1a",
+        "node_border": "#00ff88",
+        "node_text": "#ffffff",
+        "toolbar_bg": "#1a1a1a",
+        "toolbar_sep": "#00ff88",
+        "toolbar_btn": "#2a2a2a",
+        "toolbar_btn_h": "#00ff88",
+        "sig_bg_l": "#0a0a0a",
+        "sig_bg_r": "#1a1a1a",
+        "sig_border": "#00ff88",
+        "sig_text": "#ffffff",
+        "btn_close_h": "#ff4444",
+        "btn_win_h": "#ffffff",
+        "shadow": "#00ff88",
+        "shadow_offset_x": 6,
+        "shadow_offset_y": 6,
+        "shadow_hover_offset_x": 2,
+        "shadow_hover_offset_y": 2,
+        "border_width": 3,
+        "border_radius": 0,
+        "font_family": "'Arial Black', 'Segoe UI', 'Arial', sans-serif",
+        "font_family_content": "'Segoe UI', 'Arial', sans-serif",
     },
     "light": {
-        "name":          "light",
-        # Fundo claro levemente acinzentado (menos brilho)
-        "bg_app":        "#F3F4F6",     # Gray-100
-        "bg_card":       "rgba(255,255,255, 245)",  # Branco com leve transparência
-        "bg_card2":      "rgba(226, 232, 240, 255)",# Gray-200 no hover
-        "bg_input":      "#FFFFFF",
-        "glass_border":  "rgba(148,163,184,70)",
-        # Acento azul profissional
-        "accent":        "#2563EB",     # Blue 600
-        "accent_bright": "#1D4ED8",     # Blue 700
-        "accent_dim":    "rgba(37, 99, 235, 80)",
-        # Tipografia
-        "text":          "#111827",     # Gray-900
-        "text_dim":      "#4B5563",     # Gray-600
-        "text_muted":    "#6B7280",     # Gray-500
-        # Linhas
-        "line":          "#2563EB",
-        "line_eap":      "#CBD5F5",     # Azul bem claro para linhas estruturais
-        # Botões
-        "btn_add":       "#16A34A",
-        "btn_sib":       "#2563EB",
-        "btn_del":       "#DC2626",
-        # Nós
-        "node_bg":       "#FFFFFF",
-        "node_border":   "#E5E7EB",
-        "node_text":     "#111827",
-        # Barra superior
-        "toolbar_bg":    "qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 rgba(243,244,246,255),stop:1 rgba(229,231,235,255))",
-        "toolbar_sep":   "rgba(148,163,184,60)",
-        "toolbar_btn":   "rgba(255,255,255,255)",
-        "toolbar_btn_h": "rgba(219,234,254,255)",
-        # Assinaturas/suporte
-        "sig_bg_l":      "rgba(255,255,255,0)",
-        "sig_bg_r":      "rgba(243,244,246,245)",
-        "sig_border":    "rgba(148,163,184,70)",
-        "sig_text":      "rgba(17,24,39,190)",
-        # Controles de janela
-        "btn_close_h":   "#EF4444",
-        "btn_win_h":     "rgba(148,163,184,60)",
+        "name": "light",
+        "bg_app": "#F3F4F6",
+        "bg_card": "#FFFFFF",
+        "bg_card2": "#E5E7EB",
+        "bg_input": "#FFFFFF",
+        "glass_border": "#000000",
+        "accent": "#2563EB",
+        "accent_bright": "#1D4ED8",
+        "accent_dim": "#93C5FD",
+        "text": "#000000",
+        "text_dim": "#374151",
+        "text_muted": "#6B7280",
+        "line": "#000000",
+        "line_eap": "#000000",
+        "btn_add": "#16A34A",
+        "btn_sib": "#2563EB",
+        "btn_del": "#DC2626",
+        "node_bg": "#FFFFFF",
+        "node_border": "#000000",
+        "node_text": "#000000",
+        "toolbar_bg": "#F3F4F6",
+        "toolbar_sep": "#000000",
+        "toolbar_btn": "#FFFFFF",
+        "toolbar_btn_h": "#2563EB",
+        "sig_bg_l": "#F3F4F6",
+        "sig_bg_r": "#FFFFFF",
+        "sig_border": "#000000",
+        "sig_text": "#000000",
+        "btn_close_h": "#EF4444",
+        "btn_win_h": "#000000",
+        "shadow": "#000000",
+        "shadow_offset_x": 6,
+        "shadow_offset_y": 6,
+        "shadow_hover_offset_x": 2,
+        "shadow_hover_offset_y": 2,
+        "border_width": 3,
+        "border_radius": 0,
+        "font_family": "'Arial Black', 'Segoe UI', 'Arial', sans-serif",
+        "font_family_content": "'Segoe UI', 'Arial', sans-serif",
+        "block_yellow": "#FFD600",
+        "block_green": "#2E7D32",
+        "block_blue": "#1565C0",
+        "block_red": "#C62828",
+        "block_orange": "#E65100",
+        "block_purple": "#6A1B9A",
+    },
+    "neo_brutalist": {
+        "name": "neo_brutalist",
+        "bg_app": "#FFF9C4",
+        "bg_card": "#FFFFFF",
+        "bg_card2": "#FFEB3B",
+        "bg_input": "#FFFFFF",
+        "glass_border": "#000000",
+        "accent": "#FF5722",
+        "accent_bright": "#E91E63",
+        "accent_dim": "#FF8A65",
+        "text": "#000000",
+        "text_dim": "#424242",
+        "text_muted": "#757575",
+        "line": "#000000",
+        "line_eap": "#000000",
+        "btn_add": "#4CAF50",
+        "btn_sib": "#2196F3",
+        "btn_del": "#F44336",
+        "node_bg": "#FFFFFF",
+        "node_border": "#000000",
+        "node_text": "#000000",
+        "toolbar_bg": "#FFEB3B",
+        "toolbar_sep": "#000000",
+        "toolbar_btn": "#FFFFFF",
+        "toolbar_btn_h": "#FF5722",
+        "sig_bg_l": "#FFF9C4",
+        "sig_bg_r": "#FFFFFF",
+        "sig_border": "#000000",
+        "sig_text": "#000000",
+        "btn_close_h": "#F44336",
+        "btn_win_h": "#000000",
+        "shadow": "#000000",
+        "shadow_offset_x": 8,
+        "shadow_offset_y": 8,
+        "shadow_hover_offset_x": 3,
+        "shadow_hover_offset_y": 3,
+        "border_width": 4,
+        "border_radius": 0,
+        "font_family": "'Arial Black', 'Segoe UI', 'Arial', sans-serif",
+        "font_family_content": "'Segoe UI', 'Arial', sans-serif",
+        "block_yellow": "#FFD600",
+        "block_green": "#2E7D32",
+        "block_blue": "#1565C0",
+        "block_red": "#C62828",
+        "block_orange": "#E65100",
+        "block_purple": "#6A1B9A",
     },
 }
 
-# Tema ativo (mutável em runtime)
-_ACTIVE = {"theme": THEMES["dark"]}
+_ACTIVE = {"theme": THEMES["neo_brutalist"]}
+
+_THEME_ORDER = ["dark", "light", "neo_brutalist"]
+
 
 def T():
-    """Retorna o dicionário do tema ativo."""
+    """Retorna o dicionario do tema ativo."""
     return _ACTIVE["theme"]
+
 
 def set_theme(name: str):
     _ACTIVE["theme"] = THEMES[name]
 
 
-# ═══════════════════════════════════════════════════════════════════
-#   EXPORTAÇÃO PDF / PNG
-# ═══════════════════════════════════════════════════════════════════
+def cycle_theme():
+    """Ciclo through all 3 themes: dark -> light -> neo_brutalist -> dark."""
+    current = _ACTIVE["theme"]["name"]
+    try:
+        idx = _THEME_ORDER.index(current)
+    except ValueError:
+        idx = 0
+    next_idx = (idx + 1) % len(_THEME_ORDER)
+    _ACTIVE["theme"] = THEMES[_THEME_ORDER[next_idx]]
+    return _THEME_ORDER[next_idx]
 
-def _export_view(view, fmt, parent=None):
-    t = T()
-    scene = view.scene()
-    rect  = scene.itemsBoundingRect().adjusted(-150, -150, 150, 150)
-    if rect.isEmpty():
-        QMessageBox.warning(parent, "Nada para exportar", "A cena está vazia.")
-        return
-
-    if fmt == "png":
-        path, _ = QFileDialog.getSaveFileName(
-            parent, "Exportar como PNG", "diagrama.png", "Imagem PNG (*.png)")
-        if not path:
-            return
-        scale = 2
-        img = QPixmap(max(1, int(rect.width()*scale)), max(1, int(rect.height()*scale)))
-        img.fill(QColor(t["bg_app"]))
-        p = QPainter(img)
-        p.setRenderHint(QPainter.Antialiasing)
-        p.scale(scale, scale)
-        scene.render(p, source=rect)
-        p.end()
-        img.save(path, "PNG")
-        QMessageBox.information(parent, "✅ PNG Exportado", f"Arquivo salvo em:\n{path}")
-
-    elif fmt == "pdf":
-        if not HAS_PRINT:
-            QMessageBox.warning(parent, "Módulo ausente",
-                "QPrintSupport não encontrado.\n"
-                "Execute: pip install PyQt5 --upgrade")
-            return
-        path, _ = QFileDialog.getSaveFileName(
-            parent, "Exportar como PDF", "diagrama.pdf", "PDF (*.pdf)")
-        if not path:
-            return
-        printer = QPrinter(QPrinter.HighResolution)
-        printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setOutputFileName(path)
-        printer.setPageSize(QPrinter.A3)
-        printer.setOrientation(QPrinter.Landscape)
-        p = QPainter(printer)
-        p.setRenderHint(QPainter.Antialiasing)
-        scene.render(p, source=rect)
-        p.end()
-        QMessageBox.information(parent, "✅ PDF Exportado", f"Arquivo salvo em:\n{path}")
-
-
-# ==========================================
-#   MÓDULO 5W2H (ACTION PLAN AUTO-LAYOUT)
-# ==========================================
 
 W5H2_TYPES = {
-    "ROOT":  {"t": "PLANO DE AÇÃO", "c": "#E03535"},
-    "WHAT":  {"t": "O QUÊ? (Ação)", "c": "#3498DB"},
-    "WHY":   {"t": "POR QUÊ? (Justificativa)", "c": "#F1C40F"},
-    "WHO":   {"t": "QUEM? (Responsável)", "c": "#9B59B6"},
+    "ROOT": {"t": "PLANO DE ACAO", "c": "#E03535"},
+    "WHAT": {"t": "O QUE? (Acao)", "c": "#3498DB"},
+    "WHY": {"t": "POR QUE? (Justificativa)", "c": "#F1C40F"},
+    "WHO": {"t": "QUEM? (Responsavel)", "c": "#9B59B6"},
     "WHERE": {"t": "ONDE? (Local)", "c": "#2ECC71"},
-    "WHEN":  {"t": "QUANDO? (Prazo)", "c": "#E67E22"},
-    "HOW":   {"t": "COMO? (Método/Etapas)", "c": "#1ABC9C"},
-    "COST":  {"t": "QUANTO? (Custo/Orçamento)", "c": "#E74C3C"}
+    "WHEN": {"t": "QUANDO? (Prazo)", "c": "#E67E22"},
+    "HOW": {"t": "COMO? (Metodo/Etapas)", "c": "#1ABC9C"},
+    "COST": {"t": "QUANTO? (Custo/Orcamento)", "c": "#E74C3C"},
 }
-
-
