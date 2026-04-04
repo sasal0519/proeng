@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QTextEdit,
     QGraphicsRectItem,
+    QGraphicsEllipseItem,
     QInputDialog,
     QFileDialog,
     QSizePolicy,
@@ -35,6 +36,8 @@ from PyQt5.QtWidgets import (
     QSlider,
     QDialog,
     QCheckBox,
+    QGraphicsTextItem,
+    QGraphicsLineItem,
 )
 from PyQt5.QtGui import (
     QPen,
@@ -68,57 +71,9 @@ from PyQt5.QtCore import (
     QSizeF,
     QDate,
 )
-from PyQt5.QtGui import (
-    QPen,
-    QBrush,
-    QColor,
-    QPainter,
-    QPalette,
-    QCursor,
-    QPolygonF,
-    QFont,
-    QFontMetrics,
-    QIcon,
-    QPixmap,
-    QPainterPath,
-    QDrag,
-)
-from PyQt5.QtWidgets import QGraphicsTextItem, QGraphicsLineItem
-from PyQt5.QtCore import (
-    Qt,
-    QRectF,
-    QPointF,
-    QMimeData,
-    QByteArray,
-    QDataStream,
-    QIODevice,
-    QSize,
-    QPoint,
-    QTimer,
-    pyqtSignal,
-    QObject,
-    QSizeF,
-    QDate,
-)
-from PyQt5.QtCore import (
-    Qt,
-    QRectF,
-    QPointF,
-    QMimeData,
-    QByteArray,
-    QDataStream,
-    QIODevice,
-    QSize,
-    QPoint,
-    QTimer,
-    pyqtSignal,
-    QObject,
-    QSizeF,
-    QDate,
-)
 
 from proeng.core.themes import T, THEMES, _ACTIVE
-from proeng.core.utils import _export_view, _c, _solid_fill
+from proeng.core.utils import _export_view, _c, _glass_grad
 from proeng.core.toolbar import _make_toolbar, _hide_inner_toolbar
 from proeng.core.base_module import BaseModule
 
@@ -231,6 +186,8 @@ class GanttCanvas(QGraphicsView):
         self.zoom_level = 1.0
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        t = T()
+        self.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
 
     def wheelEvent(self, event):
         if event.modifiers() == Qt.ControlModifier:
@@ -396,6 +353,8 @@ class GanttWidget(QWidget):
 
         self.scene = QGraphicsScene()
         self.scene.setSceneRect(0, 0, 2000, 1500)
+        t = T()
+        self.scene.setBackgroundBrush(QBrush(QColor(t["bg_app"])))
         self.canvas = GanttCanvas(self.scene)
         self.splitter.addWidget(self.canvas)
 
@@ -487,7 +446,21 @@ class GanttWidget(QWidget):
             self.scene.addItem(day_text)
 
             if current_date.day() == 1:
-                month_text = QGraphicsTextItem(current_date.shortMonthName())
+                month_names = [
+                    "Jan",
+                    "Fev",
+                    "Mar",
+                    "Abr",
+                    "Mai",
+                    "Jun",
+                    "Jul",
+                    "Ago",
+                    "Set",
+                    "Out",
+                    "Nov",
+                    "Dez",
+                ]
+                month_text = QGraphicsTextItem(month_names[current_date.month() - 1])
                 month_text.setFont(QFont("Segoe UI", 9, QFont.Bold))
                 month_text.setDefaultTextColor(QColor(t["accent_bright"]))
                 month_text.setPos(x, 5)
@@ -511,35 +484,62 @@ class GanttWidget(QWidget):
         sorted_tasks = sorted(self.tasks.items(), key=lambda x: x[1]["start_date"])
 
         for idx, (task_id, task_data) in enumerate(sorted_tasks):
+            # Background da área de tarefas (alternado com cores do tema)
             task_bg = QGraphicsRectItem(0, y_offset - 5, 250, row_height)
-            task_bg.setBrush(
-                QBrush(QColor(t["bg_card"]) if idx % 2 == 0 else QColor(t["bg_app"]))
-            )
+            bg_color = QColor(t["bg_card"]) if idx % 2 == 0 else QColor(t["bg_app"])
+            task_bg.setBrush(QBrush(bg_color))
+            task_bg.setPen(QPen(Qt.NoPen))
             self.scene.addItem(task_bg)
 
+            # Nome da tarefa - posicionado para ficar visível
             name_text = QGraphicsTextItem(task_data["name"])
-            name_text.setFont(QFont("Segoe UI", 10))
+            name_text.setFont(QFont("Segoe UI", 10, QFont.Bold))
             name_text.setDefaultTextColor(QColor(t["text"]))
-            name_text.setPos(10, y_offset + 10)
+            name_text.setPos(10, y_offset + 12)
+            name_text.setFlag(QGraphicsItem.ItemIsSelectable, False)
+            name_text.setFlag(QGraphicsItem.ItemIsMovable, False)
             self.scene.addItem(name_text)
+
+            # Linha separadora suave
+            sep_line = QGraphicsLineItem(
+                0, y_offset + row_height - 1, 250, y_offset + row_height - 1
+            )
+            sep_line.setPen(
+                QPen(QColor(t.get("glass_border", "rgba(255,255,255,20)")), 1)
+            )
+            self.scene.addItem(sep_line)
 
             start_x = 250 + min_date.daysTo(task_data["start_date"]) * day_width
             duration = task_data["start_date"].daysTo(task_data["end_date"]) + 1
             bar_width = duration * day_width
 
             if task_data.get("is_milestone"):
-                milestone = QGraphicsRectItem(
-                    start_x + bar_width / 2 - 8, y_offset + 8, 16, 24
+                milestone = QGraphicsEllipseItem(
+                    start_x + bar_width / 2 - 6, y_offset + 12, 12, 16
                 )
                 milestone.setBrush(QBrush(QColor(t["accent_bright"])))
-                milestone.setPen(QPen(QColor(t["accent"]), 2))
+                milestone.setPen(QPen(QColor(t["accent"]), 1))
                 self.scene.addItem(milestone)
             else:
-                task_item = QGraphicsItem(
-                    task_id, task_data.copy(), self.zoom, self.signals
+                bar_rect = QGraphicsRectItem(start_x, y_offset + 8, bar_width, 24)
+                bar_color = (
+                    QColor(t["accent"])
+                    if not task_data.get("is_critical")
+                    else QColor(t["btn_del"])
                 )
-                task_item.setPos(start_x, y_offset + 4)
-                self.scene.addItem(task_item)
+                bar_rect.setBrush(QBrush(bar_color))
+                bar_rect.setPen(QPen(QColor(t["accent_bright"]), 1))
+                self.scene.addItem(bar_rect)
+
+                progress = task_data.get("progress", 0)
+                if progress > 0:
+                    progress_width = bar_width * progress / 100
+                    progress_rect = QGraphicsRectItem(
+                        start_x, y_offset + 8, progress_width, 24
+                    )
+                    progress_rect.setBrush(QBrush(QColor(t["accent_bright"])))
+                    progress_rect.setPen(QPen(Qt.NoPen))
+                    self.scene.addItem(progress_rect)
 
             for dep_id, dep_data in self.tasks.items():
                 if dep_data.get("predecessor") == task_id:

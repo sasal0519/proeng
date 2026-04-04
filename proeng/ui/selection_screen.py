@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
+    QGridLayout,
     QPushButton,
     QMessageBox,
     QGraphicsView,
@@ -394,13 +395,49 @@ class SelectionScreen(QWidget):
         lay.addWidget(self._gallery)
         lay.addSpacing(32)
 
-        # Cards 2×2
-        modules = [
+        # Containers principais: Engenharia | Gestão de Projetos
+        main_row = QHBoxLayout()
+        main_row.setSpacing(24)
+        main_row.setAlignment(Qt.AlignHCenter)
+
+        # Container Engenharia (1x1) - lado esquerdo
+        eng_wrapper = QWidget()
+        eng_wrapper.setFixedWidth(280)
+        eng_layout = QVBoxLayout(eng_wrapper)
+        eng_layout.setSpacing(12)
+        eng_layout.setContentsMargins(0, 0, 0, 0)
+        eng_label = QLabel("🔧 ENGENHARIA")
+        eng_label.setAlignment(Qt.AlignCenter)
+        eng_layout.addWidget(eng_label)
+        eng_modules = [
             (
                 "🏭",
                 "PFD Flowsheet",
                 "Diagrama de processo industrial\ncom 26 equipamentos e tubulações",
                 "flowsheet",
+            ),
+        ]
+        for em, ti, de, key in eng_modules:
+            c = ModuleCard(em, ti, de, key, self.on_select)
+            self._cards.append(c)
+            eng_layout.addWidget(c)
+        main_row.addWidget(eng_wrapper)
+
+        # Container Gestão de Projetos (2x3) - lado direito
+        gp_wrapper = QWidget()
+        gp_wrapper.setFixedWidth(600)
+        gp_layout = QVBoxLayout(gp_wrapper)
+        gp_layout.setSpacing(12)
+        gp_layout.setContentsMargins(0, 0, 0, 0)
+        gp_label = QLabel("📁 GESTÃO DE PROJETOS")
+        gp_label.setAlignment(Qt.AlignCenter)
+        gp_layout.addWidget(gp_label)
+        gp_modules = [
+            (
+                "📊",
+                "Cronograma Gantt",
+                "Cronograma com CPM\nCaminho Crítico Automático",
+                "gantt",
             ),
             (
                 "📋",
@@ -433,34 +470,23 @@ class SelectionScreen(QWidget):
                 "w5h2",
             ),
         ]
-        self._cards = []
-        # Row 1: flowsheet + eap
-        row1 = QHBoxLayout()
-        row1.setSpacing(16)
-        for em, ti, de, key in modules[:2]:
+        gp_grid = QGridLayout()
+        gp_grid.setSpacing(12)
+        gp_grid.setContentsMargins(0, 0, 0, 0)
+        row, col = 0, 0
+        for em, ti, de, key in gp_modules:
             c = ModuleCard(em, ti, de, key, self.on_select)
             self._cards.append(c)
-            row1.addWidget(c)
-        lay.addLayout(row1)
-        lay.addSpacing(14)
-        # Row 2: bpmn + canvas
-        row2 = QHBoxLayout()
-        row2.setSpacing(16)
-        for em, ti, de, key in modules[2:4]:
-            c = ModuleCard(em, ti, de, key, self.on_select)
-            self._cards.append(c)
-            row2.addWidget(c)
-        lay.addLayout(row2)
-        lay.addSpacing(14)
-        # Row 3: ishikawa + w5h2
-        row3 = QHBoxLayout()
-        row3.setSpacing(16)
-        for em, ti, de, key in modules[4:6]:
-            c = ModuleCard(em, ti, de, key, self.on_select)
-            self._cards.append(c)
-            row3.addWidget(c)
-        lay.addLayout(row3)
-        lay.addSpacing(14)
+            gp_grid.addWidget(c, row, col)
+            col += 1
+            if col >= 2:
+                col = 0
+                row += 1
+        gp_layout.addLayout(gp_grid)
+        main_row.addWidget(gp_wrapper)
+
+        lay.addLayout(main_row)
+        lay.addSpacing(22)
 
         lay.addSpacing(22)
 
