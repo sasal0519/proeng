@@ -1,5 +1,46 @@
 # -*- coding: utf-8 -*-
-"""Módulo EAP — Estrutura Analítica do Projeto (WBS)."""
+"""
+Módulo EAP — Estrutura Analítica do Projeto (WBS - Work Breakdown Structure)
+
+Responsabilidades:
+- Gerar hierárquica WBS (Work Breakdown Structure) para decomposição de projetos
+- 4 níveis máximos de hierarquia: nível 0 (Projeto) > nível 1 (Seção) > 
+  nível 2 (Subseção) > nível 3 (Tarefa)
+- Auto-numeração WBS: 1.0, 1.1, 1.1.1, 1.1.1.1 (padrão PMI)
+- Renderização hierárquica: árvore visual com conexões (L-shaped routing)
+- Suporta 3 formas de nó: retângulo arredondado (padrão), elípse, losango
+- Drag-drop para reordenar nós dentro de restrições (máximo 4 níveis)
+- Persistência: Serialização JSON de árvore de nós
+
+Arquitetura:
+- NodeSignals: PubSub para eventos de edição (adicionar, deletar, editar)
+- NodeItem: QGraphicsItem polimórfico para renderizar nós com 3 formas
+  * Nó raiz (Projeto): Maior, bold, sem botões de deletar/irmão
+  * Nós filhos: Com botões de ação (+filho, +irmão, -deletar) no hover
+  * WBS code renderizado no topo de cada nó
+- FloatingEditor: QLineEdit para edição inline de texto de nó
+- EAPWidget: Canvas principal com QGraphicsScene
+  * calculate_wbs(): Gera códigos WBS recursivamente (1.0, 1.1, 1.1.1, ...)
+  * pre_calcular_dimensoes(): Calcula (w, h) de cada nó baseado em texto
+  * calcular_posicoes(): Layout hierárquico com pai ao centro de filhos
+  * draw_eap(): Renderiza árvore com conexões L-shaped
+- _EAPModule: Adaptador BaseModule com persistência JSON
+
+Fluxo de Renderização:
+1. draw_eap() inicia renderização:
+   a. calculate_wbs(1, "1"): Auto-numeração de todos nós
+   b. pre_calcular_dimensoes(): Calcula tamanho de cada nó
+   c. calcular_posicoes(1, 0): Calcula posições em grid é hierárquico
+      * Y = 80px + nível * (altura_nó + espaçamento)
+      * X = média das posições de filhos (pai centralizado)
+2. _draw_connections(): Renderiza linhas L-shaped entre pai e filhos
+3. _draw_nodes(): Posiciona NodeItem gráficos
+
+Conceitos-chave:
+- WBS Code: Número decimál hierarquizado (1.0 = raiz, 1.1 = primeiro filho, 1.1.1 = neto)
+- Hierarquia: Máximo 4 níveis de profundidade
+- Layout: Árvore com pai ao centro de filhos horizontais; cada nível incrementa Y
+- Forma: 3 opções polimórficas (retângulo, elipse, losango)
 
 import sys
 from PyQt5.QtWidgets import (
@@ -66,14 +107,47 @@ from proeng.core.base_module import BaseModule
 
 
 class NodeSignals(QObject):
+    """
+    PubSub para eventos de manipulação de nós EAP/WBS.
+    Sinais emitidos por NodeItem para notificar EAPWidget de mudanças.
+    """
+    # Edição de texto: commit_text(node_id, novo_texto)
     commit_text = pyqtSignal(int, str)
+    # Adicionar filho (expand level)
     add_child = pyqtSignal(int)
+    # Adicionar irmão (mismo level)
     add_sibling = pyqtSignal(int)
+    # Deletar nó e filhos recursivamente
     delete_node = pyqtSignal(int)
+    # Iniciar edição inline
     edit_start = pyqtSignal(int)
 
 
 class NodeItem(QGraphicsItem):
+    """
+    QGraphicsItem polimórfico para renderizar nó da EAP/WBS.
+    
+    Renderização:
+    - 3 formas: retângulo arredondado (default), elípse (círculo), losango
+    - Conteúdo em 3 linhas: WBS code (topo, accent), título (bold para raiz), descrição
+    - Botões de ação no hover: +filho (bottom-center), +irmão (right-center), -deletar (left-center)
+    - Nó raiz: Sem botões de irmão/deletar; tamanho maior, texto bold
+    - Feedback hover: Muda cor de fundo
+    
+    Interação:
+    - Clique simples: Se em botão de ação, emite sinal correspondente
+      Caso contrário, abre editor inline
+    - Duplo clique: Sempre abre editor inline
+    
+    Parámetros:
+    - node_id: int identificador único
+    - wbs: str código WBS (ex: "1.1.2")
+    - text: str conteúdo/rótulo do nó
+    - is_root: bool True para nó raíz (nível 0)
+    - shape: str "roundrect", "ellipse" ou "diamond"
+    - signals: NodeSignals para emitência de eventos
+    - zoom: float fator de escala de renderização
+    """
     def __init__(self, node_id, wbs, text, is_root, shape, signals, zoom):
         super().__init__()
         self.node_id = node_id
@@ -318,7 +392,22 @@ class NodeItem(QGraphicsItem):
 
 
 class FloatingEditor(QLineEdit):
-    committed = pyqtSignal(int, str)
+    """
+    QLineEdit flutuante para edição inline de texto de nó EAP.
+    
+    Renderiza:
+    - Posicionado sobre o nó selecionado na scene
+    - Estilo matching tema com borda de destaque
+    - Seleção automática de texto ao abrir
+    
+    Ciclo de Vida:
+    - open(node_id, text, scene_rect, view): Abre editor sobre nó
+    - keyPressEvent: Return/Enter confirma; Escape reverte
+    - focusOutEvent: Confirma automaticamente
+    
+    Sinais:
+    - committed.emit(node_id, novo_texto): Emitido ao salvar
+    """
 
     def __init__(self, parent_view):
         super().__init__(parent_view)
@@ -384,7 +473,38 @@ class FloatingEditor(QLineEdit):
 
 
 class EAPWidget(QWidget):
-    """Widget completo do EAP para embutir no app principal."""
+    """
+    Widget principal para edição interativa de EAP/WBS hierárquica.
+    
+    Responsabilidades:
+    - Gerenciar hierárquica de nós (pai-filho-irmão)
+    - Renderizar layout árvore com posicionamento automático
+    - Calcular e atualizar códigos WBS (1.0, 1.1, 1.1.1, ...)
+    - Orquestra interações: adicionar, deletar, editar, reordenar nós
+    - Zoom e pan com suporte Ctrl+Scroll
+    - Serializar/desserializar estado JSON
+    
+    Estado Interno:
+    - self.nodes: dict[int, {text, children[], parent, shape}]
+    - self.wbs_numbers: dict[int, "1.0"] - códigos WBS
+    - self.node_positions: dict[int, (x, y)] - coordenadas renderizadas
+    - self.node_dimensions: dict[int, (w, h)] - tamanhos calculados
+    - self.zoom: float fator de zoom
+    
+    Pipeline de Renderização (draw_eap()):
+    1. calculate_wbs(node_id, wbs_str): Numeração recursíva
+    2. pre_calcular_dimensoes(): Calcula (w, h) de cada nó baseado em texto
+    3. calcular_posicoes(node_id, nivel): Layout hierárquico
+       a. Y = 80px + nível * (altura_nó + espaçamento)
+       b. X = média de filhos (pai centralizado)
+    4. _draw_connections(node_id): Renderiza linhas em L entre pai-filhos
+    5. _draw_nodes(): Posiciona NodeItem gráficos
+    
+    Restrições:
+    - Máximo 4 níveis de hierarquia (raiz + 3 níveis de filhos)
+    - Cada filho tem padrão de forma (retângulo, elípse, losango)
+    - WBS auto-gerado: Noão pode ser editado manualmente
+    """
 
     def __init__(self):
         super().__init__()
@@ -659,12 +779,37 @@ class EAPWidget(QWidget):
         del self.nodes[node_id]
 
     def calculate_wbs(self, node_id, wbs):
-        self.wbs_numbers[node_id] = wbs
+        """
+        Calcula e armazena números WBS para cada nó recursivamente.
+        
+        Algoritmo:
+        - wbs para nó atual: Armazenado em self.wbs_numbers[node_id]
+        - Para cada filho i: self.calculate_wbs(child_id, f"{wbs}.{i+1}")
+        
+        Exemplo:
+        - Raíz (node_id=1): "1.0"
+        - Filho 0: "1.0.1"
+        - Filho 1: "1.0.2"
+        - Neto de filho 0, subfilho 0: "1.0.1.1"
+        
+        Parámetros:
+        - node_id: int ID do nó sendo numerado
+        - wbs: str código WBS para esse nó
+        """
         for i, cid in enumerate(self.nodes[node_id]["children"]):
             self.calculate_wbs(cid, f"{wbs}.{i + 1}")
 
     def pre_calcular_dimensoes(self):
-        self.node_dimensions.clear()
+        """
+        Pré-calcula dimensões (w, h) de cada nó baseado em texto e zoom.
+        
+        Algoritmo:
+        1. Para cada nó em self.nodes:
+           a. Cria instância temporária de NodeItem
+           b. Armazena (width, height) em self.node_dimensions[node_id]
+        
+        Resultado: Dict preenchido para uso em calcular_posicoes()
+        """
         for nid in self.nodes:
             shape = self.nodes[nid].get("shape", "roundrect")
             tmp = NodeItem(
@@ -679,6 +824,22 @@ class EAPWidget(QWidget):
             self.node_dimensions[nid] = (tmp.width(), tmp.height())
 
     def calcular_posicoes(self, node_id, nivel):
+        """
+        Calcula posições (x, y) de nós em layout hierárquico.
+        
+        Algoritmo (post-order traversal):
+        1. Para cada filho: calcular_posicoes(child, nivel+1)
+        2. Se nó é folha (sem filhos): X = current_leaf_x; incrementa
+        3. Se nó tem filhos: X = média de posições de filhos
+        4. Y = 80px + nivel * (altura_nó + espaçamento)
+        
+        Resultado:
+        - self.node_positions[node_id] = (x, y)
+        - Retorna X do nó para cálculo média do pai
+        
+        Ex: Raíz tem 3 filhos nas posições X=[100, 200, 300]
+            Raíz X = (100 + 200 + 300) / 3 = 200 (centrado)
+        """
         filhos = self.nodes[node_id]["children"]
         nw, nh = self.node_dimensions[node_id]
         y = 80 * self.zoom + nivel * (nh + self.pad_y)
@@ -692,12 +853,19 @@ class EAPWidget(QWidget):
         return x
 
     def draw_eap(self):
-        self._scene_items = []
-        self.scene.clear()
-        if not self.nodes:
-            return
-        self.node_positions.clear()
-        self.wbs_numbers.clear()
+        """
+        Orquestra renderização completa da árvore EAP/WBS.
+        
+        Etapas:
+        1. Limpa scene anterior
+        2. calculate_wbs(1, "1.0"): Auto-numeração de todos nós
+        3. pre_calcular_dimensoes(): Calcula tamanho de cada nó
+        4. current_leaf_x = 0; calcular_posicoes(1, 0): Layout hierárquico
+        5. _draw_connections(1): Renderiza linhas entre pai-filhos
+        6. _draw_nodes(): Posiciona NodeItem gráficos na scene
+        
+        Resultado: Diagrama completo visível em QGraphicsView
+        """
         self.calculate_wbs(1, "1")
         self.pre_calcular_dimensoes()
         self.current_leaf_x = 80 * self.zoom
@@ -722,6 +890,21 @@ class EAPWidget(QWidget):
         )
 
     def _draw_connections(self, node_id):
+        """
+        Renderiza linhas de conexão (L-shaped routing) de pai para filhos.
+        
+        Padrão de Roteamento:
+        - Linha vertical: De nó pai (bottom) para meio (mid_y)
+        - Linha horizontal: De meio para x de cada filho
+        - Linha vertical: De meio para nó filho (top)
+        
+        Renderiza:
+        - Linhas de conexão primária (pai-filho)
+        - Linhas cruzadas (cross_links) em tracejadas com cor accent_bright
+        - Pontas de seta nos extremos de linhas cruzadas
+        
+        Recursão: Chama _draw_connections() para cada filho
+        """
         px, py = self.node_positions[node_id]
         pw, _ = self.node_dimensions[node_id]
         p1 = QPointF(px + pw / 2, py)
@@ -791,7 +974,15 @@ class EAPWidget(QWidget):
             self._draw_connections(cid)
 
     def _draw_nodes(self):
-        for nid, (x, y) in self.node_positions.items():
+        """
+        Renderiza todos os nós gráficos NodeItem em posições calculadas.
+        
+        Para cada node_id em self.node_positions:
+        1. Cria instância de NodeItem com parâmetros do nó
+        2. Posiciona em (x - w/2, y - h/2) para centralização
+        3. Adiciona à scene
+        4. Registra em self._scene_items para limpeza futura
+        """
             nw, nh = self.node_dimensions[nid]
             shape = self.nodes[nid].get("shape", "roundrect")
             item = NodeItem(
@@ -809,7 +1000,27 @@ class EAPWidget(QWidget):
 
 
 class _EAPModule(BaseModule):
-    def __init__(self):
+    """
+    Adaptador BaseModule para EAP/WBS integração em ProEng.
+    
+    Responsabilidades:
+    - Wrapper do EAPWidget com interface padrão BaseModule
+    - Gerencia zoom (reset_zoom, zoom_in, zoom_out)
+    - Persistência JSON via get_state/set_state (serialização de árvore)
+    - Integração com sistema de temas
+    - Exporta árvore para formatos suportados
+    
+    Métodos BaseModule:
+    - get_state(): Retorna {schema: 'eap.v1', nodes, next_id}
+    - set_state(state): Restaura árvore anterior com validação backward-compatible
+    - get_view(): Retorna QGraphicsView para renderização
+    - refresh_theme(): Reconecta cores de tema após mudança
+    
+    API de Zoom:
+    - reset_zoom(): Volta a 1.0 (100%)
+    - zoom_in(): Incrementa fator de zoom (~15% por clique)
+    - zoom_out(): Decrementa fator de zoom
+    """
         super().__init__()
         self._inner = EAPWidget()
         _hide_inner_toolbar(self._inner)
@@ -835,29 +1046,37 @@ class _EAPModule(BaseModule):
 
     # --- BaseModule API -------------------------------------------------
     def get_state(self):
-        return {
+        """
+        Exporta estado atual da EAP para JSON persistência.
+        
+        Retorna:
+        - schema: 'eap.v1' (versão do formato)
+        - nodes: dict[int, {text, children[], parent, shape}]
+        - next_id: Próximo ID disponível para novo nó
+        """
             "schema": "eap.v1",
             "nodes": self._inner.nodes,
             "next_id": self._inner.next_id,
         }
 
     def set_state(self, state):
-        if not state:
-            return
-        nodes = {}
-        for k, v in state.get("nodes", {}).items():
-            try:
-                k_int = int(k)
-            except:
-                k_int = k
-            nodes[k_int] = v
-        self._inner.nodes = (
-            nodes
-            if nodes
-            else {1: {"text": "", "children": [], "parent": None, "shape": "roundrect"}}
-        )
-        self._inner.next_id = state.get("next_id", 2)
-        self._inner.draw_eap()
+        """
+        Restaura estado anterior da EAP a partir de JSON.
+        
+        Validação:
+        - Converte chaves de string para int (JSON é sempre string)
+        - Padrão fallback: Se state vazio, cria nó raiz vazio
+        - next_id: Restaurado ou padrão 2
+        
+        Etapas:
+        1. Parse nodes dict com conversão de chaves
+        2. Restaura self._inner.nodes
+        3. Atualiza self._inner.next_id
+        4. Redesenha canvas
+        
+        Parámetros:
+        - state: dict com 'nodes' e 'next_id' (pode ser None)
+        """
 
     def refresh_theme(self):
         if hasattr(self._inner, "refresh_theme"):

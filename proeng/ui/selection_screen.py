@@ -1,5 +1,25 @@
 # -*- coding: utf-8 -*-
-"""Tela de seleção dos módulos e card individual."""
+
+# Tela de Seleção de Módulos e Componentes Visuais
+#
+# Responsabilidade: Construir tela de entrada/seleção da aplicação com
+# galeria de módulos disponíveis em cards interativos, exemplos reais em
+# forma de screenshots, botão de alternância de tema e elementos de marca.
+#
+# Componentes principais:
+# - ModuleCard: Botão customizado renderizando card de seleção de módulo
+# - SignatureOverlay: Faixa de assinatura flutuante com gradiente
+# - GalleryItem: Item individual de galeria com verificação de arquivo/tema
+# - ScreenshotGallery: Galeria horizontal scrollável de todos os módulos
+# - SelectionScreen: Tela global organizando cards em seções e branding
+#
+# Estrutura visual da tela:
+#   [Barra acento 4px] | [Topbar 48px com brand/toggle tema] |
+#   [Conteúdo central com galeria e cards] |
+#   [Barra acento 4px]
+#
+# Inputs: Callbacks on_select (módulo selecionado), on_theme_toggle
+# Outputs: Widget SelectionScreen com toda interface
 
 import sys
 from PyQt5.QtWidgets import (
@@ -69,6 +89,18 @@ from proeng.ui.nav_bar import ThemeToggle
 
 
 def _draw_icon_arrow(p, x, y, size, col):
+    # Desenha ícone de seta indicando ação de clique ou affordance de hover.
+    #
+    # Símbolo visual: Linha horizontal com duas pequenas linhas diagonais
+    # na ponta (seta apontando para a direita).
+    #
+    # Parâmetros:
+    #   p: QPainter em operação de desenho
+    #   x, y: coordenadas do canto superior-esquerdo de encaixe
+    #   size: dimensão do ícone em pixels
+    #   col: cor da linha em hex (#RRGGBB)
+    #
+    # Utilitário: Renderiza affordance visual para usuário clicar no card.
     pen = QPen(QColor(col), 2.5, Qt.SolidLine, Qt.RoundCap)
     p.setPen(pen)
     p.setBrush(Qt.NoBrush)
@@ -78,7 +110,35 @@ def _draw_icon_arrow(p, x, y, size, col):
 
 
 class ModuleCard(QPushButton):
+    # Card de seleção de módulo com renderização neo-brutalista customizada.
+    #
+    # Responsabilidade: Exibir botão interativo para seleção de módulo com
+    # faixa de acento colorida, ícone emoji, título bold, descrição de duas
+    # linhas, e affordance visual (seta) em hover. Design: bordas duras,
+    # sombra com offset, sem gradientes/transparência.
+    #
+    # Estrutura visual:
+    #   [Barra acento 6px] | [Ícone 36x36] [Título] | [Seta no hover]
+    #                      | [Descrição de duas linhas]
+    #
+    # Atributos:
+    #   _emoji: string de ícone emoji para módulo
+    #   _title: título curto exibido em bold
+    #   _desc: descrição (suporta múltiplas linhas)
+    #   _hov: flag boolean para estado hover
+
     def __init__(self, emoji, title, desc, key, callback):
+        # Inicializa card de módulo com callbacks e dimensões.
+        #
+        # Parâmetros:
+        #   emoji: string ícone emoji (ex: "📊", "🔀")
+        #   title: nome do módulo (string curta)
+        #   desc: descrição técnica (pode conter quebras de linha)
+        #   key: identificador único do módulo ("gantt", "bpmn", etc)
+        #   callback: função chamada ao clicar: callback(key)
+        #
+        # Layout: Tamanho dinâmico com altura mínima/máxima para adaptar-se
+        # a layouts de grade. Hover detection habilitado via WA_Hover attribute.
         super().__init__()
         self._emoji = emoji
         self._title = title
@@ -93,6 +153,14 @@ class ModuleCard(QPushButton):
         self.clicked.connect(lambda: callback(key))
 
     def event(self, e):
+        # Intercepta eventos de mouse para detectar entrada/saída (hover).
+        #
+        # Lógica:
+        #   - QEvent.HoverEnter: Define _hov=True, solicita repintura
+        #   - QEvent.HoverLeave: Define _hov=False, solicita repintura
+        #   - Todos eventos: Delega ao handler pai
+        #
+        # Propósito: Alterar renderização (sombra, acento) em estado hover.
         from PyQt5.QtCore import QEvent
 
         if e.type() == QEvent.HoverEnter:
@@ -104,6 +172,20 @@ class ModuleCard(QPushButton):
         return super().event(e)
 
     def paintEvent(self, _):
+        # Renderização customizada do card com tema dinâmico.
+        #
+        # Estrutura de pintura:
+        #   1. Obtém propriedades do tema (cores, dimensões, fonte)
+        #   2. Calcula rectangle do card com padding de 2px
+        #   3. Desenha sombra sólida com offset menor em hover
+        #   4. Desenha fundo (bg_card) com borda (glass_border)
+        #   5. Desenha faixa acento colorida no topo (6px altura)
+        #   6. Renderiza ícone em caixa com borda
+        #   7. Renderiza texto de título (elipsis se necessário)
+        #   8. Renderiza descrição (text wrap, múltiplas linhas)
+        #   9. Renderiza seta em hover (affordance)
+        #
+        # Design: Zero antialiasing (performance), cores sólidas, sombra dura.
         t = T()
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing, False)
@@ -166,13 +248,32 @@ class ModuleCard(QPushButton):
         p.end()
 
 
-# ═══════════════════════════════════════════════════════════════════
-#   ASSINATURA FLUTUANTE
-# ═══════════════════════════════════════════════════════════════════
-
-
 class SignatureOverlay(QWidget):
+    # Overlay de assinatura flutuante exibido no rodapé da tela.
+    #
+    # Responsabilidade: Renderizar faixa horizontal com texto de autoria
+    # usando gradiente linear (transição de bg_l para bg_r) suavizado com
+    # borda arredondada. Permanece fixo no canto inferior direito com
+    # interseção zero de mouse (WA_TransparentForMouseEvents).
+    #
+    # Posição: 10px da borda direita, 32px da borda inferior, largura 320px.
+    # Altura fixa: 26px. Renderização: Gradiente linear com cores do tema.
+    #
+    # Atributos: parent (widget pai para reposicionamento automático)
+    #
+    # Design: Gradiente suave de esquerda para direita, borda arredondada
+    # (raio 13px), cores sig_bg_l/sig_bg_r/sig_border/sig_text do tema.
+
     def __init__(self, parent):
+        # Inicializa overlay de assinatura.
+        #
+        # Configuração:
+        #   - WA_TransparentForMouseEvents: Não interfere com cliques em elementos abaixo
+        #   - WA_TranslucentBackground: Suporte a transparência parcial
+        #   - Altura fixa 26px
+        #   - Repositioning automático no método _reposition()
+        #
+        # Parâmetro parent: widget pai (geralmente a tela principal)
         super().__init__(parent)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -180,12 +281,32 @@ class SignatureOverlay(QWidget):
         self._reposition()
 
     def _reposition(self):
+        # Calcula e aplica posição do overlay no canto inferior direito.
+        #
+        # Cálculo: Posição anchored no canto inferior direito:
+        #   x = parent.width - 320 - 10
+        #   y = parent.height - 26 - 32
+        #
+        # Nota: Deve ser chamado após redimensionamento da janela pai
+        # (não implementado resizeEvent, depender de chamada manual).
         p = self.parent()
         if p:
             w = 320
             self.setGeometry(p.width() - w - 10, p.height() - 32, w, 26)
 
     def paintEvent(self, _):
+        # Renderiza faixa de assinatura com gradiente linear e texto.
+        #
+        # Renderização:
+        #   1. Cria QPainter com antialiasing habilitado
+        #   2. Desenha gradiente linear de esquerda para direita:
+        #      - 0%: sig_bg_l (cor esquerda)
+        #      - 25%: sig_bg_r (cor direita)
+        #      - 100%: sig_bg_r (cor direita)
+        #   3. Desenha retângulo arredondado (raio 13px) com borda sig_border
+        #   4. Desenha texto de autoria centrado verticalmente
+        #
+        # Tipografia: font 9px Segoe UI com cor sig_text do tema.
         t = T()
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
@@ -207,13 +328,31 @@ class SignatureOverlay(QWidget):
         p.end()
 
 
-# ═══════════════════════════════════════════════════════════════════
-#   BOTÃO DE TEMA (toggle dark ↔ light)
-# ═══════════════════════════════════════════════════════════════════
-
-
 class GalleryItem(QFrame):
+    # Item individual de galeria de exemplos reais.
+    #
+    # Responsabilidade: Exibir miniatura de screenshot do módulo com título
+    # e feedback visual de hover para indicar seleção/atuação. Carrega imagem
+    # do disco formato "módulo_tema.png" ou mostra texto "No Preview".
+    #
+    # Estrutura: Retângulo fixo (280x180) contendo QLabel de imagem (240x130)
+    # e QLabel de título abaixo. Borda dinâmica responde a hover/tema.
+    #
+    # Atributos:
+    #   title: string exibido abaixo da miniatura
+    #   module_key: chave do módulo ("gantt", "bpmn", etc) para localização de arquivo
+    #   _hover: boolean rastreando estado hover
+
     def __init__(self, title, module_key):
+        # Inicializa item de galeria com título e referência de módulo.
+        #
+        # Parâmetros:
+        #   title: nome exibido do módulo (ex: "Cronograma Gantt")
+        #   module_key: chave do módulo para localização de arquivo (ex: "gantt")
+        #
+        # Layout: Frame fixo (280x180) com sub-labels internos:
+        #   - _img_label: Imagem (240x130) posicionada em (20,10)
+        #   - _title_label: Título (280px largura) posicionado em (0,150)
         super().__init__()
         self.title = title
         self.module_key = module_key
@@ -232,6 +371,16 @@ class GalleryItem(QFrame):
         self._refresh_img()
 
     def _refresh_img(self):
+        # Carrega imagem do módulo baseada no tema ativo.
+        #
+        # Estratégia de carregamento:
+        #   1. Constrói caminho: "proeng/resources/screenshots/{module_key}_{theme_name}.png"
+        #   2. Verifica existência do arquivo
+        #   3. Se existe: carrega QPixmap e exibe
+        #   4. Se não existe: exibe texto "No Preview" como fallback
+        #   5. Aplica estilos (font label de título, cores de tema)
+        #
+        # Temas suportados: dark, light, neo_brutalist (conforme T()["name"])
         t = T()
         theme_name = t["name"]
         img_path = f"proeng/resources/screenshots/{self.module_key}_{theme_name}.png"
@@ -248,6 +397,17 @@ class GalleryItem(QFrame):
         self.update_style()
 
     def update_style(self):
+        # Atualiza aparência visual do frame baseado em estado hover e tema.
+        #
+        # Variação:
+        #   Em hover:
+        #     - Borda: #000000 (preto)
+        #     - Fundo: bg_card2 (cor secundária)
+        #   Em normal:
+        #     - Borda: glass_border do tema
+        #     - Fundo: bg_card (cor primária)
+        #   - Borderwidth: sempre 3px
+        #   - Border-radius: 0px (brutalista)
         t = T()
         border = "#000000" if self._hover else t.get("glass_border", "#000000")
         bg = t["bg_card2"] if self._hover else t["bg_card"]
@@ -260,16 +420,48 @@ class GalleryItem(QFrame):
         """)
 
     def enterEvent(self, e):
+        # Callback de entrada do mouse - ativa estado hover.
+        #
+        # Efeito: Define _hover=True e chama update_style() para renderizar
+        # feedback visual de que o item é interativo/seleível.
         self._hover = True
         self.update_style()
 
     def leaveEvent(self, e):
+        # Callback de saída do mouse - desativa estado hover.
+        #
+        # Efeito: Define _hover=False e chama update_style() para restaurar
+        # aparência visual padrão.
         self._hover = False
         self.update_style()
 
 
 class ScreenshotGallery(QScrollArea):
+    # Área de rolagem contendo galeria horizontal de exemplos.
+    #
+    # Responsabilidade: Exibir linha horizontal de GalleryItem para todos
+    # os módulos disponíveis. Implementa scroll horizontal (oculta scrollbars),
+    # e fornece método refresh() para atualizar imagens quando tema muda.
+    #
+    # Estrutura: QScrollArea invisível com QWidget container (layout HBox)
+    # contendo lista de GalleryItem (um para cada módulo).
+    #
+    # Atributos:
+    #   items: lista de GalleryItem renderizados
+    #   container: QWidget pai dos items
+    #   layout_g: QHBoxLayout contendo items
+
     def __init__(self):
+        # Inicializa galeria com todos os módulos disponíveis.
+        #
+        # Processo:
+        #   1. Configura scrollarea (height 190, no scrollbars)
+        #   2. Cria container widget transparente com layout horizontal
+        #   3. Instancia 7 GalleryItem (um para cada módulo suportado)
+        #   4. Adiciona items ao layout com spacing de 20px
+        #   5. Define container como widget principal
+        #
+        # Módulos: gantt, flowsheet, eap, bpmn, canvas, ishikawa, w5h2
         super().__init__()
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -299,31 +491,73 @@ class ScreenshotGallery(QScrollArea):
         self.setWidget(self.container)
 
     def refresh(self):
+        # Refresca todas as imagens da galeria após mudança de tema.
+        #
+        # Operação: Itera todos os GalleryItem e chama _refresh_img()
+        # para carregar arquivo de imagem específico do novo tema.
         for item in self.items:
             item._refresh_img()
 
 
 class SelectionScreen(QWidget):
+    # Tela principal de seleção de módulos da aplicação.
+    #
+    # Responsabilidade: Construir layout completo da tela inicial/home com
+    # galeria de exemplos, cards de módulos organizados em seções (Engenharia
+    # e Gestão de Projetos), barras de acento visuais, branding, e gerenciar
+    # alternância de temas. Coordena callbacks de seleção de módulo e mudança de tema.
+    #
+    # Estrutura visual:
+    #   [Barra acento 4px] | [Topbar 48px: brand + toggle tema] |
+    #   [Conteúdo central: badge, galeria, cards em grid] |
+    #   [Barra acento 4px]
+    #
+    # Atributos:
+    #   on_select: callback chamado com key quando módulo é clicado
+    #   _on_theme: callback para propagar mudança de tema à janela pai
+    #   _cards: lista de ModuleCard instanciados
+    #   _gallery: instância de ScreenshotGallery
+
     def __init__(self, on_select, on_theme_toggle):
+        # Inicializa tela de seleção com callbacks e construção de UI.
+        #
+        # Parâmetros:
+        #   on_select: função callback executada ao selecionar módulo: on_select(key)
+        #   on_theme_toggle: função callback executada ao clicar toggle tema
+        #
+        # Processo:
+        #   1. Inicializa herança QWidget
+        #   2. Armazena callbacks para uso em métodos
+        #   3. Habilita atributo WA_StyledBackground para aceitar stylesheet
+        #   4. Chama _build() para construir UI completa
         super().__init__()
         self.on_select = on_select
         self._on_theme = on_theme_toggle
-        # Needed for setStyleSheet background to actually paint
         self.setAttribute(Qt.WA_StyledBackground, True)
         self._build()
 
     def _build(self):
+        # Constrói estrutura de layout vertical da tela.
+        #
+        # Estrutura:
+        #   1. Layout externo (outer) vertical sem margens
+        #   2. Barra de acento superior 4px (cor accent do tema)
+        #   3. Topbar 48px (brand logo + botão toggle tema)
+        #   4. Conteúdo scrollável (imagens, cards, pills)
+        #   5. Barra de acento inferior 4px
+        #
+        # Cada elemento recebe marca WA_StyledBackground para aceitar css.
+        # Topbar usa HBox com brand na esquerda e toggle na direita (com stretch).
+        # Conteúdo usa VBox com alinhamento horizontal centro e padding/spacing.
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
 
-        # ── Accent bar topo
         self._top_bar = QWidget()
         self._top_bar.setFixedHeight(4)
         self._top_bar.setAttribute(Qt.WA_StyledBackground, True)
         outer.addWidget(self._top_bar)
 
-        # ── Topbar com brand + toggle
         self._topbar_widget = QWidget()
         self._topbar_widget.setFixedHeight(48)
         self._topbar_widget.setAttribute(Qt.WA_StyledBackground, True)
@@ -335,11 +569,10 @@ class SelectionScreen(QWidget):
         tl.addStretch()
         tog = ThemeToggle()
         tog.theme_changed.connect(self._refresh)
-        tog.theme_changed.connect(self._on_theme)  # propagate to MainApp
+        tog.theme_changed.connect(self._on_theme)
         tl.addWidget(tog)
         outer.addWidget(self._topbar_widget)
 
-        # ── Conteúdo central
         self._content = QWidget()
         self._content.setAttribute(Qt.WA_StyledBackground, True)
         self._content_layout = QVBoxLayout(self._content)
@@ -348,9 +581,9 @@ class SelectionScreen(QWidget):
         self._content_layout.setSpacing(0)
         outer.addWidget(self._content, 1)
 
+        self._cards = []
         self._populate_content()
 
-        # ── Accent bar fundo
         self._bot_bar = QWidget()
         self._bot_bar.setFixedHeight(4)
         self._bot_bar.setAttribute(Qt.WA_StyledBackground, True)
@@ -359,9 +592,24 @@ class SelectionScreen(QWidget):
         self._apply_styles()
 
     def _populate_content(self):
+        # Preenche conteúdo com todos os elementos visuais.
+        #
+        # Elementos renderizados (de cima para baixo):
+        #   1. Badge de tagline decorativa (✦ Ferramentas... ✦)
+        #   2. Título maiúsculo grande "PRO ENG"
+        #   3. Subtítulo técnico (PyQt5 · Zoom · Exportação)
+        #   4. Título galeria "✦ GALERIA DE EXEMPLOS REAIS ✦"
+        #   5. ScreenshotGallery com 7 items (gantt, flowsheet, eap, bpmn, canvas, ishikawa, w5h2)
+        #   6. 2 seções em linha (wrappers):
+        #      a) Engenharia com 1 card (Flowsheet)
+        #      b) Gestão de Projetos com 6 cards (em grid 2x3)
+        #   7. Pills de autoria no rodapé "Desenvolvido por : Salomão Félix"
+        #
+        # Processo: Usa self._content_layout (VBox) para adicionar elementos
+        # verticalmente. Cards criados (ModuleCard) são adicionados a self._cards list.
+        # Seções usam layouts HBox/VBox/Grid para organização espacial.
         lay = self._content_layout
 
-        # Badge
         br = QHBoxLayout()
         br.setAlignment(Qt.AlignCenter)
         self._badge = QLabel("✦Ferramentas de Engenharia e Gestão✦")
@@ -370,7 +618,6 @@ class SelectionScreen(QWidget):
         lay.addLayout(br)
         lay.addSpacing(18)
 
-        # Títulos
         self._t1 = QLabel("PRO ENG")
         self._t1.setAlignment(Qt.AlignCenter)
         lay.addWidget(self._t1)
@@ -385,7 +632,6 @@ class SelectionScreen(QWidget):
         lay.addWidget(self._sub)
         lay.addSpacing(24)
 
-        # Galeria de Screenshots
         self._gallery_title = QLabel("✦ GALERIA DE EXEMPLOS REAIS ✦")
         self._gallery_title.setAlignment(Qt.AlignCenter)
         lay.addWidget(self._gallery_title)
@@ -395,12 +641,10 @@ class SelectionScreen(QWidget):
         lay.addWidget(self._gallery)
         lay.addSpacing(32)
 
-        # Containers principais: Engenharia | Gestão de Projetos
         main_row = QHBoxLayout()
         main_row.setSpacing(24)
         main_row.setAlignment(Qt.AlignHCenter)
 
-        # Container Engenharia (1x1) - lado esquerdo
         eng_wrapper = QWidget()
         eng_wrapper.setFixedWidth(280)
         eng_layout = QVBoxLayout(eng_wrapper)
@@ -423,7 +667,6 @@ class SelectionScreen(QWidget):
             eng_layout.addWidget(c)
         main_row.addWidget(eng_wrapper)
 
-        # Container Gestão de Projetos (2x3) - lado direito
         gp_wrapper = QWidget()
         gp_wrapper.setFixedWidth(600)
         gp_layout = QVBoxLayout(gp_wrapper)
@@ -490,7 +733,6 @@ class SelectionScreen(QWidget):
 
         lay.addSpacing(22)
 
-        # Pills
         self._pills_row = QHBoxLayout()
         self._pills_row.setAlignment(Qt.AlignCenter)
         self._pills_row.setSpacing(8)
@@ -502,9 +744,25 @@ class SelectionScreen(QWidget):
         lay.addLayout(self._pills_row)
 
     def _apply_bg(self):
+        # Alias para aplicar estilos de fundo (mantido por compatibilidade).
+        #
+        # Propósito: Chamada alternativa a _apply_styles() (compatibilidade reversa).
         self._apply_styles()
 
     def _apply_styles(self):
+        # Aplica estilos visuais a todos os elementos baseado no tema ativo.
+        #
+        # Controles estilizados:
+        #   - Background principal (bg_app)
+        #   - Barras de acento superior/inferior (accent)
+        #   - Topbar com borda inferior (glass_border)
+        #   - Labels de título (t1=48px) e subtítulo (text_dim)
+        #   - Badge com fundo accent e border glass_border
+        #   - Título galeria com border e styling
+        #   - Pills de autoria com border glass_border
+        #
+        # Processo: Extrai cores/dimensões de T(), constrói stylesheets CSS
+        # para cada widget, aplica via setStyleSheet(). Font utiliza font_family do tema.
         t = T()
         bw = t.get("border_width", 3)
         ff = t.get("font_family", "'Segoe UI', 'Arial', sans-serif")
@@ -560,16 +818,35 @@ class SelectionScreen(QWidget):
             p.setStyleSheet(pill_s)
 
     def _refresh(self):
+        # Atualiza completamente a tela após mudança de tema.
+        #
+        # Ações sequenciais:
+        #   1. _apply_styles(): Regenera stylesheets CSS com cores do novo tema
+        #   2. _gallery.refresh(): Recarrega imagens dos módulos (tema-específicas)
+        #   3. Itera _cards: Chama update() para solicitar repintura de cada card
+        #   4. self.update(): Solicita repintura do widget pai (SelectionScreen)
+        #   5. self.repaint(): Força repintura síncrona (flush do buffer de paint)
         self._apply_styles()
         self._gallery.refresh()
         for c in self._cards:
             c.update()
-        # Force full repaint of the whole widget tree
         self.update()
         self.repaint()
 
     def paintEvent(self, event):
-        # Fill background explicitly so theme change is always visible
+        # Renderiza fundo sólido para garantir visibilidade em mudanças de tema.
+        #
+        # Responsabilidade: Preencher explicitamente background rect com cor
+        # bg_app do tema ativo. Necessário para evitar problemas de transparência
+        # em alguns estilos de decoração de janela do SO.
+        #
+        # Processo:
+        #   1. Obtém QPainter para desenho no widget
+        #   2. Preenche rect inteiro com QColor de bg_app do tema
+        #   3. Chama super().paintEvent() para renderização padrão de widgets
+        #
+        # Timing: Executado ANTES de super().paintEvent() para que conteúdo
+        # seja renderizado sobre fundo sólido.
         t = T()
         from PyQt5.QtGui import QColor
 
@@ -577,8 +854,3 @@ class SelectionScreen(QWidget):
         painter.fillRect(self.rect(), QColor(t["bg_app"]))
         painter.end()
         super().paintEvent(event)
-
-
-# ═══════════════════════════════════════════════════════════════════
-#   JANELA PRINCIPAL
-# ═══════════════════════════════════════════════════════════════════

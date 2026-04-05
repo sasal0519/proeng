@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Utilitários globais: cores dinâmicas, pintura de nós, exportação.
 
-Estilo: SEM gradientes, SEM transparência. Cores sólidas apenas.
-"""
+# Utilitários globais de interface e renderização.
+#
+# Responsabilidade: Fornecer funções compartilhadas para:
+# - Acesso seguro a cores do tema ativo via chave de dicionário
+# - Renderização de nós/retângulos com estilo neo-brutalista (sem gradientes)
+# - Exportação de diagramas para PNG/PDF com alta qualidade
+#
+# Design: SÓLIDO. SEM gradientes, SEM transparência em nenhuma função.
+# Todas as cores são RGB sólidas. Sombras renderizadas como deslocamentos
+# com cor sólida. Bordas grossas (3-4px) sem arredondamento.
+#
+# Outputs: QColor(s) com tema ativo, funções de renderização QPainter-based,
+# diálogos de arquivo/exportação
 
 from PyQt5.QtWidgets import (
     QApplication,
@@ -24,7 +34,15 @@ from proeng.core.themes import T, _ACTIVE
 
 
 def _c(key):
-    """Retorna uma QColor baseada na chave do tema ativo (cores sólidas apenas)."""
+    # Retorna QColor pelo valor de chave do tema ativo.
+    #
+    # Acesso seguro: Se chave não existir, retorna cor padrão #7367F0 (roxo).
+    # Se tema não estiver inicializado ou houver erro, também retorna fallback.
+    #
+    # Parâmetro key: String com nome de chave no dicionário theme (ex: "accent", "text").
+    # Retorno: QColor com valor hexadecimal da cor do tema ativo.
+    #
+    # Utilizado em toda a aplicação para obter cores dinâmicas sem hardcoding.
     try:
         val = T().get(key, "#7367F0")
         return QColor(val)
@@ -33,12 +51,28 @@ def _c(key):
 
 
 def _solid_fill(rect, hovered=False):
-    """Retorna cor sólida para preenchimento (sem gradientes, sem transparência)."""
+    # Retorna cor sólida de preenchimento sem gradientes ou transparência.
+    #
+    # Lógica:
+    #   - Se hovered=True: retorna bg_card2 (cor secundária de fundo, geralmente mais clara)
+    #   - Caso contrário: retorna bg_card (cor primária de fundo)
+    #
+    # Parâmetros:
+    #   rect: QRectF do objeto sendo preenchido (futuro uso para lógica condicional)
+    #   hovered: Boolean indicando estado hover para escolher cor
+    #
+    # Retorno: QColor do preenchimento sólido.
     return _c("bg_card2") if hovered else _c("bg_card")
 
 
 def _is_nb(t=None):
-    """Returns True — all themes now use neo-brutalist styling."""
+    # Verifica se renderização deve usar estilo neo-brutalista.
+    #
+    # Nota histórica: Anteriormente retornava if t["name"] == "neo_brutalist",
+    # mas foi unificado - TODOS os temas agora usam renderização neo-brutalista
+    # (bordas duras, sombras sólidas, sem gradientes/transparência).
+    #
+    # Retorno: Sempre True no presente (função mantida para compatibilidade reversa).
     return True
 
 
@@ -52,12 +86,32 @@ def _nb_paint_node(
     shadow=True,
     radius=None,
 ):
-    """Paint a node with hard border, solid shadow, and flat color.
-
-    Works for ALL themes — no gradients, no transparency.
-    Hover: shadow reduces (button-press simulation).
-    Pressed: element shifts down-right, shadow disappears.
-    """
+    # Renderiza nó/retângulo com estilo neo-brutalista (sem gradientes/transparência).
+    #
+    # Responsabilidade: Desenhar elemento de interface com bordas duras, sombra
+    # sólida com offset, e cores derivadas do tema ativo. Simula feedback de
+    # interação (hover reduz sombra, pressed desloca elemento para baixo-direita).
+    #
+    # Parâmetros:
+    #   painter: QPainter em operação de desenho
+    #   rect: QRectF do retângulo a desenhar
+    #   hovered: Boolean indicando estado hover (reduz tamanho da sombra)
+    #   pressed: Boolean indicando estado pressionado (desloca elemento, sem sombra)
+    #   border_color: Cor customizada de borda (hex string). Se None, usa glass_border do tema.
+    #   bg_color: Cor customizada de fundo (hex string). Se None, usa bg_card ou bg_card2.
+    #   shadow: Boolean indicando se deve desenhar sombra
+    #   radius: Raio de arredondamento personalizado. Se None, usa border_radius do tema.
+    #
+    # Processo de renderização:
+    #   1. Obtém propriedades do tema (border_width, shadow_offset_*, border_radius)
+    #   2. Calcula offsets de sombra baseado em estado (pressed > hovered > normal)
+    #   3. Obtém cores (sombra, borda, preenchimento)
+    #   4. Desenha sombra com translação (apenas se shadow=True e pressed=False)
+    #   5. Desenha retângulo/rounded_rect com borda e preenchimento
+    #   6. Restaura estado do painter após operações
+    #
+    # Design: Sombras sólidas com offset duro (sem blur). Borders espessas (3-4px).
+    # Sem transparência em nenhuma etapa.
     t = T()
 
     bw = t.get("border_width", 3)
@@ -98,6 +152,11 @@ def _nb_paint_node(
     painter.restore()
 
 
+# CONSTANTES DE CORES (LEGADO)
+# Estas constantes foram utilizadas em versões antigas da aplicação.
+# Mantidas aqui por compatibilidade reversa, mas NÃO devem ser usadas em novo código.
+# Usar T() + _c(chave) em vez disso para cores dinâmicas baseadas no tema.
+
 C_BG_APP = "transparent"
 C_BG_NODE = "transparent"
 C_BORDER = "rgba(0,0,0,0)"
@@ -113,6 +172,34 @@ C_BORDER_ROOT = "white"
 
 
 def _export_view(view, fmt, parent=None):
+    # Exporta vista gráfica para arquivo PNG ou PDF.
+    #
+    # Responsabilidade: Abrir diálogo de salvamento, renderizar cena QGraphicsView
+    # em alta qualidade (supersample 3x para PNG, A3 landscape para PDF), e salvar.
+    #
+    # Parâmetros:
+    #   view: QGraphicsView contendo a cena a exportar
+    #   fmt: Formato de arquivo ("png" ou "pdf")
+    #   parent: Widget pai para diálogos modais (opcional)
+    #
+    # Exportação PNG:
+    #   - Escala: 3x (resulta em imagem 3x maior para melhor qualidade)
+    #   - Algoritmo: Renderiza cena em QPixmap, salva como PNG
+    #   - Fundo: Usa cor bg_app do tema ativo
+    #
+    # Exportação PDF:
+    #   - Requer módulo PyQt5.QtPrintSupport (QPrinter)
+    #   - Tamanho: A3 landscape para diagramas complexos
+    #   - Resolução: HighResolution
+    #   - Aspect ratio: Mantém proporções do diagrama
+    #
+    # Fluxo:
+    #   1. Obtém bounding rect da cena (com padding de 150px)
+    #   2. Verifica se cena está vazia (mostra aviso e retorna)
+    #   3. Abre diálogo QFileDialog para usuário escolher local/nome do arquivo
+    #   4. Se fmt=="png": renderiza em QPixmap e salva
+    #   5. Se fmt=="pdf": cria QPrinter com configurações, renderiza e salva
+    #   6. Mostra diálogo de confirmação com caminho do arquivo salvo
     t = T()
     scene = view.scene()
     rect = scene.itemsBoundingRect().adjusted(-150, -150, 150, 150)
@@ -178,6 +265,15 @@ def _export_view(view, fmt, parent=None):
         p.end()
         QMessageBox.information(parent, "PDF Exportado", f"Arquivo salvo em:\n{path}")
 
+
+# Mapeamento de tipos de nós do diagrama 5W2H com rótulos e cores.
+# Legado: Este dicionário também está definido em themes.py.
+# Mantido aqui por compatibilidade com código antigo usando utils.W5H2_TYPES.
+# Novo código deve importar de themes.py: from proeng.core.themes import W5H2_TYPES
+#
+# Estrutura:
+#   - Chave: tipo de nó (ROOT, WHAT, WHY, WHO, WHERE, WHEN, HOW, COST)
+#   - Valor: dict com "t" (texto/rótulo) e "c" (cor de fundo em hex)
 
 W5H2_TYPES = {
     "ROOT": {"t": "PLANO DE ACAO", "c": "#E03535"},

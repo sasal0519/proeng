@@ -1,5 +1,38 @@
 # -*- coding: utf-8 -*-
-"""Módulo BPMN — Business Process Model and Notation 2.0."""
+"""
+Módulo BPMN — Business Process Model and Notation 2.0 (Modelador de Processos)
+
+Responsabilidades:
+- Modelagem de processos de negócio usando notação BPMN 2.0
+- Elementos visuais: piscinas (swimlanes), raias, tarefas, gateways (portas de decisão),
+  eventos e objetos de dados
+- Fluxos de sequência: setas conectando elementos com roteamento automático entre raias
+- Editor hierárquico: estrutura de árvore com pai-filho para organizar subprocessos
+- Persistência: serialização JSON de nós, raias e identificadores de conexão
+
+Arquitetura:
+- BPMNNodeSignals: PubSub pattern para emitir eventos de edição (adicionar, deletar, 
+  conectar elementos)
+- HeaderItem & AddLaneItem: Itens gráficos para cabeçalhos de piscina/raia e criação de raias
+- BPMNAutoNode: QGraphicsItem polimórfico que renderiza diferentes formas BPMN
+  (eventos círculo, gateways losango, tarefas retângulo, etc.)
+- BPMNFloatingEditor: QLineEdit flutuante para editar texto inline de nós
+- BPMNAutoWidget: Canvas com QGraphicsScene, gerencia layout hierárquico, renderização
+  e interações (drag-drop, seleção, edição)
+- _BPMNModule: Adaptador BaseModule com get_state/set_state JSON para persistência
+
+Fluxo de Renderização:
+1. calcular_grid() organiza nós em grid 2D (nível X raia) com altura dinâmica de raias
+2. draw_pool() renderiza estrutura: piscina > raias > nós filhos com conexões
+3. _draw_connections() traça setas de sequência com roteamento (L-shape routing)
+4. _draw_nodes() posiciona BPMNAutoNode em coordenadas calculadas
+
+Conceitos-chave:
+- Elementos BPMN: Evento (Início/Fim/Intermediário), Tarefa, Gateway (Exclusivo/Paralelo),
+  Objeto de Dados, Base de Dados
+- Raias (Lanes): Responsáveis funcionais dentro da piscina; eixo Y divide swimlanes
+- Fluxo de Sequência: Conexão pai-filho no mesmo nível; conexões cruzadas entre raias
+- Níveis (Level): Profundidade horizontal; pai determina nível de filho
 
 import sys
 from PyQt5.QtWidgets import (
@@ -68,18 +101,51 @@ import math as _math
 
 
 class BPMNNodeSignals(QObject):
+    """
+    PubSub para eventos de manipulação BPMN.
+    Sinais emitidos por HeaderItem e BPMNAutoNode para notificar BPMNAutoWidget de mudanças.
+    """
+    # Edição textual: commit_text(node_id, novo_texto)
     commit_text = pyqtSignal(object, str)
+    # Adicionar elemento filho na mesma raia (abaixo na hierarquia)
     add_child = pyqtSignal(int)
+    # Adicionar elemento no mesmo nível de hierarquia
     add_sibling = pyqtSignal(int)
+    # Deletar elemento e recalculonarse a hierarquia
     delete_node = pyqtSignal(int)
+    # Iniciar edição inline de texto (abre floating editor)
     edit_start = pyqtSignal(object)
+    # Mudar forma visual (evento -> tarefa, gateway exclusivo, etc.)
     change_shape = pyqtSignal(int)
+    # Adicionar elemento Inicial/Intermediário em raia específica
     add_root = pyqtSignal(int)
+    # Interligar com outro elemento (conexão cruzada entre raias)
     link_to = pyqtSignal(int)
+    # Mover nó para raia superior (-1) ou inferior (+1)
     move_lane = pyqtSignal(int, int)
 
 
 class HeaderItem(QGraphicsRectItem):
+    """
+    Item gráfico para cabeçalhos de piscina (pool) e raias (lanes) em layout swimlanes.
+    
+    Renderiza:
+    - Fundo arredondado com strip de accent no topo
+    - Texto escalado com zoom (suporta rotação para raias verticais)
+    - Estado hover para feedback visual
+    
+    Interação:
+    - Clique duplo/sim: Emite edit_start para abrir caixa de diálogo de edição
+    - Botão direito (lanes): Menu contextual para adicionar evento inicial na raia
+    
+    Parámetros:
+    - rect: QRectF da área visual do cabeçalho
+    - text: Nome da piscina/raia
+    - type_id: 'pool', 'project', ou 'lane_N' (N = índice de raia)
+    - signals: BPMNNodeSignals para emitência de eventos
+    - zoom: Fator de escala de renderização
+    - vertical: True para raias (rotação 90º); False para piscina
+    """
     def __init__(self, rect, text, type_id, signals, zoom, vertical=False):
         super().__init__(rect)
         self.text = text
@@ -183,6 +249,22 @@ class HeaderItem(QGraphicsRectItem):
 
 
 class AddLaneItem(QGraphicsRectItem):
+    """
+    Botão interativo para criar novas raias no diagrama BPMN.
+    
+    Posicionado abaixo de todas as raias existentes. Clique esquerdo adiciona nova raia
+    com diálogo de nome.
+    
+    Renderiza:
+    - Retângulo arredondado com cor alternada (hover vs normal)
+    - Ícone de adiquão e instrução textual
+    
+    Parámetros:
+    - rect: QRectF da área botão
+    - callback: Função chamada em clique (uso legácio, obsoleto)
+    - zoom: Fator de escala de renderização
+    - lane_callback: Função para criar nova raia (preferida)
+    """
     def __init__(self, rect, callback, zoom, lane_callback=None):
         super().__init__(rect)
         self.callback = callback
@@ -227,6 +309,36 @@ class AddLaneItem(QGraphicsRectItem):
 
 
 class BPMNAutoNode(QGraphicsItem):
+    """
+    QGraphicsItem polimórfico para renderizar qualquer elemento BPMN 2.0.
+    
+    Suporta formas:
+    - Eventos: Círculo (Início/Fim/Intermediário/Tempo/Mensagem) — renderiza com cores: verde INÍCIO, vermelho FIM
+    - Tarefas: Retângulo arredondado (Tarefa padrão, Usuário, Serviço, Subprocesso)
+    - Gateways: Losango (Exclusivo GOLD, Paralelo barra, Inclusivo círculo+losango)
+    - Objetos de Dados: Retângulo com ába superior (Data Object, Database c/ cilindro)
+    
+    Renderização:
+    - _calc_size(): Calcula (w, h) dinâmica baseada em texto e tipo
+      * Eventos/Gateways: Quadrado fixo (46px) 
+      * Tarefas: Retângulo adaptado com word wrap de texto
+    - paint(): Render SVG-style com cores de tema, borda destacada para seleção
+    - Ícones internos: Símbolos pequenos (corrente, chat, relógio) para tarefas de serviço
+    - Sombra de seleção: Halo ao redor se _selected=True
+    
+    Interação:
+    - Duplo clique: Abre inline editor (BPMNFloatingEditor)
+    - Botão direito: Menu com Adicionar +/Irmão, Mover entre Raias, Mudar Forma, Excluir
+    - Drag: Selecionado para futuro movimento (pLanejado)
+    
+    Parámetros:
+    - node_id: int identificador do nó no dict self.nodes
+    - text: str rótulo do elemento (ex: 'Revisar Solicitação')
+    - shape: str tipo BPMN (ex: 'Evento Início', 'Tarefa', 'Gateway Exclusivo')
+    - lane: int índice de raia (0 = primeira)
+    - signals: BPMNNodeSignals para emitir eventos
+    - zoom: float fator de escala
+    """
     def __init__(self, node_id, text, shape, lane, signals, zoom):
         super().__init__()
         self.node_id = node_id
@@ -247,6 +359,15 @@ class BPMNAutoNode(QGraphicsItem):
         self.setCursor(QCursor(Qt.PointingHandCursor))
 
     def _calc_size(self):
+        """
+        Calcula dimensões (w, h) do nó baseado em tipo de forma e texto.
+        
+        Lógica:
+        - Eventos/Gateways/Base de Dados: Tamanho fixo (46px ou 40x50px) com área de hover expandida
+        - Tarefas: Width adaptado ao texto com word wrap; altura mínima de 45px
+        
+        Resultado: Define self._w e self._h
+        """
         fm = QFontMetrics(self._font_text)
         sample = self.text if self.text else "Nova Tarefa"
         if (
@@ -489,7 +610,23 @@ class BPMNAutoNode(QGraphicsItem):
         QTimer.singleShot(0, lambda: self.signals.edit_start.emit(self.node_id))
 
     def contextMenuEvent(self, event):
-        menu = QMenu()
+        """
+        Menu contextual botão direito com opções de edição BPMN.
+        
+        Opções:
+        - ➕ Adicionar Próxima Etapa: Filho na mesma raia ou em raia diferente
+        - 🔗 Interligar com Outro Elemento: Conexão cruzada (cross-link)
+        - ↕ Mover Entre Raias: Subir/Descer de raia
+        - 🔄 Mudar Formato: Alterar tipo BPMN (evento -> tarefa, etc.)
+        - 🗑 Excluir Elemento: Remove nó e filhos recursivamente
+        
+        Sinais emitidos:
+        - add_child/add_root: Para adicionar novo elemento
+        - link_to: Para interligação
+        - move_lane: Para mover entre raias (+1/-1)
+        - change_shape: Para mudar formato
+        - delete_node: Para excluir
+        """
         t_m = T()
         menu.setStyleSheet(f"""
             QMenu {{ background-color: {t_m["bg_card"]}; color: {t_m["text"]}; border: 1px solid {t_m["accent"]};
@@ -531,6 +668,28 @@ class BPMNAutoNode(QGraphicsItem):
 
 
 class BPMNFloatingEditor(QLineEdit):
+    """
+    QLineEdit flutuante para edição inline de texto de nós BPMN.
+    
+    Renderização:
+    - Posicionado sobre o item selecionado na scene
+    - Estilo matching tema com borda accent_bright
+    - Máscara de seleção de texto ao abrir
+    
+    Ciclo de Vida:
+    - open(target_id, text, scene_rect, view): Abre editor sobre nó
+    - keyPressEvent: Return/Enter confirma; Escape reverte
+    - focusOutEvent: Confirma automaticamente (blur)
+    
+    Sinais:
+    - committed.emit(node_id, novo_texto): Emitido ao salvar
+    
+    Parámetros (open):
+    - target_id: id do nó sendo editado
+    - current_text: texto inicial
+    - scene_rect: QRectF da área do nó na scene
+    - view: widget da view para conversão de coordenadas
+    """
     committed = pyqtSignal(object, str)
 
     def __init__(self, parent_view):
@@ -587,6 +746,32 @@ class BPMNFloatingEditor(QLineEdit):
 
 
 class BPMNAutoWidget(QWidget):
+    """
+    Widget principal para modelagem de processos BPMN 2.0 com canvas interativo.
+    
+    Responsabilidades:
+    - Gerenciár árvore hierárquica de nós BPMN em dicionário self.nodes
+    - Renderizar layout swimlanes (piscina > raias > elementos)
+    - Orquestra interações: arrastar, editar inline, adicionar/delegar elementos
+    - Calcular posicionamento automático usando grid 2D (nível X raia)
+    - Serializar/desserializar estado JSON
+    
+    Estado Interno:
+    - self.nodes: dict[int, {text, shape, level, lane, children[], parent}]
+    - self.lanes: list[str] de nomes de raias
+    - self.next_id: Contador de ID único para novos nós
+    - self.zoom: float fator de zoom (1.0 = 100%)
+    
+    Pipeline de Renderização:
+    1. draw_diagram() inicia cálculo de layout e renderização
+    2. calcular_grid() particiona nós em grid 2D com altura de raia dinâmica
+    3. draw_pool() renderiza estrutura piscina + raias + cabeçalhos
+    4. _draw_connections() traça setas de sequência entre nós filhos
+    5. _draw_nodes() posiciona BPMNAutoNode gráficos em coordenadas calculadas
+    
+    Seleção de Forma:
+    - _choose_shape(): Diálogo com atalhos (a1..a4=tarefas, e1..e5=eventos, g1..g3=gateways, d1..d2=dados)
+    """
     def __init__(self):
         super().__init__()
         self.zoom = 1.0
@@ -1040,6 +1225,23 @@ class BPMNAutoWidget(QWidget):
         del self.nodes[node_id]
 
     def calcular_grid(self):
+        """
+        Calcula layout 2D de nós em grid (nível X raia) com altura dinâmica.
+        
+        Algoritmo:
+        1. Árvore em width: Filhos ocupam nível = pai.level + 1
+        2. Grid 2D: grid[lane_idx][level] = [node_ids...]
+        3. Altura de raia: Baseado no número máximo de nós em uma célula
+        4. Posicionamento: Cada nó em (x=level*280px, y=raia_offset + cell_y)
+        5. Largura total: (max_level + 1) * 280px
+        
+        Resultado:
+        - self.node_positions: dict[node_id, (x, y)]
+        - self.node_dimensions: dict[node_id, (w, h)] 
+        - self.lane_heights: list[height]
+        - self.max_level: Profundidade máxima
+        - self.total_width/height: Dimensões canvas
+        """
         self.node_dimensions.clear()
         for nid in self.nodes:
             tmp = BPMNAutoNode(
@@ -1091,6 +1293,20 @@ class BPMNAutoWidget(QWidget):
         self.total_height = current_y
 
     def draw_pool(self):
+        """
+        Renderiza estrutura swimlanes: piscina > raias > cabeçalhos > botão de adição.
+        
+        Hierárquico:
+        - HeaderItem 'project': Nome do projeto acima da piscina
+        - HeaderItem 'pool': Nome piscina/empresa (vertical, esquerda)
+        - Para cada raia:
+          * Fundo alternado (bg_card/bg_app) com arredondamento top/bottom
+          * HeaderItem 'lane_N': Nome raia (vertical, esquerda)
+          * Linha de separação (semi-transparente)
+        - AddLaneItem: Botão "Clique para Adicionar Nova Baia" abaixo
+        
+        A renderização usa tema ativo (T()) para cores e zoom para escala.
+        """
         pool_x = -80 * self.zoom
         pool_y = 0
         w = self.total_width + 250 * self.zoom
@@ -1184,6 +1400,19 @@ class BPMNAutoWidget(QWidget):
         self._scene_items.append(btn_add)
 
     def draw_diagram(self):
+        """
+        Orquestra renderização completa do diagrama BPMN.
+        
+        Etapas:
+        1. Limpa scene de renderizações anteriores
+        2. calcular_grid(): Calcula posicionamento automático
+        3. draw_pool(): Renderiza piscinas e raias
+        4. Aplica offset vertical para centralizar na viewport
+        5. _draw_connections(): Renderiza fluxos de sequência
+        6. _draw_nodes(): Posiciona elementos gráficos
+        
+        Resultado: Diagrama completo visível em self.view
+        """
         self._scene_items = []
         self.scene.clear()
         if not self.nodes:
@@ -1208,6 +1437,21 @@ class BPMNAutoWidget(QWidget):
         )
 
     def _draw_connections(self, node_id):
+        """
+        Renderiza fluxos de sequência (setas) do nó para filhos.
+        
+        Tipos de Conexão:
+        1. Filhos na mesma raia: Seta reta (y_down) com rótulo descritivo
+        2. Filhos em raias diferentes: Seta L-shaped com roteamento inteligente
+        3. Conexões cruzadas (cross_links): Seta tracejada (linha pontilhada) color accent_bright
+        
+        Renderização:
+        - Linha principal (pen cor tema)
+        - Ponta de seta (triângulo sólido) na extremidade do nó filho
+        - Roteamento: Curva ou L-shape para evítar sobreposição
+        
+        Sinais NãO são emitidos aqui; apenas renderiza estado existente em self.nodes[node_id]
+        """
         px, py = self.node_positions[node_id]
         pw, _ = self.node_dimensions[node_id]
         t = T()
@@ -1312,6 +1556,15 @@ class BPMNAutoWidget(QWidget):
                 )
 
     def _draw_nodes(self):
+        """
+        Renderiza todos os nós gráficos BPMNAutoNode em posições calculadas.
+        
+        Para cada node_id em self.node_positions:
+        1. Cria instância de BPMNAutoNode com parâmetros do nó
+        2. Posiciona em (x - w/2, y - h/2) para centrac centralização no ponto
+        3. Adiciona à scene
+        4. Registra em self._scene_items para limpeza futura
+        """
         for nid, (x, y) in self.node_positions.items():
             nw, nh = self.node_dimensions[nid]
             item = BPMNAutoNode(
@@ -1327,10 +1580,39 @@ class BPMNAutoWidget(QWidget):
             self._scene_items.append(item)
 
     def _export_scene(self, fmt):
+        """
+        Exporta diagrama em formato especificado (PNG, SVG, PDF).
+        
+        Parámetros:
+        - fmt: str formato ('png', 'svg' ou 'pdf')
+        
+        Delega para _export_view() da utilitário com view e cena atuais.
+        """
         _export_view(self.view, fmt, self)
 
 
 class _BPMNModule(BaseModule):
+    """
+    Adaptador BaseModule para gerenciamento integrado do BPMN em ProEng.
+    
+    Responsabilidades:
+    - Wrapper do BPMNAutoWidget com interface padrão BaseModule
+    - Gerencia zoom (reset_zoom, zoom_in, zoom_out)
+    - Persistência JSON via get_state/set_state (serialização)
+    - Integração com sistema de temas
+    - Exporta canvas para os formatos suportados
+    
+    Métodos BaseModule:
+    - get_state(): Retorna {schema: 'bpmn.v1', nodes, lanes, next_id}
+    - set_state(state): Restaura estado anterior + validac validação backward-compatible
+    - get_view(): Retorna QGraphicsView para renderização
+    - refresh_theme(): Reconexta cores de tema após mudança
+    
+    API de Zoom:
+    - reset_zoom(): Volta a 1.0 (100%)
+    - zoom_in(): Incrementa fator de zoom (~10% por clique)
+    - zoom_out(): Decrementa fator de zoom
+    """
     def __init__(self):
         super().__init__()
         self._inner = BPMNAutoWidget()

@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
-"""
-PRO ENG - Janela Principal da Aplicação (Workspace/Project)
 
-Arquivo central da interface gráfica que gerencia todos os módulos da suite de engenharia industrial.
-Responsável por: construção da janela principal, navegação entre módulos, gerenciamento de projetos,
-carregamento dinâmico de módulos, sistema de temas e paleta de cores.
-
-Inputs: Nenhum (aplicação desktop standalone)
-Outputs: Janela principal QMainWindow com todos os módulos integrados
-"""
+# Módulo de interface principal da aplicação PRO ENG
+# 
+# Responsabilidade: Gerenciar a janela principal da aplicação desktop, orquestrar navegação 
+# entre módulos de engenharia industrial (Gantt, Flowsheet, BPMN, EAP, Canvas, W5H2, Ishikawa),
+# implementar sistema de temas dinâmicos (neo_brutalist, dark, light), gerenciar ciclo de vida
+# de projetos e coordenar sincronização de estado entre módulos.
+#
+# Componentes principais:
+# - SidebarItem: Botão individual de navegação na barra lateral
+# - Sidebar: Container e gerenciador de estado de navegação
+# - WelcomeScreen: Tela inicial com preview de módulos e acesso rápido
+# - MainApp: Janela principal que coordena toda a aplicação
+# - Funções auxiliares: Geração de previews programáticos, exportação de views
+#
+# Inputs: Eventos do usuário (cliques, redimensionamento), carregamento de arquivos de projeto
+# Outputs: Interface gráfica Qt5 totalmente funcional, arquivos exportados (PNG/PDF)
 
 import sys
 import os
@@ -71,31 +78,13 @@ from proeng.core.base_module import BaseModule
 
 
 class SidebarItem(QPushButton):
-    """
-    Item individual da barra lateral de navegação.
-
-    Responsabilidade: Representar um módulo na sidebar, gerenciar estado de seleção,
-    hover e collapse (modo colapsado/expandido). Implementa padrão Command para ação de clique.
-
-    Atributos principais:
-    - module_id: Identificador único do módulo associado
-    - full_text: Texto completo exibido no modo expandido
-    - icon_char: Caractere de íconeemoji para exibição
-    - is_collapsed: Flag indicando modo colapsado
-
-    Design pattern: Command button com estado visual próprio
-    """
-
+    # Representa um botão de módulo individual na barra lateral de navegação.
+    # Implementa states visuais (normal, hover, checked), comportamento de collapse
+    # e emissão de sinal quando acionado.
+    
     def __init__(self, icon, text, module_id, parent=None):
-        """
-        Inicializa o item da sidebar.
-
-        Parâmetros:
-        - icon: Caractere de ícone (emoji ou símbolo)
-        - text: Texto descritivo do módulo
-        - module_id: Identificador único do módulo
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa o item da sidebar com ícone, texto, identificador do módulo e widgets pais opcionais.
+        # Define propriedades de interação visual (cursor em mão), estilos iniciais e flags de estado.
         super().__init__(parent)
         self.module_id = module_id
         self.full_text = text
@@ -108,35 +97,27 @@ class SidebarItem(QPushButton):
         self._refresh()
 
     def set_collapsed(self, collapsed):
-        """
-        Define o estado de colapso do item.
-
-        Parâmetros:
-        - collapsed: Boolean indicando se deve colapsar ou expandir
-        """
+        # Define o modo colapsado/expandido do item e força atualização visual via _refresh().
+        # Quando colapsado, exibe apenas o ícone; expandido mostra "ícone + texto".
         self.is_collapsed = collapsed
         self._refresh()
 
     def enterEvent(self, e):
-        """Evento de entrada do mouse - ativa estado de hover."""
+        # Ativa flag de hover quando mouse entra no widget e dispara atualização visual.
         self._hovered = True
         self._refresh()
         super().enterEvent(e)
 
     def leaveEvent(self, e):
-        """Evento de saída do mouse - desativa estado de hover."""
+        # Desativa flag de hover quando mouse sai do widget e dispara atualização visual.
         self._hovered = False
         self._refresh()
         super().leaveEvent(e)
 
     def _refresh(self):
-        """
-        Atualiza o texto e estilos visuais do item baseados no estado atual.
-
-        Lógica: Verifica estado de collapsed para determinar texto,
-        aplica tema atual via objeto T(), e atualiza stylesheet conforme
-        estado (normal, hover, checked).
-        """
+        # Atualiza texto exibido e stylesheet baseado em estado atual (collapsed, hover, checked).
+        # Aplica tema dinâmico via função T() que retorna dicionário de cores do tema ativo.
+        # Lógica de cores: Se hover -> destaque (accent), se checked -> background card2, senão -> card normal.
         t = T()
         txt = (
             self.icon_char
@@ -177,45 +158,26 @@ class SidebarItem(QPushButton):
 
 
 class Sidebar(QFrame):
-    """
-    Barra lateral de navegação principal da aplicação.
-
-    Responsabilidade: Container para itens de navegação, gerencia estados de collapse/expand,
-    emite sinais para solicitação de módulos. Implementa padrão Composite para agrupar itens.
-
-    Atributos principais:
-    - is_collapsed: Estado global decollapse da sidebar
-    - items: Lista de objetos SidebarItem
-    - group: Referências para possível grouping futuro
-
-    Design pattern: Composite pattern para UI hierárquica
-
-    Sinais emitidos:
-    - module_requested(str): Emitido quando usuário clica em um item de módulo
-    """
-
+    # Barra lateral que agrega múltiplos SidebarItems em layout vertical.
+    # Gerencia colapso/expansão global da sidebar, emite sinal quando usuário solicita módulo.
+    # Implementa padrão Observer para responder a cliques dos items.
+    
     module_requested = pyqtSignal(str)
 
     def __init__(self, parent=None):
-        """
-        Inicializa a sidebar com layout e itens de navegação.
-
-        Parâmetros:
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa a sidebar com tamanho fixo (200px expandido, 60px colapsado),
+        # cria lista de módulos disponíveis e constrói interface visual.
         super().__init__(parent)
         self.is_collapsed = False
         self.setFixedWidth(200)
         self._build_ui()
 
     def _build_ui(self):
-        """
-        Constrói a interface visual da sidebar.
-
-        Lógica: Cria layout vertical, adiciona botão toggle,
-        itera pela lista de módulos disponíveis para criar SidebarItems,
-        aplica estilo final. A lista modules contém tuplas (ícone, nome, id).
-        """
+        # Cria layout vertical contendo:
+        # 1. Botão toggle (☰/✕) para colapsar/expandir
+        # 2. Lista de 8 SidebarItems (Início, Gantt, Flowsheet, BPMN, EAP, Canvas, 5W2H, Ishikawa)
+        # 3. Stretch para empurrar items para cima
+        # Conecta sinais de clique para emitir module_requested com ID do módulo.
         t = T()
         self.lay = QVBoxLayout(self)
         self.lay.setContentsMargins(10, 20, 10, 20)
@@ -252,13 +214,8 @@ class Sidebar(QFrame):
         self._apply_style()
 
     def toggle(self):
-        """
-        Alterna estado de collapse da sidebar.
-
-        Lógica: Inverte flag is_collapsed, ajusta largura fixa do frame
-        (60px colapsado, 200px expandido), atualiza texto do botão toggle,
-        e propaga estado para todos os itens.
-        """
+        # Inverte estado de colapso, ajusta largura do frame, atualiza texto do botão toggle,
+        # e propaga mudança de estado para todos os items via set_collapsed().
         self.is_collapsed = not self.is_collapsed
         self.setFixedWidth(60 if self.is_collapsed else 200)
         self.btn_toggle.setText("☰" if self.is_collapsed else "✕")
@@ -266,22 +223,14 @@ class Sidebar(QFrame):
             item.set_collapsed(self.is_collapsed)
 
     def set_active(self, module_id):
-        """
-        Marca item ativo por ID de módulo.
-
-        Parâmetros:
-        - module_id: ID do módulo a ser marcado como ativo
-        """
+        # Marca item como ativo (checked=True) baseado em ID de módulo.
+        # Todos outros items são desmarcados. Usado para destacar navegação atual.
         for it in self.items:
             it.setChecked(it.module_id == module_id)
 
     def _apply_style(self):
-        """
-        Aplica estilos visuais à sidebar baseados no tema atual.
-
-        Lógica: Obtém configurações de tema via T(), aplica background,
-        borda e estilos específicos para o botão toggle.
-        """
+        # Aplica estilos Qt baseados no tema atual via T().
+        # Configura background do frame, borda direita e estilo específico do botão toggle.
         t = T()
         bw = t.get("border_width", 3)
         bdr = t["glass_border"]
@@ -305,18 +254,10 @@ from proeng.modules.ishikawa import _IshikawaModule
 from proeng.modules.w5h2 import _W5H2Module
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  WELCOME SCREEN
-# ─────────────────────────────────────────────────────────────────────────────
-
+# Dicionário centralizado com metadados dos módulos disponíveis.
+# Cada entrada contém: nome exibível, descrição, cores para preview (color1/color2),
+# ícone ASCII/emoji, e tag de categorização. Usado para gerar cards, previews e validações.
 MODULE_PREVIEWS = {
-    """
-    Dicionário de configuração de visualização prévia dos módulos.
-    
-    Estrutura: {module_id: {name, desc, color1, color2, icon, tag}}
-    Usado para: geração de miniaturas programáticas, cards de módulos,
-    preview no carrossel da tela de boas-vindas.
-    """
     "gantt": {
         "name": "Gantt Chart",
         "desc": "Cronograma de projetos com calculo de caminho critico (CPM).",
@@ -377,30 +318,19 @@ MODULE_PREVIEWS = {
 
 
 def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
-    """
-    Gera uma imagem representativa do módulo via QPainter.
-
-    Função utilitária que cria miniaturas programáticas para cada módulo
-    quando screenshots reais não estão disponíveis. Desenha representações
-    esquemáticas dos diagramas típicos de cada ferramenta.
-
-    Parâmetros:
-    - module_id: Identificador do módulo (gantt, flowsheet, bpmn, eap, etc)
-    - size: Dimensões da imagem a ser gerada (QSize)
-
-    Retorna:
-    - QPixmap: Imagem renderizada com representação visual do módulo
-
-    Exceções: Nenhuma - retorna fallback genérico em caso de erro
-
-    Lógica detalhada por módulo:
-    - flowsheet: Desenha equipamentos industriais (tanques, trocadores, bombas)
-    - bpmn: Desenha raias, eventos de início, tarefas e gateways
-    - eap: Desenha hierarquia em árvore (WBS structure)
-    - canvas: Desenha blocos coloridos do Business Model Canvas
-    - w5h2: Desenha matriz com linhas alternadas
-    - ishikawa: Desenha espinha de peixe com causas primárias e secundárias
-    """
+    # Renderiza imagem representativa do módulo usando QPainter.
+    # Desenha grade de fundo e representações esquemáticas do diagrama típico de cada módulo.
+    # Tenta carregar screenshot real se existir, senão gera desenho programático.
+    #
+    # Cada módulo tem representação visual própria:
+    # - flowsheet: Desenha tanques, trocadores, bombas e linhas de processo
+    # - bpmn: Desenha raias, eventos circulares, tarefas retangulares e gateways diamantados
+    # - eap: Desenha hierarquia em árvore com caixas conectadas por linhas
+    # - canvas: Desenha blocos coloridos representando blocos do Business Model Canvas
+    # - w5h2: Desenha matriz com linhas alternadas e colunas separadas
+    # - ishikawa: Desenha espinha de peixe com linha central e ramificações
+    #
+    # Retorna: Objeto QPixmap contendo a imagem renderizada ou fallback em caso de erro.
     info = MODULE_PREVIEWS.get(module_id, {})
     c1 = QColor(info.get("color1", "#1a2a4a"))
     c2 = QColor(info.get("color2", "#0d1a30"))
@@ -416,6 +346,7 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
     path.addRoundedRect(QRectF(0, 0, size.width(), size.height()), 12, 12)
     p.fillPath(path, QBrush(c1))
 
+    # Desenha grade de fundo subdividida em 6x5 células para efeito visual
     p.setPen(QPen(QColor("#333333"), 1))
     step_x = size.width() // 6
     step_y = size.height() // 5
@@ -424,7 +355,9 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
     for j in range(1, 5):
         p.drawLine(0, j * step_y, size.width(), j * step_y)
 
+    # Desenha representações específicas por módulo
     if module_id == "flowsheet":
+        # Desenha tanque de armazenamento, vaso cilíndrico vertical, trocador e bomba
         p.setPen(QPen(QColor(100, 200, 255, 200), 1.5))
         p.setBrush(QBrush(QColor(40, 120, 200, 80)))
 
@@ -435,6 +368,7 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         p.drawRoundedRect(QRectF(150, 70, 70, 35), 8, 8)
         p.drawEllipse(QPointF(60, 130), 15, 15)
 
+        # Desenha linhas de tubulação conectando equipamentos
         pen_pipe = QPen(QColor(160, 220, 255, 180), 2)
         p.setPen(pen_pipe)
         p.drawLine(70, 75, 88, 50)
@@ -442,6 +376,8 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         p.drawLine(60, 110, 60, 115)
 
     elif module_id == "bpmn":
+        # Desenha raia vermelha à esquerda, evento de início (circulo verde), 
+        # tarefa retangular, gateway diamantado e transições
         p.setPen(QPen(QColor(150, 200, 255, 160), 1))
         p.setBrush(QBrush(QColor(40, 80, 180, 100)))
         p.drawRect(10, 10, 25, size.height() - 20)
@@ -458,11 +394,14 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         )
         p.drawRoundedRect(QRectF(160, 100, 60, 30), 6, 6)
 
+        # Desenha setas de transição entre elementos
         p.setPen(QPen(QColor(200, 220, 255, 120), 1.5))
         p.drawLine(72, 50, 90, 50)
         p.drawLine(150, 50, 175, 65)
 
     elif module_id == "eap":
+        # Desenha estrutura hierárquica: projeto raiz no topo, dois níveis intermediários,
+        # e quatro elementos de nível folha na base conectados por linhas verticais
         p.setPen(QPen(QColor(255, 180, 80, 180), 1.5))
         p.setBrush(QBrush(QColor(200, 140, 40, 90)))
         p.drawRoundedRect(95, 15, 75, 28, 4, 4)
@@ -475,6 +414,8 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
             p.drawLine(px_parent, 84, x + 22, 105)
 
     elif module_id == "canvas":
+        # Desenha 8 blocos representando seções do Business Model Canvas
+        # com cores variadas e posicionamento estratégico
         colors = ["#1a3a6b", "#1a6b4a", "#6b4a1a", "#4a1a6b", "#6b1a2a"]
         blocks = [
             (10, 10, 45, 100, 0),
@@ -494,22 +435,30 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
         p.setOpacity(1.0)
 
     elif module_id == "w5h2":
+        # Desenha matriz com 7 linhas alternadas (representando 5W2H) e coluna de cabeçalho azul
         row_h = 18
         for i in range(7):
             y = 20 + i * (row_h + 4)
             p.setPen(QPen(Qt.NoPen))
+            # Alterna cores de linha (branco transparente com opacidades diferentes)
             p.setBrush(QBrush(QColor(255, 255, 255, 20 if i % 2 == 0 else 40)))
             p.drawRect(10, y, size.width() - 20, row_h)
+            # Desenha separadores verticais para colunas
             p.setPen(QPen(QColor(255, 255, 255, 60), 0.5))
             for x in [30, 80, 130, 180]:
                 p.drawLine(x, y, x, y + row_h)
+        # Desenha cabeçalho azul
         p.setBrush(QBrush(QColor(100, 200, 255, 80)))
         p.drawRect(10, 5, size.width() - 20, 12)
 
     elif module_id == "ishikawa":
+        # Desenha espinha de peixe: linha principal horizontal com seta no final,
+        # e 3 pares de ramificações secundárias com sub-ramificações terciárias
         p.setPen(QPen(QColor(255, 100, 100, 220), 2.5))
         mid_y = size.height() // 2 + 5
+        # Linha principal (coluna vertebral)
         p.drawLine(15, mid_y, size.width() - 50, mid_y)
+        # Seta (cabeça do peixe)
         p.drawPolygon(
             QPolygonF(
                 [
@@ -520,11 +469,13 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
             )
         )
 
+        # Desenha 3 espinhas secundárias (causas primárias) com ramificações terciárias
         p.setPen(QPen(QColor(255, 150, 150, 180), 1.8))
         for x in [50, 110, 170]:
             p.drawLine(x, mid_y, x + 35, mid_y - 50)
             p.drawLine(x, mid_y, x + 35, mid_y + 50)
             p.setPen(QPen(QColor(255, 150, 150, 100), 1))
+            # Sub-ramificações
             p.drawLine(x + 15, mid_y - 20, x + 35, mid_y - 20)
             p.drawLine(x + 15, mid_y + 20, x + 35, mid_y + 20)
 
@@ -533,31 +484,15 @@ def _generate_module_preview(module_id: str, size: QSize) -> QPixmap:
 
 
 class ModuleCard(QFrame):
-    """
-    Card de visualização de módulo na tela de boas-vindas.
-
-    Responsabilidade: Exibir informações de um módulo (nome, descrição, preview),
-    gerenciar estados de hover e clique, emitir sinal para abertura do módulo.
-    Implementa padrão Composite com children widgets.
-
-    Atributos principais:
-    - module_id: ID do módulo associado
-    - _preview_lbl: Label para exibir imagem de preview
-    - _hovered: Flag de estado hover
-
-    Design pattern: Composite com signal para Command pattern
-    """
-
+    # Card de apresentação de módulo na tela de boas-vindas.
+    # Exibe imagem de preview, nome, descrição em layout vertical.
+    # Implementa interatividade com efeito hover (sombra, translação) e emissão de sinal ao clique.
+    
     clicked = pyqtSignal(str)
 
     def __init__(self, module_id: str, parent=None):
-        """
-        Inicializa o card de módulo.
-
-        Parâmetros:
-        - module_id: Identificador único do módulo
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa card com tamanho fixo (240x220), carrega dados do módulo via MODULE_PREVIEWS,
+        # cria layout vertical com preview, título e descrição, aplica estilo inicial.
         super().__init__(parent)
         info = MODULE_PREVIEWS[module_id]
         self.module_id = module_id
@@ -572,12 +507,14 @@ class ModuleCard(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
+        # Widget de preview com altura fixa
         self._preview_lbl = QLabel()
         self._preview_lbl.setFixedHeight(105)
         self._refresh_preview()
         self._preview_lbl.setScaledContents(True)
         layout.addWidget(self._preview_lbl)
 
+        # Widget de informações (título, descrição)
         info_widget = QWidget()
         info_widget.setObjectName("cardInfo")
         info_layout = QVBoxLayout(info_widget)
@@ -605,12 +542,8 @@ class ModuleCard(QFrame):
         self._update_style(False)
 
     def _refresh_preview(self):
-        """
-        Atualiza a imagem de preview do card.
-
-        Lógica: Tenta carregar screenshot real do arquivo, se não existir
-        gera preview programático via _generate_module_preview.
-        """
+        # Atualiza imagem de preview do card.
+        # Prioridade: 1) Screenshot real do arquivo, 2) Preview programático via _generate_module_preview.
         t = T()
         path = f"proeng/resources/screenshots/{self.module_id}_{t['name']}.png"
         if os.path.exists(path):
@@ -620,12 +553,8 @@ class ModuleCard(QFrame):
             self._preview_lbl.setPixmap(px)
 
     def _update_style(self, hovered: bool):
-        """
-        Atualiza estilos baseados em estado de hover.
-
-        Parâmetros:
-        - hovered: Boolean indicando se mouse está sobre o card
-        """
+        # Aplica stylesheet baseado em estado de hover.
+        # Quando hover=True, background becomes bg_card2; caso contrário usa bg_card.
         t = T()
         bw = t.get("border_width", 3)
         border_color = t["glass_border"]
@@ -644,12 +573,9 @@ class ModuleCard(QFrame):
         self.update()
 
     def paintEvent(self, event):
-        """
-        Evento de pintura customizado para renderizar sombra e borda.
-
-        Lógica: Ajusta translação quando hover, desenha sombra se não hover,
-        depois desenha retângulo de background com borda.
-        """
+        # Customiza rendering do card com sombra decorativa e borda.
+        # Quando hover, translaciona 4px para cima/esquerda para efeito de levantamento.
+        # Desenha sombra offset nos cantos quando não hover, depois retângulo de background.
         t = T()
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing, False)
@@ -679,56 +605,33 @@ class ModuleCard(QFrame):
         super().paintEvent(event)
 
     def enterEvent(self, e):
-        """Evento de entrada do mouse - ativa estado hover."""
+        # Ativa estado hover e dispara atualização visual.
         self._hovered = True
         self._update_style(True)
         super().enterEvent(e)
 
     def leaveEvent(self, e):
-        """Evento de saída do mouse - desativa estado hover."""
+        # Desativa estado hover e dispara atualização visual.
         self._hovered = False
         self._update_style(False)
         super().leaveEvent(e)
 
     def mousePressEvent(self, e):
-        """
-        Evento de clique do mouse - emite sinal com ID do módulo.
-
-        Parâmetros:
-        - e: QMouseEvent contendo informações do clique
-        """
+        # Ao clique do botão esquerdo do mouse, emite sinal clicked com ID do módulo.
+        # Permite que MainApp saiba qual módulo foi selecionado.
         if e.button() == Qt.LeftButton:
             self.clicked.emit(self.module_id)
         super().mousePressEvent(e)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  GALERIA DE EXEMPLOS
-# ─────────────────────────────────────────────────────────────────────────────
-
-
 class GalleryItem(QFrame):
-    """
-    Item individual da galeria de exemplos na tela de boas-vindas.
-
-    Responsabilidade: Exibir screenshot de exemplo de módulo com título,
-    gerenciar estados de hover para efeito visual. Similar ao ModuleCard
-    mas com dimensões e propósito diferentes.
-
-    Atributos principais:
-    - module_key: Chave do módulo para buscar preview
-    - _hover: Flag de estado hover
-    """
-
+    # Item individual exibido na galeria de exemplos na tela de boas-vindas.
+    # Semelhante ao ModuleCard mas com dimensões maiores e destinado a screenshot real.
+    # Implementa hover com efeito visual de translação e sombra.
+    
     def __init__(self, title, module_key, parent=None):
-        """
-        Inicializa item da galeria.
-
-        Parâmetros:
-        - title: Título a ser exibido abaixo da imagem
-        - module_key: Chave do módulo para buscar imagens
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa item com tamanho fixo (320x220), carrega screenshot,
+        # cria layout com imagem (290x155) e label de título (10px, negrito, centrado).
         super().__init__(parent)
         self.setFixedSize(320, 220)
         self._hover = False
@@ -755,11 +658,8 @@ class GalleryItem(QFrame):
         self._refresh()
 
     def _refresh(self):
-        """
-        Atualiza imagem de preview do item.
-
-        Lógica: Tenta carregar screenshot real, senão gera preview programático.
-        """
+        # Carrega imagem de preview do módulo.
+        # Prioridade: 1) Screenshot real, 2) Gerador programático.
         t = T()
         path = f"proeng/resources/screenshots/{self.module_key}_{t['name']}.png"
         if os.path.exists(path):
@@ -774,9 +674,7 @@ class GalleryItem(QFrame):
         self._style()
 
     def _style(self):
-        """
-        Aplica estilos baseados no tema e estado hover.
-        """
+        # Aplica stylesheet baseado no tema e estado hover.
         t = T()
         bw = t.get("border_width", 3)
         border_color = "#000000"
@@ -792,9 +690,8 @@ class GalleryItem(QFrame):
         self.update()
 
     def paintEvent(self, event):
-        """
-        Evento de pintura customizado - rendering de sombra e borda.
-        """
+        # Customiza rendering com sombra offset quando não hover.
+        # Aplica translação pequena quando hover para efeito de levantamento.
         t = T()
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing, False)
@@ -824,33 +721,25 @@ class GalleryItem(QFrame):
         super().paintEvent(event)
 
     def enterEvent(self, e):
-        """Evento de entrada do mouse."""
+        # Ativa estado hover e dispara atualização visual.
         self._hover = True
         self._style()
         super().enterEvent(e)
 
     def leaveEvent(self, e):
-        """Evento de saída do mouse."""
+        # Desativa estado hover e dispara atualização visual.
         self._hover = False
         self._style()
         super().leaveEvent(e)
 
 
 class ScreenshotGallery(QScrollArea):
-    """
-    Área de galeria rolável com exemplos de módulos.
-
-    Responsabilidade: Container scrollável horizontal que exibe
-    GalleryItems em sequência. Implementa padrão Composite.
-    """
-
+    # Área de scroll horizontal exibindo 6 GalleryItems em sequência.
+    # Frame = NoFrame para aspecto mais limpo, scroll horizontal sempre visível, vertical desativada.
+    
     def __init__(self, parent=None):
-        """
-        Inicializa a galeria de screenshots.
-
-        Parâmetros:
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa área de scroll com altura fixa (250px), cria container com layout horizontal,
+        # popula com 6 GalleryItems (PFD Flowsheet, EAP/WBS, BPMN, Canvas, Ishikawa, 5W2H).
         super().__init__(parent)
         self.setWidgetResizable(True)
         self.setFixedHeight(250)
@@ -882,43 +771,20 @@ class ScreenshotGallery(QScrollArea):
         self.setWidget(container)
 
     def refresh_theme(self):
-        """
-        Propaga atualização de tema para todos os itens.
-        """
+        # Propaga atualização de tema para todos os GalleryItems.
+        # Cada item recarrega screenshot e aplica estilos novos.
         for it in self.items:
             it._refresh()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  CARROSSEL DE EXEMPLOS (LADO ESQUERDO)
-# ─────────────────────────────────────────────────────────────────────────────
-
-
 class ScreenshotCarousel(QWidget):
-    """
-    Carrossel rotativo de exemplos com animação de fade.
-
-    Responsabilidade: Exibir ciclo automático de screenshots de módulos
-    com animação de transição, indicadores visuais (dots), título e descrição.
-    Implementa padrão Strategy para animação e Observer para timer.
-
-    Atributos principais:
-    - current_idx: Índice do item atualmente exibido
-    - items_data: Lista de tuplas (título, chave_módulo, descrição)
-    - opacity_effect: Efeito de opacidade para animação fade
-    - fade_anim: Animação de transição
-    - timer: Timer para rotação automática
-
-    Design patterns: Strategy (animação), Observer (timer)
-    """
-
+    # Carrossel automático que cicla entre 6 módulos com animação de fade.
+    # Exibe imagem, título, descrição e indicadores visuais (dots) para navegação.
+    # Timer dispara transição a cada 3 segundos com animação de opacidade.
+    
     def __init__(self, parent=None):
-        """
-        Inicializa o carrossel com configuração de animação.
-
-        Parâmetros:
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa com lista de 6 módulos, cria UI, configura animação de fade (400ms),
+        # inicia timer de 3 segundos para acionar próximo item.
         super().__init__(parent)
         self.setMinimumWidth(450)
         self.current_idx = 0
@@ -957,23 +823,24 @@ class ScreenshotCarousel(QWidget):
 
         self._build_ui()
 
+        # Configura efeito de opacidade e animação de transição suave
         self.opacity_effect = QGraphicsOpacityEffect(self.img_lbl)
         self.img_lbl.setGraphicsEffect(self.opacity_effect)
         self.fade_anim = QPropertyAnimation(self.opacity_effect, b"opacity")
         self.fade_anim.setDuration(400)
         self.fade_anim.setEasingCurve(QEasingCurve.InOutQuad)
 
+        # Timer que dispara transição automática
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._next_with_fade)
         self.timer.start(3000)
 
     def _build_ui(self):
-        """
-        Constrói a interface do carrossel.
-
-        Lógica: Cria layout principal, frame para imagem proporcional,
-        indicadores (dots), labels de título e descrição.
-        """
+        # Cria layout vertical contendo:
+        # 1. Frame com imagem escalada (280px altura)
+        # 2. Linha de indicadores (dots) centrados
+        # 3. Título (Arial 10px negrito, centrado, maiúscula)
+        # 4. Descrição (Arial 8px, centrada, itálica, altura mínima 30px)
         self.main_lay = QVBoxLayout(self)
         self.main_lay.setContentsMargins(10, 20, 10, 10)
         self.main_lay.setSpacing(8)
@@ -990,6 +857,7 @@ class ScreenshotCarousel(QWidget):
 
         self.main_lay.addWidget(self.frame)
 
+        # Cria linha de indicadores (dots)
         self.dots_lay = QHBoxLayout()
         self.dots_lay.setAlignment(Qt.AlignCenter)
         self.dots_lay.setSpacing(6)
@@ -1002,12 +870,14 @@ class ScreenshotCarousel(QWidget):
             self.dots_lay.addWidget(dot)
         self.main_lay.addLayout(self.dots_lay)
 
+        # Cria título
         self.title_lbl = QLabel()
         self.title_lbl.setFont(QFont("Arial", 10, QFont.Bold))
         self.title_lbl.setAlignment(Qt.AlignCenter)
         self.title_lbl.setWordWrap(True)
         self.main_lay.addWidget(self.title_lbl)
 
+        # Cria descrição
         self.desc_lbl = QLabel()
         self.desc_lbl.setFont(QFont("Arial", 8))
         self.desc_lbl.setAlignment(Qt.AlignCenter)
@@ -1018,14 +888,9 @@ class ScreenshotCarousel(QWidget):
         self._refresh()
 
     def _refresh(self):
-        """
-        Atualiza conteúdo visual do carrossel.
-
-        Lógica: Obtém dados do item atual, tenta carregar screenshot real
-        ou gera fallback programático, atualiza título/descrição, aplica
-        estilos baseados no tema atual (neo_brutalist, dark, light),
-        atualiza indicadores (dots).
-        """
+        # Atualiza conteúdo visual baseado no índice atual.
+        # Carrega imagem, atualiza título/descrição, aplica estilos do tema,
+        # destaca o dot correspondente ao índice.
         t = T()
         title, key, desc = self.items_data[self.current_idx]
         is_nb = t["name"] == "neo_brutalist"
@@ -1044,6 +909,7 @@ class ScreenshotCarousel(QWidget):
         self.desc_lbl.setWordWrap(True)
         self.desc_lbl.setAlignment(Qt.AlignCenter)
 
+        # Aplica estilos diferentes conforme tema
         if is_nb:
             self.title_lbl.setStyleSheet(
                 f"color: {t['accent']}; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; background: transparent;"
@@ -1066,6 +932,7 @@ class ScreenshotCarousel(QWidget):
                 f"color: {t['text_dim']}; font-style: italic; padding: 0 10px; background: transparent;"
             )
 
+        # Aplica estilo ao frame contendo imagem
         self.frame.setStyleSheet(f"""
             QFrame {{
                 background: {t["bg_card"]};
@@ -1074,6 +941,7 @@ class ScreenshotCarousel(QWidget):
             }}
         """)
 
+        # Atualiza dots: dot atual fica maior e mais visível
         for i, dot in enumerate(self.dots):
             if i == self.current_idx:
                 dot.setStyleSheet(
@@ -1085,25 +953,15 @@ class ScreenshotCarousel(QWidget):
                 dot.setFixedWidth(8)
 
     def _next_with_fade(self):
-        """
-        Executa animação de transição para próximo item.
-
-        Lógica: Animação em duas etapas - fade out (1.0 -> 0.1),
-        desconecta signal anterior, troca índice, refresh, fade in (0.1 -> 1.0).
-        """
+        # Inicia animação de fade out (1.0 -> 0.1) e conecta callback para mudar item.
         self.fade_anim.setStartValue(1.0)
         self.fade_anim.setEndValue(0.1)
         self.fade_anim.finished.connect(self._change_and_fade_in)
         self.fade_anim.start()
 
     def _change_and_fade_in(self):
-        """
-        Callback executado após fade out - executa refresh e fade in.
-
-        Lógica: Desconecta signal para evitar múltiplas conexões,
-        incrementa índice com wrap-around, atualiza visuals,
-        inicia animação de fade in.
-        """
+        # Callback executado após fade out completo.
+        # Incrementa índice com wrap-around, executa refresh, inicia fade in (0.1 -> 1.0).
         try:
             self.fade_anim.finished.disconnect(self._change_and_fade_in)
         except:
@@ -1115,39 +973,19 @@ class ScreenshotCarousel(QWidget):
         self.fade_anim.start()
 
     def refresh_theme(self):
-        """
-        Propaga atualização de tema para o carrossel.
-        """
+        # Propaga atualização de tema para o carrossel.
         self._refresh()
 
 
 class BrutalistModuleCard(QFrame):
-    """
-    Card de módulo com estilo Neo-Brutalist.
-
-    Responsabilidade: Versão alternativa do ModuleCard com design
-    brutlista (bordas sólidaspretas, sombras rígidas, cores chapadas).
-    Destinado ao tema neo_brutalist.
-
-    Atributos principais:
-    - module_id: ID do módulo
-    - block_color: Cor de destaque para strip superior
-    - _hovered: Flag de hover
-
-    Design pattern: Command com signal
-    """
-
+    # Card de módulo com estilo Neo-Brutalist: faixa de cor sólida no topo,
+    # efeito de sombra rígida (sem blur), bordas pretas 4px, texto em Courier New.
+    
     clicked = pyqtSignal(str)
 
     def __init__(self, module_id: str, block_color: str, parent=None):
-        """
-        Inicializa card brutlista.
-
-        Parâmetros:
-        - module_id: Identificador do módulo
-        - block_color: Cor da faixa superior
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa card brutlista com ID do módulo, cor de destaque,
+        # layout: faixa colorida (14px) + widget de informações (ícone, título, descrição).
         super().__init__(parent)
         info = MODULE_PREVIEWS[module_id]
         self.module_id = module_id
@@ -1161,12 +999,14 @@ class BrutalistModuleCard(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
+        # Faixa colorida superior
         color_strip = QFrame()
         color_strip.setFixedHeight(14)
         color_strip.setObjectName("colorStrip")
         color_strip.setStyleSheet(f"background: {block_color}; border: none;")
         layout.addWidget(color_strip)
 
+        # Widget de informações
         info_widget = QWidget()
         info_widget.setObjectName("cardInfo")
         info_layout = QVBoxLayout(info_widget)
@@ -1197,12 +1037,8 @@ class BrutalistModuleCard(QFrame):
         self._update_style(False)
 
     def _update_style(self, hovered: bool):
-        """
-        Atualiza estilo visual com offset de sombra variável.
-
-        Parâmetros:
-        - hovered: Estado hover para cálculo de offset
-        """
+        # Aplica estilo brutlista com offset de sombra aumentado quando hover.
+        # Sombra: 8px (normal) ou 10px (hover), sem blur radius, cor preta #000000.
         offset = 10 if hovered else 8
         self.setStyleSheet(f"""
             QFrame#brutCard {{
@@ -1223,41 +1059,31 @@ class BrutalistModuleCard(QFrame):
         self.setGraphicsEffect(shadow)
 
     def enterEvent(self, e):
-        """Evento de entrada do mouse."""
+        # Ativa estado hover e aumenta offset de sombra.
         self._hovered = True
         self._update_style(True)
         super().enterEvent(e)
 
     def leaveEvent(self, e):
-        """Evento de saída do mouse."""
+        # Desativa estado hover e reduz offset de sombra.
         self._hovered = False
         self._update_style(False)
         super().leaveEvent(e)
 
     def mousePressEvent(self, e):
-        """
-        Evento de clique - emite sinal com ID do módulo.
-        """
+        # Ao clique esquerdo, emite sinal com ID do módulo.
         if e.button() == Qt.LeftButton:
             self.clicked.emit(self.module_id)
         super().mousePressEvent(e)
 
 
 class BrutalistQuickAccess(QFrame):
-    """
-    Bloco de acesso rápido com estilo Neo-Brutalist.
-
-    Responsabilidade: Container para botões de ação rápida
-    (Novo Projeto, Abrir Projeto) em estilo brutlista.
-    """
-
+    # Bloco de ações rápidas (Novo Projeto, Abrir Projeto) em estilo Neo-Brutalist.
+    # Background amarelo (#FFD600), botões brancos com hover invertido (fundo preto, texto amarelo).
+    
     def __init__(self, parent=None):
-        """
-        Inicializa bloco de acesso rápido.
-
-        Parâmetros:
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa com layout vertical contendo título "ACESSO RAPIDO", separador,
+        # e dois botões de ação fixos (48px altura).
         super().__init__(parent)
         self.setObjectName("quickAccess")
         layout = QVBoxLayout(self)
@@ -1291,12 +1117,9 @@ class BrutalistQuickAccess(QFrame):
         self._style()
 
     def _style(self):
-        """
-        Aplica estilos específicos do tema Neo-Brutalist.
-
-        Lógica: Define cores de fundo amarelas, botões brancos com borda preta,
-        efeito de hover com inversão de cores.
-        """
+        # Aplica stylesheet Neo-Brutalist: frame amarelo com borda preta 4px,
+        # botões brancos com texto preto, hover inverte cores.
+        # Sombra offset rígida: 8px X e Y, sem blur, cor preta.
         self.setStyleSheet(f"""
             QFrame#quickAccess {{
                 background: #FFD600;
@@ -1326,20 +1149,12 @@ class BrutalistQuickAccess(QFrame):
 
 
 class BrutalistProfileBlock(QFrame):
-    """
-    Bloco de perfil/status com estilo Neo-Brutalist.
-
-    Responsabilidade: Exibir status atual da aplicação e nome do projeto,
-    com design brutlista (fundo azul, texto branco).
-    """
-
+    # Bloco de status/perfil em estilo Neo-Brutalist.
+    # Background azul marítimo (#1565C0), texto branco, exibe status (PRONTO/ATIVO) e nome do projeto.
+    
     def __init__(self, parent=None):
-        """
-        Inicializa bloco de perfil/status.
-
-        Parâmetros:
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa com layout vertical contendo título "STATUS", separador branco,
+        # label de status (20px, negrito), label de informação (9px, dimmed).
         super().__init__(parent)
         self.setObjectName("profileBlock")
         layout = QVBoxLayout(self)
@@ -1375,9 +1190,8 @@ class BrutalistProfileBlock(QFrame):
         self._style()
 
     def _style(self):
-        """
-        Aplica estilos do tema Neo-Brutalist (fundo azul).
-        """
+        # Aplica stylesheet Neo-Brutalist: background azul (#1565C0), borda preta 4px,
+        # sombra offset rígida 8px, sem blur.
         self.setStyleSheet(f"""
             QFrame#profileBlock {{
                 background: #1565C0;
@@ -1394,12 +1208,9 @@ class BrutalistProfileBlock(QFrame):
         self.setGraphicsEffect(shadow)
 
     def update_status(self, project_name):
-        """
-        Atualiza display de status baseado em projeto aberto.
-
-        Parâmetros:
-        - project_name: Nome do projeto (se houver) ou string vazia
-        """
+        # Atualiza status baseado em nome do projeto passado como parâmetro.
+        # Se project_name não vazio: status="ATIVO", info mostra nome.
+        # Caso contrário: status="PRONTO", info mostra "Nenhum projeto aberto".
         if project_name:
             self.status_lbl.setText("ATIVO")
             self.info_lbl.setText(project_name)
@@ -1409,20 +1220,13 @@ class BrutalistProfileBlock(QFrame):
 
 
 class BrutalistExampleBar(QFrame):
-    """
-    Barra de exemplos de projeto com estilo Neo-Brutalist.
-
-    Responsabilidade: Container para botões de exemplos predefinidos
-    (Refinaria, Amônia, ETA, Caldeira, Mineração).
-    """
-
+    # Barra de projetos exemplares em estilo Neo-Brutalist.
+    # Background branco, botões com cores de hover laranja (#E65100).
+    # Contém 5 botões de exemplo: Refinaria, Amônia, ETA, Caldeira, Mineração.
+    
     def __init__(self, parent=None):
-        """
-        Inicializa barra de exemplos.
-
-        Parâmetros:
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa com layout vertical contendo título, linha de 5 botões exemplo.
+        # Cada botão inicializa com descrição da localização.
         super().__init__(parent)
         self.setObjectName("exampleBar")
         layout = QVBoxLayout(self)
@@ -1465,9 +1269,9 @@ class BrutalistExampleBar(QFrame):
         self._style()
 
     def _style(self):
-        """
-        Aplica estilos Neo-Brutalist para barra de exemplos.
-        """
+        # Aplica stylesheet Neo-Brutalist: frame branco com borda preta 4px,
+        # botões com background bege (#F5F0E8), hover laranja (#E65100) com texto branco,
+        # sombra offset rígida 6px.
         self.setStyleSheet(f"""
             QFrame#exampleBar {{
                 background: #FFFFFF;
@@ -1497,54 +1301,26 @@ class BrutalistExampleBar(QFrame):
 
 
 class WelcomeScreen(QWidget):
-    """
-    Tela de boas-vindas principal da aplicação.
-
-    Responsabilidade: Exibir logo, botões de ação (Novo/Abrir),
-    grade de módulos disponíveis, carrossel de exemplos.
-    Implementa padrão Composite para gerenciar múltiplos cards.
-
-    Sinais emitidos:
-    - open_module(str): Quando usuário clica em um módulo
-    - new_project(): Quando usuário clica em Novo Projeto
-    - open_project(): Quando usuário clica em Abrir Projeto
-    - load_example(str): Quando usuário solicita carregar exemplo
-
-    Design pattern: Composite para UI hierárquica
-    """
-
+    # Tela inicial da aplicação exibindo logo "PRO ENG", botões de ação (Novo/Abrir),
+    # grid de 8 ModuleCardNB em 5 colunas, e seção de título.
+    # Implementa padrão Composite para gerenciar múltiplos cards e componentes.
+    
     open_module = pyqtSignal(str)
     new_project = pyqtSignal()
     open_project = pyqtSignal()
     load_example = pyqtSignal(str)
 
     def __init__(self, parent=None):
-        """
-        Inicializa a tela de boas-vindas.
-
-        Parâmetros:
-        - parent: Widget pai (opcional)
-        """
+        # Inicializa a tela de boas-vindas e constrói interface via _build_ui().
         super().__init__(parent)
         self._build_ui()
 
     def _build_ui(self):
-        """
-        Constrói toda a interface da tela de boas-vindas.
-
-        Lógica: Layout vertical principal contendo:
-        1. Header: Logo "PRO ENG", Subtítulo, Botões Novo/Abrir
-        2. SepStrips: Faixas separadoras decorativas
-        3. Conteúdo: ScrollArea com grid de ModuleCardNB
-
-        Etapas:
-        - Cria header com faixa decorativa superior
-        - Adiciona logo e subtítulo centralizados
-        - Cria linha de botões principais
-        - Cria faixa separadora
-        - Cria área de scroll com cards de módulos em grid
-        - Aplica tema atual
-        """
+        # Constrói layout vertical contendo:
+        # 1. Header: Logo "PRO ENG" (28px), subtítulo, botões Novo/Abrir
+        # 2. Strip separador decorativo
+        # 3. ScrollArea com grid 5 colunas de ModuleCardNB
+        # Aplica tema ao final via refresh_theme().
         t = T()
         is_nb = t["name"] == "neo_brutalist"
 
@@ -1621,6 +1397,7 @@ class WelcomeScreen(QWidget):
         content_layout.addWidget(section_title)
         self.section_title = section_title
 
+        # Cria área de scroll com grid de cards
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
@@ -1634,6 +1411,7 @@ class WelcomeScreen(QWidget):
         grid.setVerticalSpacing(24)
         grid.setAlignment(Qt.AlignCenter)
 
+        # Cria cards em grid 5 colunas
         module_ids = list(MODULE_PREVIEWS.keys())
         block_colors = [
             t.get("block_green", "#00C853"),
@@ -1665,17 +1443,8 @@ class WelcomeScreen(QWidget):
         self.refresh_theme()
 
     def _create_block(self, bg_color, title_text, title_height):
-        """
-        Factory method para criar blocos decorativos com título.
-
-        Parâmetros:
-        - bg_color: Cor de fundo do bloco
-        - title_text: Texto do título (ou None para sem título)
-        - title_height: Altura da faixa de título
-
-        Retorna:
-        - QFrame: Bloco configurado com layout interno
-        """
+        # Factory method para criar blocos decorativos com customização de título.
+        # Retorna QFrame com styling específico e (opcionalmente) título.
         block = QFrame()
         block.setFrameShape(QFrame.NoFrame)
         block.setStyleSheet(f"""
@@ -1712,13 +1481,8 @@ class WelcomeScreen(QWidget):
         return block
 
     def refresh_theme(self):
-        """
-        Atualiza todos os elementos visuais quando o tema muda.
-
-        Lógica: Itera por todos os componentes e aplica estilos baseados
-        no tema atual (neo_brutalist, dark, light). Atualiza strips,
-        botões, cards e título de seção.
-        """
+        # Atualiza toda a interface quando tema é alterado via cycle_theme().
+        # Propaga atualização para: header strips, buttons, section title, cards.
         t = T()
         is_nb = t["name"] == "neo_brutalist"
         is_dark = t["name"] == "dark"
@@ -1828,33 +1592,15 @@ class WelcomeScreen(QWidget):
 
 
 class ModuleCardNB(QFrame):
-    """
-    Card de módulo para tema Neo-Brutalist (variante).
-
-    Responsabilidade: Versão alternativa do card com área de ícone colorida
-    e estilização específica para o tema nb. Similar ao ModuleCard
-    mas com design diferente.
-
-    Atributos principais:
-    - module_id: ID do módulo
-    - accent_color: Cor de destaque para área de ícone
-    - _hovered: Flag de hover
-
-    Design pattern: Command com signal
-    """
-
+    # Card de módulo alternativo com área de ícone colorida.
+    # Layout: ícone colorido (70px altura) + informações (título, descrição).
+    # Implementa hover com efeito de sombra e translação.
+    
     clicked = pyqtSignal(str)
 
     def __init__(self, module_id: str, accent_color: str, parent=None, index: int = 0):
-        """
-        Inicializa card NB.
-
-        Parâmetros:
-        - module_id: Identificador do módulo
-        - accent_color: Cor de destaque para ícone
-        - parent: Widget pai (opcional)
-        - index: Índice na grade (para cálculo de position)
-        """
+        # Inicializa card com layout vertical: área de ícone (cor destaque) + info widget.
+        # Tamanho: mínimo 200x160, máximo 240px largura.
         super().__init__(parent)
         info = MODULE_PREVIEWS[module_id]
         self.module_id = module_id
@@ -1869,6 +1615,7 @@ class ModuleCardNB(QFrame):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
+        # Widget de ícone (área superior colorida)
         icon_area = QWidget()
         icon_area.setFixedHeight(70)
         icon_area.setObjectName("iconArea")
@@ -1882,6 +1629,7 @@ class ModuleCardNB(QFrame):
 
         lay.addWidget(icon_area)
 
+        # Widget de informações (título, descrição)
         info_widget = QWidget()
         info_widget.setObjectName("cardInfo")
         info_layout = QVBoxLayout(info_widget)
@@ -1907,12 +1655,8 @@ class ModuleCardNB(QFrame):
         self._update_style()
 
     def _update_style(self):
-        """
-        Atualiza estilos baseados no tema atual e estado hover.
-
-        Lógica: Aplica estilos diferentes para cada tema (nb, dark, light),
-        atualiza área de ícone, título, descrição e sombra.
-        """
+        # Aplica estilos diferentes conforme tema (nb, dark, light).
+        # Configura: cor background área ícone, border, cores de texto, efeito sombra.
         t = T()
         is_nb = t["name"] == "neo_brutalist"
         is_dark = t["name"] == "dark"
@@ -1969,12 +1713,8 @@ class ModuleCardNB(QFrame):
         self._apply_shadow(t)
 
     def _apply_shadow(self, t):
-        """
-        Aplica efeito de sombra baseado no tema e estado hover.
-
-        Parâmetros:
-        - t: Objeto de tema atual
-        """
+        # Aplica efeito de sombra com offset variável conforme hover.
+        # Sem blur radius (efeito mais brutlista), cor do shadow do tema.
         from PyQt5.QtWidgets import QGraphicsDropShadowEffect
         from PyQt5.QtGui import QColor
 
@@ -1991,68 +1731,47 @@ class ModuleCardNB(QFrame):
         self.setGraphicsEffect(shadow)
 
     def enterEvent(self, e):
-        """Evento de entrada do mouse."""
+        # Ativa estado hover e atualiza estilos.
         self._hovered = True
         self._update_style()
         super().enterEvent(e)
 
     def leaveEvent(self, e):
-        """Evento de saída do mouse."""
+        # Desativa estado hover e atualiza estilos.
         self._hovered = False
         self._update_style()
         super().leaveEvent(e)
 
     def mousePressEvent(self, e):
-        """
-        Evento de clique - emite sinal com ID do módulo.
-        """
+        # Ao clique esquerdo, emite sinal com ID do módulo.
         if e.button() == Qt.LeftButton:
             self.clicked.emit(self.module_id)
         super().mousePressEvent(e)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ─────────────────────────────────────────────────────────────────────────────
-#  MAIN APP
-# ─────────────────────────────────────────────────────────────────────────────
-
-
 class MainApp(QMainWindow):
-    """
-    Janela principal da aplicação PRO ENG.
-
-    Responsabilidade: Orquestrar toda a aplicação, gerenciar navegação entre
-    módulos, carregar/salvar projetos, aplicar temas, gerenciar menu e atalhos.
-    Esta é a classe principal que inicializa toda a interface.
-
-    Atributos principais:
-    - project: Instância de AppProject para gerenciamento de estado
-    - _stack: QStackedWidget para navegação entre telas
-    - _modules: Dicionário de módulos carregados lazily
-    - _welcome: Referência para WelcomeScreen
-
-    Design patterns:
-    - Facade: Simplifica acesso a módulos e funcionalidades
-    - Observer: Para sinais de navegação
-    - Factory: Para criação de módulos
-    - Singleton: Uma única instância da aplicação
-    """
-
+    # Janela principal orquestradora da aplicação.
+    # Responsabilidades:
+    # - Navegação entre modules via QStackedWidget e lazy loading
+    # - Gerenciamento de projeto (novo, abrir, salvar)
+    # - Sincronização de estado entre módulos
+    # - Aplicação de temas (neo_brutalist, dark, light)
+    # - Menu bar, barra de status, toolbar
+    # - Exportação de views para PNG/PDF
+    # 
+    # Implementa padrão Facade para simplificar acesso aos módulos.
+    # Implementa padrão Observer para sinais de navegação.
+    # Implementa padrão Factory para criação lazy de módulos.
+    
     def __init__(self):
-        """
-        Inicializa a aplicação principal.
-
-        Lógica de inicialização:
-        1. Configura janela (título, geometry, flags frameless)
-        2. Carrega ícone do aplicativo
-        3. Configura paleta de cores e estilos globais
-        4. Cria layout principal com NavBar
-        5. Configura QStackedWidget para navegação
-        6. Cria WelcomeScreen como tela inicial
-        7. Configura barra de status
-        8. Cria menus da aplicação
-        9. Exibe janela maximizada
-        """
+        # Inicializa aplicação principal:
+        # 1. Configura janela: título, geometria, flags frameless
+        # 2. Carrega ícone
+        # 3. Configura paleta e stylesheet global
+        # 4. Cria NavBar e stacked widget para navegação
+        # 5. Cria WelcomeScreen como tela inicial
+        # 6. Configura menu bar (apesar de oculta)
+        # 7. Exibe maximizado
         super().__init__()
         self.project = AppProject()
         self.setWindowTitle("PRO ENG - Início")
@@ -2109,33 +1828,15 @@ class MainApp(QMainWindow):
         self.showMaximized()
 
     def resizeEvent(self, event):
-        """
-        Evento de redimensionamento da janela.
-
-        Parâmetros:
-        - event: QResizeEvent
-        """
+        # Evento fired quando janela é redimensionada.
+        # Propaga para parent class, permitindo que componentes internos se adaptem.
         super().resizeEvent(event)
 
-    # ═══════════════════════════════════════════════════════════════════
-    #   NAVEGAÇÃO
-    # ═══════════════════════════════════════════════════════════════════
-
     def _navigate_to_module(self, module_id: str):
-        """
-        Navega para um módulo específico pelo ID.
-
-        Implementa lazy loading - módulos são criados apenas quando впервые
-        solicitados. Usa QStackedWidget para alternar entre telas.
-
-        Parâmetros:
-        - module_id: Identificador do módulo de destino
-
-        Lógica:
-        - Se "welcome", retorna para tela inicial
-        - Se módulo não existe ainda, cria via lazy loading
-        - Atualiza título da janela com nome do módulo
-        """
+        # Navega para módulo especificado por ID usando lazy loading.
+        # Se "welcome", retorna para tela inicial.
+        # Caso contrário, cria módulo se não existe, adiciona ao stack, define como ativo.
+        # Atualiza título da janela com nome do módulo.
         if module_id == "welcome":
             self._stack.setCurrentIndex(0)
             self.setWindowTitle("PRO ENG - Início")
@@ -2164,15 +1865,9 @@ class MainApp(QMainWindow):
             self.setWindowTitle(f"PRO ENG - {title}")
 
     def _on_load_example(self, example_name):
-        """
-        Manipula o sinal da NavBar para carregar um projeto de exemplo.
-
-        Exibe confirmation dialog, se confirmado navega para módulo flowsheet
-        e tenta carregar dados de exemplo.
-
-        Parâmetros:
-        - example_name: Nome do exemplo a ser carregado
-        """
+        # Manipula solicitação de carregar projeto exemplo.
+        # Exibe confirmation dialog, se confirmado navega para flowsheet
+        # e tenta carregar dados do exemplo via load_example() do módulo.
         ans = QMessageBox.question(
             self,
             "Carregar Exemplo",
@@ -2188,21 +1883,11 @@ class MainApp(QMainWindow):
         if fw and hasattr(fw, "_inner"):
             fw._inner.load_example(example_name)
 
-    # ═══════════════════════════════════════════════════════════════════
-    #   BARRA DE MENUS
-    # ═══════════════════════════════════════════════════════════════════
-
     def _create_menu(self):
-        """
-        Cria a barra de menus da aplicação.
-
-        Menus criados:
-        - Arquivo: Novo, Abrir, Salvar, Salvar como, Exportar, Sair
-        - Módulos: Acesso direto a todos os módulos
-
-        Lógica: Aplica estilo baseado no tema atual, conecta ações aos métodos
-        correspondentes, associa atalhos de teclado.
-        """
+        # Cria menu bar com menus File e Modules.
+        # Menu File: Novo, Abrir, Salvar, Salvar como, Exportar (PNG/PDF), Ir para Início, Sair
+        # Menu Modules: Acesso direto a todos os 7 módulos
+        # Aplicação de tema: estilos qt para menus adaptam-se ao tema ativo.
         try:
             t = T()
             bw = t.get("border_width", 3)
@@ -2303,23 +1988,11 @@ class MainApp(QMainWindow):
 
         self.addActions([new_act, open_act, save_act, pdf_act])
 
-    # ═══════════════════════════════════════════════════════════════════
-    #   AÇÕES DE MÓDULO (EXPORT, ZOOM, HELP)
-    # ═══════════════════════════════════════════════════════════════════
-
     def _on_export(self, fmt):
-        """
-        Executa exportação do módulo atual para formato especificado.
-
-        Tenta múltiplas formas de obter a view para exportação:
-        1. Via BaseModule.get_view()
-        2. Via atributo get_view() direto
-        3. Via _inner.view
-        4. Via _inner.canvas
-
-        Parâmetros:
-        - fmt: Formato de exportação ('png' ou 'pdf')
-        """
+        # Exporta view do módulo atual para PNG ou PDF.
+        # Tentativas de obter view em ordem: BaseModule.get_view(), método direto,
+        # atributo _inner.view, atributo _inner.canvas.
+        # Se falhar, exibe mensagem de erro.
         mod = self._stack.currentWidget()
         if mod == self._welcome:
             QMessageBox.warning(
@@ -2350,14 +2023,9 @@ class MainApp(QMainWindow):
             )
 
     def _on_zoom_action(self, action):
-        """
-        Executa ação de zoom no módulo atual.
-
-        Parâmetros:
-        - action: Ação de zoom ('in', 'out', 'reset')
-
-        Lógica: Tenta primeiro no módulo atual, depois no _inner.
-        """
+        # Executa ação de zoom no módulo atual.
+        # Ação pode ser: "in", "out", "reset"
+        # Tenta primeiro no widget atual, depois no _inner se existir.
         mod = self._stack.currentWidget()
         if mod == self._welcome:
             return
@@ -2380,12 +2048,9 @@ class MainApp(QMainWindow):
             pass
 
     def _on_module_help(self):
-        """
-        Exibe diálogo de ajuda para o módulo atual.
-
-        Lógica: Se WelcomeScreen, exibe ajuda genérica.
-        Caso contrário, tenta obter help_text do módulo.
-        """
+        # Exibe diálogo QMessageBox com ajuda para módulo atual.
+        # Se WelcomeScreen, mostra ajuda genérica.
+        # Caso contrário, extrai help_text do módulo.
         mod = self._stack.currentWidget()
         if mod == self._welcome:
             QMessageBox.information(
@@ -2402,39 +2067,24 @@ class MainApp(QMainWindow):
         title = self.windowTitle().replace("PRO ENG - ", "")
         QMessageBox.information(self, f"Guia: {title}", help_txt)
 
-    # ═══════════════════════════════════════════════════════════════════
-    #   SINCRONIZAÇÃO DE PROJETO
-    # ═══════════════════════════════════════════════════════════════════
-
     def _sync_all_to_project(self):
-        """
-        Sincroniza estado de todos os módulos para o projeto atual.
-
-        Lógica: Itera por todos os módulos carregados e salva
-        seus estados no AppProject.
-        """
+        # Sincroniza estado de todos os módulos para AppProject.
+        # Itera por dicionário de módulos, chama get_state() se disponível,
+        # e atualiza project via update_module_state().
         for m_id, widget in self._modules.items():
             if hasattr(widget, "get_state"):
                 self.project.update_module_state(m_id, widget.get_state())
 
     def _sync_project_to_all(self):
-        """
-        Sincroniza estado do projeto para todos os módulos.
-
-        Lógica: Itera por todos os módulos e aplica estados
-        salvos no AppProject.
-        """
+        # Sincroniza estado do AppProject para todos os módulos.
+        # Itera por dicionário de módulos, chama set_state() com dados do projeto.
         for m_id, widget in self._modules.items():
             if hasattr(widget, "set_state"):
                 widget.set_state(self.project.get_module_state(m_id))
 
     def _new_project(self):
-        """
-        Cria novo projeto limpando estado atual.
-
-        Lógica: Confirma com usuário, cria novo AppProject,
-        limpa estados de todos os módulos, retorna para Welcome.
-        """
+        # Cria novo projeto: confirma com usuário, instancia novo AppProject,
+        # limpa estados de módulos, navega para WelcomeScreen.
         ans = QMessageBox.question(
             self,
             "Novo Projeto",
@@ -2450,12 +2100,9 @@ class MainApp(QMainWindow):
             self._navigate_to_module("welcome")
 
     def _save_project(self):
-        """
-        Salva projeto atual no arquivo existente.
-
-        Lógica: Sincroniza estados, verifica se tem arquivo,
-        salva ou redireciona para salvar como.
-        """
+        # Salva projeto atual no arquivo existente.
+        # Se não tem arquivo, redireciona para _save_project_as().
+        # Caso contrário, sincroniza estado, salva, atualiza título e barra de status.
         self._sync_all_to_project()
         if not self.project.has_file:
             self._save_project_as()
@@ -2472,12 +2119,8 @@ class MainApp(QMainWindow):
                 QMessageBox.critical(self, "Erro ao Salvar", str(e))
 
     def _save_project_as(self):
-        """
-        Salva projeto atual com novo nome via dialog.
-
-        Lógica: Sincroniza estados, abre QFileDialog para escolher
-        localização, adiciona extensão .proeng se necessário.
-        """
+        # Salva projeto com novo nome via QFileDialog.getSaveFileName().
+        # Adiciona extensão .proeng se necessária, sincroniza estados antes de salvar.
         self._sync_all_to_project()
         path, _ = QFileDialog.getSaveFileName(
             self, "Salvar Projeto Como", "", "Projeto PRO ENG (*.proeng)"
@@ -2495,12 +2138,10 @@ class MainApp(QMainWindow):
                 QMessageBox.critical(self, "Erro ao Salvar", str(e))
 
     def _open_project(self):
-        """
-        Abre projeto existente via dialog.
-
-        Lógica: Abre QFileDialog, carrega arquivo de projeto,
-        cria todos os módulos, sincroniza estados, navega para flowsheet.
-        """
+        # Abre projeto existente via QFileDialog.getOpenFileName().
+        # Carrega arquivo, cria todos os módulos via lazy loading,
+        # sincroniza estados do projeto para módulos, navega para flowsheet,
+        # exibe mensagem de sucesso.
         path, _ = QFileDialog.getOpenFileName(
             self, "Abrir Projeto", "", "Projeto PRO ENG (*.proeng)"
         )
@@ -2528,22 +2169,11 @@ class MainApp(QMainWindow):
                     self, "Erro ao Abrir", f"Erro carregando o arquivo: {str(e)}"
                 )
 
-    # ═══════════════════════════════════════════════════════════════════
-    #   CONTROLE DE UI
-    # ═══════════════════════════════════════════════════════════════════
-
     def _get_or_create_module(self, module_name):
-        """
-        Factory method para obter ou criar módulo.
-
-        Implementa lazy loading - módulos são criados apenas quando necessários.
-
-        Parâmetros:
-        - module_name: Nome do módulo a obter/criar
-
-        Retorna:
-        - Widget do módulo solicitado
-        """
+        # Factory method: obtém módulo existente ou cria novo (lazy loading).
+        # Se "welcome", retorna _welcome.
+        # Caso contrário, cria novo widget via builders dict, adiciona ao stack,
+        # aplica stylesheet bg_app, sincroniza estado do projeto se disponível.
         if module_name == "welcome":
             self._stack.setCurrentWidget(self._welcome)
             return self._welcome
@@ -2569,30 +2199,17 @@ class MainApp(QMainWindow):
         return self._modules[module_name]
 
     def _toggle_theme_action(self):
-        """
-        Alterna entre temas disponíveis.
-
-        Lógica: Chama cycle_theme() do módulo de temas,
-        depois executa refresh completo da UI.
-        """
+        # Alterna entre temas disponíveis via cycle_theme().
+        # Dispara atualização completa da UI via _on_theme_toggle_refresh().
         from proeng.core.themes import T, cycle_theme
 
         cycle_theme()
         self._on_theme_toggle_refresh()
 
     def _on_theme_toggle_refresh(self):
-        """
-        Atualiza toda a UI após mudança de tema.
-
-        Lógica: Propaga atualização para:
-        1. WelcomeScreen
-        2. NavBar
-        3. Todos os módulos (estilo base)
-        4. refresh_theme() de cada módulo
-        5. Todos os children widgets
-        6. QGraphicsView backgrounds
-        7. QListWidget palettes
-        """
+        # Atualiza toda a UI após mudança de tema.
+        # Propaga atualização para: WelcomeScreen, NavBar, todos os módulos,
+        # views gráficas, widgets listados. Executa refresh_theme() se disponível.
         self._setup_palette()
         t = T()
 
@@ -2633,12 +2250,10 @@ class MainApp(QMainWindow):
                         pass
 
     def _setup_palette(self):
-        """
-        Configura paleta de cores global e estilosheet da aplicação.
-
-        Lógica: Aplica QPalette do sistema com cores do tema atual,
-        depois define estilosheet global abrangente para todos os widgets.
-        """
+        # Configura QPalette global com cores do tema atual e stylesheet global abrangente.
+        # Define paleta do sistema (Window, Text, Button, Highlight, etc).
+        # Depois aplica stylesheet Qt com estilos para: lineEdits, scrollbars, tooltips,
+        # menus, comboboxes, tables, checkboxes, buttons, sliders, dialogs, tabs.
         t = T()
         p = QPalette()
         p.setColor(QPalette.Window, QColor(t["bg_app"]))
@@ -2917,16 +2532,13 @@ class MainApp(QMainWindow):
 
 
 if __name__ == "__main__":
-    """
-    Ponto de entrada principal da aplicação.
-    
-    Lógica:
-    1. Cria QApplication instance
-    2. Define estilo Fusion (base)
-    3. Cria instância MainApp
-    4. Exibe maximizado
-    5. Executa loop de eventos
-    """
+    # Ponto de entrada da aplicação.
+    # Lógica:
+    # 1. Cria instância QApplication (gerenciador do ciclo de eventos Qt)
+    # 2. Define estilo Fusion como base (cross-platform)
+    # 3. Cria instância MainApp (janela principal)
+    # 4. Exibe janela maximizada
+    # 5. Inicia loop de eventos (app.exec_())
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     w = MainApp()

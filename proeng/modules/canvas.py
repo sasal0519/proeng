@@ -1,5 +1,51 @@
 # -*- coding: utf-8 -*-
-"""Módulo PM Canvas — Project Model Canvas (Finocchio)."""
+"""
+Módulo PM Canvas — Project Model Canvas (Finocchio Business Model Canvas)
+
+Responsabilidades:
+- Criar visual 3×3 canvas (grid de 9 células) para modelagem de negócio
+- Células: Cliente (Customer Value), Receita (Revenue Streams), Recursos
+  (Key Resources), Atividades (Key Activities), Parcerias (Key Partnerships),
+  Relacionamento (Customer Relationship), Canais (Channels), Estrutura de Custo
+  (Cost Structure), Vantagem Competitiva (Value Proposition)
+- Cada célula contém múltiplos "post-its" (blocos de texto) para descrever elementos
+- Renderização: Grid 3×3 com layouts geométricos fixos; seções com cabeçalhos,
+  ícones descritivos e botão agregador (+) para adicionar itens
+- Editor inline: Flutuante multi-linha QTextEdit para editar conteúdo de blocos
+- Persistência: Serialização JSON de blocos por seção
+
+Arquitetura:
+- CanvasSignals: PubSub para eventos (add_block, delete_block, edit_block, commit_block)
+- CanvasFloatingEditor: QWidget flutuante com QTextEdit para edição de conteúdo
+- draw_canvas_icon(): Renderiza 9 ícones especializados (svn, stk, eqp, prem, ent, rest, risc, tmp, cst)
+- CanvasSectionFixed: QGraphicsItem para cabeçalho de seção (seção de 9 células do canvas)
+  * Título, subtítulo, ícone visual
+  * Botão (+) para adicionar novo bloco
+  * Hover feedback visual
+- CanvasBlockSolid: QGraphicsItem para post-it individual dentro de seção
+  * Texto editável em linha
+  * Botão (-) para deletar
+  * Estados visual (normal, hover, selecionado)
+- PMCanvasWidget: Canvas principal com QGraphicsScene + 9 seções
+  * Gerencia layout geométrico:
+  * draw_board(): Organiza grid 3×3 com células em posições fixas
+  * Layout seção: Blocos em fluxo horizontal com conexões visuais
+  * Zoom com QGraphicsView
+- _CanvasModule: Adaptador BaseModule com persistência JSON
+
+Fluxo de Renderização:
+1. PMCanvasWidget.__init__() cria 9 seções com metadados (título, icon, posição)
+2. draw_board() renderiza grid:
+   a. Cria grid_geo: Dicionário de posições (x, y, w, h) para cada seção
+   b. Para cada seção: CanvasSectionFixed + blocos filhos (CanvasBlockSolid)
+   c. Blocos em fluxo horizontal com conexão visual (linhas + setas)
+3. _float_editor.open() abre editor para bloco selecionado
+
+Conceitos-chave:
+- Canvas 3×3: Cada célula representa um pilar do modelo de negócio
+- Blocos (PIDs): Post-its com conteúdo; ID = "b_N" onde N é índice
+- Seções: Agrupamento de 9 células com ícones e títulos únicas
+- Layout: Grid geométrico fixo; blocos fluem em colunas X linhas
 
 import sys
 from PyQt5.QtWidgets import (
@@ -68,14 +114,37 @@ import math as _math
 
 
 class CanvasSignals(QObject):
-    add_block = pyqtSignal(str)
-    delete_block = pyqtSignal(str)
-    edit_block = pyqtSignal(str)
-    commit_block = pyqtSignal(str, str)
+    """
+    PubSub para eventos de manipulação do PM Canvas.
+    Sinais emitidos por CanvasSectionFixed e CanvasBlockSolid.
+    """
+    # Adicionar novo bloco em seção
+    add_block = pyqtSignal(str)  # sec_id
+    # Deletar bloco existente
+    delete_block = pyqtSignal(str)  # pid (post-it ID)
+    # Iniciar edição de bloco
+    edit_block = pyqtSignal(str)  # pid
+    # Confirmar edição de bloco
+    commit_block = pyqtSignal(str, str)  # pid, novo_texto
 
 
 class CanvasFloatingEditor(QWidget):
-    """Editor flutuante multi-linha para o PM Canvas."""
+    """
+    Editor flutuante multi-linha para editação inline de blocos do PM Canvas.
+    
+    Renderiza:
+    - QTextEdit flutuante posicionado sobre bloco selecionado
+    - Estilo matching tema com borda accent_bright
+    - Campo text-wrap automático
+    
+    Ciclo de Vida:
+    - open(pid, text, scene_rect, view): Abre editor sobre bloco
+    - keyPressEvent: Return/Ctrl+Enter confirma; Escape reverte
+    - focusOutEvent: Confirma automaticamente
+    
+    Sinais:
+    - committed.emit(pid, novo_texto): Emitido ao salvar
+    """
 
     committed = pyqtSignal(str, str)
 
@@ -158,6 +227,25 @@ class CanvasFloatingEditor(QWidget):
 
 
 def draw_canvas_icon(painter, icon_name, rect):
+    """
+    Renderiza ícones especializados para seções do PM Canvas.
+    
+    Ícones suportados (sem preenchimento SVG):
+    - 'svn': Seta curvada (Value) - representa fluxo de valor
+    - 'stk': Círculo + arco (Stakeholder) - partes interessadas
+    - 'eqp': Três círculos + arcos (Equipment) - recursos materiais
+    - 'prem': Três círculos + linha (Premises) - premissas fundamentais
+    - 'ent': Três retângulos horizontais (Entities) - entidades
+    - 'rest': Círculo + linha cruzada (Restriction) - restrição/limite
+    - 'risc': Círculo + retângulo + seta (Risk) - risco
+    - 'tmp': Três círculos + linhas conectoras (Timeline) - horizonte temporal
+    - 'cst': Texto "$$$"" (Cost) - custo/despesa
+    
+    Parámetros:
+    - painter: QPainter para renderizar
+    - icon_name: str nome do ícone ('svn', 'stk', etc.)
+    - rect: QRectF área para desenhar o ícone
+    """
     painter.save()
     painter.setRenderHint(QPainter.Antialiasing)
     painter.setPen(QPen(QColor(_c("text")), 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
@@ -252,7 +340,30 @@ def draw_canvas_icon(painter, icon_name, rect):
 
 
 class CanvasSectionFixed(QGraphicsItem):
-    def __init__(self, sec_id, rect, title, subtitle, icon, signals, zoom):
+    """
+    QGraphicsItem para cabeçalho de seção do PM Canvas (9 células principais).
+    
+    Renderiza:
+    - Retângulo arredondado com strip accent no topo (hover-sensitive)
+    - Ícone descritivo (tamanho 42px)
+    - Título em bold + subtítulo em accent (word-wrapped)
+    - Botão (+) central para adicionar novo bloco (interativo no hover)
+    - Suporte para tema NB (Notebook) com renderização especial
+    
+    Interação:
+    - Hover: Mostra botão (+); muda cor de fundo
+    - Clique botão (+): Emite add_block signal
+    - Duplo clique: Tentativa de edição de bloco filho (delegado)
+    
+    Parámetros:
+    - sec_id: str ID de seção (ex: 'cv', 'rs', 'kr')
+    - rect: QRectF posição e tamanho da seção
+    - title: str título da seção (ex: "Customer Value Proposition")
+    - subtitle: str lábel menor (ex: "Solve customer problems")
+    - icon: str nome do ícone (ex: 'svn')
+    - signals: CanvasSignals para emitência
+    - zoom: float fator de escala de renderização
+    """
         super().__init__()
         self.sec_id = sec_id
         self.w, self.h = rect.width(), rect.height()
@@ -384,7 +495,27 @@ class CanvasSectionFixed(QGraphicsItem):
 
 
 class CanvasBlockSolid(QGraphicsItem):
-    def __init__(self, pid, text, signals, zoom):
+    """
+    QGraphicsItem para bloco individual (post-it) dentro de seção do PM Canvas.
+    
+    Renderiza:
+    - Retângulo arredondado com cor tema (bg_card ou bg_card2)
+    - Texto em word-wrap (Segoe UI 12pt bold)
+    - Botão (-) no hover para deletar
+    - Seleção visualização com borda accent_bright
+    - Sombra sutil ao redor (z-value=10)
+    
+    Interação:
+    - Duplo clique: Emite edit_block signal para abrir float_editor
+    - Clique botão (-) no hover: Emite delete_block signal
+    - Hover: Mostra botão (-); muda cor de fundo
+    
+    Parámetros:
+    - pid: str ID de post-it (ex: "b_0", "b_1")
+    - text: str conteúdo do post-it
+    - signals: CanvasSignals para emitência
+    - zoom: float fator de escala
+    """
         super().__init__()
         self.pid = pid
         self.text = text
@@ -495,6 +626,36 @@ class CanvasBlockSolid(QGraphicsItem):
 
 
 class PMCanvasWidget(QWidget):
+    """
+    Widget principal para Project Model Canvas com grid 3×3 interativo.
+    
+    Responsabilidades:
+    - Gerenciar 9 seções do PM Canvas (Customer Value, Revenue, Key Resources, etc.)
+    - Armazenar blocos (post-its) organizados por seção
+    - Renderizar layout geométrico fixo com QGraphicsScene
+    - Orquestra interações: adicionar bloco, editar, deletar
+    - Zoom suportado via QGraphicsView
+    - Serializar/desserializar estado JSON
+    
+    Estado Interno:
+    - self.sections: dict[sec_id, list[{id: pid, text: ...}]]
+    - self.blocks_items: dict[pid, CanvasBlockSolid] (cache de itens gráficos)
+    - self.next_pid: Contador para IDs de novos blocos
+    - self.zoom: float fator de zoom
+    
+    Pipeline de Renderização (draw_board()):
+    1. grid_geo: Calcula posições 3×3 para seções
+    2. Para cada seção:
+       a. CanvasSectionFixed (cabeçalho com ícone e título)
+       b. Blocos em fluxo horizontal com conexões (linhas + setas)
+    3. layout() dentro de seção: Blocos em colunas com espaçamento
+    4. Título rodapé "Project Model Canvas" no canto inferior direito
+    
+    Estrutura Grid 3×3:
+    Linha 1: Customer Value | Key Resources | Value Proposition
+    Linha 2: Customer Relationship | Key Activities | Revenue Streams
+    Linha 3: Channels | Cost Structure | Key Partnerships
+    """
     def __init__(self):
         super().__init__()
         self.signals = CanvasSignals()
@@ -581,6 +742,19 @@ class PMCanvasWidget(QWidget):
             self.zoom_in() if event.angleDelta().y() > 0 else self.zoom_out()
 
     def _draw_board(self):
+        """
+        Orquestra renderização completa do canvas 3×3.
+        
+        Algoritmo:
+        1. grid_geo: Dict com posições X Y W H de cada seção
+        2. Para cada seção:
+           a. CanvasSectionFixed (cabeçalho)
+           b. Layout blocos em fluxo horizontal (word-wrap)
+           c. Linhas conectoras entre blocos consecútivos
+        3. Título rodapé centralizado
+        
+        Resultado: Scene pronta para visualização em QGraphicsView
+        """
         self.scene.clear()
         self.blocks_items.clear()
         z = self.zoom_level
@@ -686,6 +860,15 @@ class PMCanvasWidget(QWidget):
         )
 
     def _on_add_block(self, sec_id):
+        """
+        Cria novo bloco em seção especificada.
+        
+        Etapas:
+        1. Gera ID novo (b_N) incrementando counter
+        2. Insere bloco vazio em self.sections[sec_id]
+        3. Redesenha canvas
+        4. Abre editor flutuante para entrada de texto (com delay)
+        """
         pid = f"b_{self.next_pid}"
         self.next_pid += 1
         self.sections[sec_id].append({"id": pid, "text": ""})
@@ -693,6 +876,11 @@ class PMCanvasWidget(QWidget):
         QTimer.singleShot(60, lambda: self._on_edit_block(pid))
 
     def _on_delete_block(self, pid):
+        """
+        Deleta bloco por ID.
+        
+        Busca e remove bloco em todas as seções, redesenhando o canvas.
+        """
         for sec_id, blocks in self.sections.items():
             for i, b in enumerate(blocks):
                 if b["id"] == pid:
@@ -701,6 +889,11 @@ class PMCanvasWidget(QWidget):
                     return
 
     def _on_edit_block(self, pid):
+        """
+        Abre editor flutuante para edição de bloco.
+        
+        Busca item gráfico correspondente e abre float_editor sobre ele.
+        """
         if pid in self.blocks_items:
             p_item = self.blocks_items[pid]
             self._float_editor.open(
@@ -708,6 +901,11 @@ class PMCanvasWidget(QWidget):
             )
 
     def _on_commit_block(self, pid, text):
+        """
+        Salva texto editado de bloco.
+        
+        Busca bloco por ID e atualiza conteúdo; redesenha canvas.
+        """
         for sec_id, blocks in self.sections.items():
             for b in blocks:
                 if b["id"] == pid:
@@ -716,11 +914,33 @@ class PMCanvasWidget(QWidget):
                     return
 
     def _export_scene(self, fmt):
+        """
+        Exporta canvas em formato especificado (PNG, SVG, PDF).
+        
+        Parámetros:
+        - fmt: str formato ('png', 'svg' ou 'pdf')
+        
+        Delega para _export_view() da utilitário.
+        """
         _export_view(self.view, fmt, self)
 
 
 class _CanvasModule(BaseModule):
-    def __init__(self):
+    """
+    Adaptador BaseModule para PM Canvas integração em ProEng.
+    
+    Responsabilidades:
+    - Wrapper do PMCanvasWidget com interface padrão BaseModule
+    - Gerencia zoom (reset_zoom, zoom_in, zoom_out)
+    - Persistência JSON via get_state/set_state
+    - Integração com sistema de temas
+    
+    Métodos BaseModule:
+    - get_state(): Retorna {schema: 'canvas.v1', sections, next_pid}
+    - set_state(state): Restaura estado anterior com validação
+    - get_view(): Retorna QGraphicsView para renderização
+    - refresh_theme(): Reconecta cores de tema após mudança
+    """
         super().__init__()
         self._inner = PMCanvasWidget()
         _hide_inner_toolbar(self._inner)

@@ -1,5 +1,59 @@
 # -*- coding: utf-8 -*-
-"""Módulo PFD Flowsheet — Diagrama de processo industrial."""
+"""
+Módulo PFD Flowsheet — Diagrama de Processo Industrial (Process Flowsheet P&ID)
+
+Responsabilidades:
+- Criar diagrama de processo com equipamentos industriais (bombas, reátores, torres, etc.)
+- ~100 tipos de equipamentos com símbolos customizados (renderização SVG-style com QPainter)
+- Conexões entre equipamentos (tubulação) com fluxos de massa e composição
+- Editor avançado de correntes: vazao mássica, percentuais, composição de componentes
+- Balanço de massa: Cálculo de distribuição de componentesem splitters
+- Terminais (Source/Sink): Fluxos de entrada e saída externos
+- Junções (T-junctions): Nós de mistura/divisão de correntes
+- Persistência: Serialização JSON de equipamentos, conexões, e dados de fluxo
+
+Arquitetura:
+- INDUSTRIAL_COMPONENTS: Lista de ~200 tipos de subs.tâncias químicas
+- EQUIPMENT_ALIASES: Mapeamento de aliases descritivos para tipos internos
+- draw_equipment(): Renderiza 100+ símbolos de equipamento (sem preenchimento SVG)
+- TerminalConfigDialog: Diálogo para criar Source/Sink com tipo + nome
+- StreamEditorDialog: Editor avançado com tabela de componentes, vazão, %
+- EquipmentEditorDialog: Configuração deEquipmentNode (nome, tamanho, split mode)
+- ConnectorPort: Ponto de conexão redondo em cada nó (visibilidade toggleada em hover)
+- SourceSinkHandle: Nó especial para fluxos externos (Entrada ou Saída)
+- JunctionNode: Nó de mistura minimalistico para dividir/misturar correntes
+- ProcessNode (alias EquipmentNode): QGraphicsItem principal para equipamentos
+  * Renderiza síbolo do equipamento com "+" sobre ele
+  * Puerta: 12 portas di nétrica (top_1/2/3, bottom_1/2/3, left_1/2/3, right_1/2/3)
+  * Armazena split_config para controlar divisão de componentes em saídas
+  * Editor duplo clique: Abre EquipmentEditorDialog
+- Edge (alias FlowLine): QGraphicsPathItem para tubulação
+  * Roteamento ortogonal (L-shaped): Acompanha direcão das portas
+  * flow_data: {componente: vazão_kg/h}
+  * pipe_name: Nome da corrente (Vapor, MP-01, etc.)
+- SymbolPalette: QToolBox com 9 categorias de equipamentos + ícones
+- FlowsheetCanvas: QGraphicsView com drag-drop de equipamentos
+  * Connection Mode: Clique em porta + clique em outra porta/edge/vazio
+  * Suporta T-junction: Clique em edge existente para inserir nó de mistura
+- FlowsheetWidget: Canvas principal com tabela de resultados, botões de cálculo/export
+  * solve_mass_balance(): Balanço de massa global
+  * export_to_excel(): Exporta equipamentos e correntes para Excel
+- _FlowsheetModule: Adaptador BaseModule com persistência
+
+Fluxo de Conexão (FlowsheetCanvas):
+1. Clique em ConnectorPort de equipamento A
+2. Arraste linha em L-shape em tempo real
+3. Solte em:
+   a. Porta de equipamento B → Cria Edge; abre StreamEditorDialog
+   b. EdgeExistente → Insere JunctionNode; cria 2 novos Edges + lég adicional
+   c. Vazio → Abre TerminalConfigDialog para criar Source/Sink
+
+Conceitos-chave:
+- P&ID: Piping & Instrumentation Diagram padrão industrial
+- Roteamento Ortogonal: Linhas seguem direção das portas (top/bottom/left/right)
+- Split Mode: Cada componente pode ser dividido por % ou vazão fixa em saídas
+- Balanço de Massa: Cálculo node-by-node com erros de fechamento
+- Zoo: Escala de renderização para PFD completo em canvas
 
 import sys
 import math
@@ -300,7 +354,16 @@ from PyQt5.QtWidgets import QDialog, QComboBox, QFormLayout, QDialogButtonBox
 
 
 class TerminalConfigDialog(QDialog):
-    """Diálogo industrial para escolher Tipo e Nome do fluxo."""
+    """
+    Diálogo industrial para criar Source ou Sink (entrada/saída de processo).
+    
+    Campos:
+    - Tipo de Fluxo: Combo com "Entrada" ou "Saída"
+    - Nome do Fluxo: QLineEdit para designação de corrente (Vapor, MP-01, etc.)
+    
+    Resultado:
+    - get_values(): Retorna (tipo, nome)
+    """
 
     def __init__(self, parent=None, suggested_type="Saída"):
         super().__init__(parent)
@@ -730,6 +793,31 @@ EQUIPMENT_ALIASES = {
 
 
 def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
+    """
+    Renderiza símbolos de equipamento industrial em estilo SVG (sem preenchimento).
+    
+    Símbolos: 100+ tipos incluindo:
+    - Armazenamento: Vaso, Silo, Tanque, Esfera
+    - Movimento: Bomba, Compressor, Soprador, Turbina
+    - Troca Térmica: Trocador, Forno, Caldeira  
+    - Transformação: Reator, Misturador, Moinho Britador
+    - Separação: Torre/Coluna, Filtro, Separador
+    - Controle: Válvula (6 tipos), PSV, Flare
+    - Usa alicases para normalizar nomes (Bomba Centrífuga → Bomba)
+    
+    Renderização:
+    - Sem preenchimento (apenas pen e linha)
+    - Lõgica condicional para cada shape (círculos, retângulos, polígonos, arcos)
+    - Suporte para tema (colors de pen, background)
+    - Ícones 40x40px para paleta
+    
+    Parámetros:
+    - painter: QPainter para renderizar
+    - symbol_type: str nome do equipamento
+    - size: float diâmetro ou altura do síbolo
+    - is_icon: bool True se renderizando ícon (pen mais fino)
+    - theme: dict T() do sistema de tema ou THEMES["dark"] fallback
+    """
     s = size / 2
     if theme is None:
         try:
@@ -1336,7 +1424,23 @@ def draw_equipment(painter, symbol_type, size, is_icon=False, theme=None):
 
 
 class ConnectorPort(QGraphicsEllipseItem):
-    def __init__(self, node, port_id):
+    """
+    Ponto de conexão redondo em cada equipamento para iniciar/terminar tubulação.
+    
+    Renderização:
+    - Elipse pequena (10px diamante) invísvel por padrão
+    - Fica visível quando pai (ProcessNode) é hovered
+    - Muda cor em hover (accent → accent_bright)
+    - Curseur de mira (CrossCursor)
+    
+    Interação:
+    - mousePressEvent: Inicia mode="PortConnect" na view
+    - view.start_connection(self) comuta para connection mode
+    
+    Parámetros:
+    - node: ProcessNode ou JunctionNode ou SourceSinkHandle pai
+    - port_id: str ID da porta (ex: "right_1", "top_2", "tip")
+    """
         super().__init__(-5, -5, 10, 10, node)
         self.node = node
         self.port_id = port_id
@@ -1366,7 +1470,23 @@ class ConnectorPort(QGraphicsEllipseItem):
 
 
 class SourceSinkHandle(QGraphicsItem):
-    """Ponta de seta independente (Source/Sink) que não depende de equipamentos."""
+    """
+    Nó especial para representar fonte ou sumidouro de processo externo.
+    
+    Renderiza:
+    - Não renderiza nada visualmente (paint vazio)
+    - Apenas a extremidade da seta (Edge) é visível
+    - Nenhum síbolo especial; apenas nó de conexão
+    
+    Interação:
+    - Movível e selecionável
+    - Menu: Renomear terminal, Deletar
+    - itemChange: Ajusta edges quando movido
+    
+    Parámetros:
+    - h_type: str "Entrada" ou "Saída"
+    - flow_name: str designação (Vapor, MP-01, etc.)
+    """
 
     def __init__(self, h_type="Saída", flow_name=""):
         super().__init__()
@@ -1426,7 +1546,27 @@ class SourceSinkHandle(QGraphicsItem):
 
 
 class JunctionNode(QGraphicsEllipseItem):
-    """Nó de interconexão minimalista para T-junctions entre tubulações."""
+    """
+    Nó de interconexão minimalista para T-junctions (divisão/mistura de correntes).
+    
+    Renderiza:
+    - Círculo pequeno (12px dia")metro) com cor accent
+    - Ponto central quando selecionado (accent_bright)
+    - Sem nenhum detalhe à aproés
+    
+    Interação:
+    - Movível e selecionável
+    - Menu: Deletar nó (remove todas as edges conectadas)
+    - Botão direito: 🗑 Excluir Junção
+    - itemChange: Ajusta edges quando movido
+    
+    Armazenamento de Dados:
+    - edges: list[Edge] tubulações conectadas
+    - ports: dict com "tip" (porta de conexão)
+    - stored_components: dict [comp: massa] para balanço de massa
+    - total_input/output: Rastreamento para validação
+    - mass_balance_error: Erro de fechamento do nó
+    """
 
     def __init__(self):
         super().__init__(-6, -6, 12, 12)
@@ -1486,7 +1626,33 @@ class JunctionNode(QGraphicsEllipseItem):
 
 
 class Edge(QGraphicsPathItem):
-    def __init__(self, source_node, dest_node, source_port="right", dest_port="left"):
+    """
+    Line de tubulação (conexão) entre dois nós com roteamento ortogonal L-shaped.
+    
+    Renderiza:
+    - QPainterPath com roteamento inteligente:
+      * Saída do nó origem na direção da porta (top/bottom/left/right)
+      * Linha ortogonal (L-shape ou Z-shape)
+      * Entrada no nó destino na direção da porta
+    - Seta na extremidade final (triângulo sólido)
+    - Rótulo de corrente (pipe_name) no meio
+    - Seleção visual com cor accent_bright
+    - Menu: Editar corrente, Deletar
+    
+    Dados de Fluxo:
+    - flow_data: dict {comp: vazão_kg/h} composição da corrente
+    - pipe_name: str nome da corrente (Vapor, MP-01, etc.)
+    
+    Métodos:
+    - adjust(): Recalcula o caminho quando nós se movem
+    - contextMenuEvent: Editor de corrente ou deletar
+    
+    Parâmetros:
+    - source_node: ProcessNode, SourceSinkHandle ou JunctionNode
+    - dest_node: ProcessNode, SourceSinkHandle ou JunctionNode
+    - source_port: str ID da porta no nó origem
+    - dest_port: str ID da porta no nó destino
+    """
         super().__init__()
         self.source_node = source_node
         self.dest_node = dest_node
@@ -1676,6 +1842,33 @@ class Edge(QGraphicsPathItem):
 
 
 class ProcessNode(QGraphicsItem):
+    """
+    Equipamento industrial no diagrama (QGraphicsItem polimórfico com 100+ formas).
+    
+    Renderiza:
+    - Síbolo do equipamento derivado de symbol_type na área central
+    - Nome persistente que quebra em múltiplas linhas abaixo do síbolo
+    - 12 portas: top_1/2/3, bottom_1/2/3, left_1/2/3, right_1/2/3
+    - Botões de ação no hover (aumento/diminuição de tamanho)
+    - Indicador visual quando selecionado (cor accent_bright, borda pontilhada)
+    - Dados de balanço de massa (stored_components, total_in/out, erro)
+    
+    Configuração:
+    - custom_name: str nome customizado do equipamento
+    - size: float diâmetro/altura da renderização
+    - split_config: dict para controlar divisão de componentes EM Splitters
+    - edges: list[Edge] conexões de tubulação
+    - ports: dict[str, ConnectorPort] 12 portas
+    
+    Interação:
+    - Duplo clique: Abre EquipmentEditorDialog
+    - Botão direito: Menu com Editar desempenho ou Deletar
+    - Arrastável: Atualiza edges automaticamente
+    - Hover: Mostra portas e botões de ação
+    
+    Parâmetros:
+    - symbol_type: str tipo de equipamento (ex: "Bomba Centrífuga")
+    """
     def __init__(self, symbol_type):
         super().__init__()
         self.symbol_type = symbol_type
@@ -1929,6 +2122,27 @@ class SymbolListWidget(QListWidget):
 
 
 class SymbolPalette(QToolBox):
+    """
+    Paleta de equipamentos industrial com 9 categorias + ícones.
+    
+    Categorias:
+    1. Geral: Filtro, Peneira, Separador, Clarificador, Secador
+    2. Armazenamento: Tanque, Vaso, Esfera, Silo
+    3. Movimentação: Bomba, Compressor, Soprador, Turbina, Transportadores
+    4. Troca Térmica: Trocador, Forno, Caldeira, Torre, Evaporador
+    5. Transformação: Reator, Leito fluidizado, Misturador, Moinho
+    6. Separação: Torres, Colunas, Cristalizador, Filtro Prensa
+    7. Instrumentação: Transmissores (P, T, V, N), Analisadores
+    8. Controles: Válvulas, PSV, Flare, Chaminé
+    9. (Adicionar conforme necessário)
+    
+    Ícones:
+    - 50x50px gerados dinamicamente via draw_equipment()
+    - Atualizar no refresh_theme()
+    
+    Drag-Drop:
+    - Arraste item para canvas cria novo ProcessNode
+    """
     def __init__(self):
         super().__init__()
         self.categories = {
@@ -2077,7 +2291,29 @@ class SymbolPalette(QToolBox):
 
 
 class FlowsheetCanvas(QGraphicsView):
-    def __init__(self, scene):
+    """
+    View gráfica para canvas industrial com suporte a drag-drop e conexão.
+    
+    Modos:
+    - "Move": Seleção, movimento de nós, zoom
+    - "PortConnect": Conectando portas; renderiza linha em tempo real
+    
+    Drag-Drop:
+    - Aceita items da SymbolPalette (mime type application/x-pfd-item)
+    - Cria novo ProcessNode no ponto de queda
+    
+    Conexão (FlowsheetCanvas.mouseReleaseEvent):
+    1. Clique porta A → Inicia PortConnect mode + temp_line
+    2. Move para porta B → Dialog Stream de composição
+    3. Move para Edge existente → Insere JunctionNode + 3 Edges
+    4. Move para vazio → Dialog Terminal (Source/Sink)
+    
+    Métodos:
+    - start_connection(port): Inicia mode PortConnect
+    - _get_outlet_flow_data(node): Recupera flow_data prethetical para nova corrente
+    - solve_mass_balance(): Cálculo de balanço de massa node-by-node
+    - export_to_excel(): Exporta equipamentos + correntes para árbul
+    """
         super().__init__(scene)
         self.setRenderHint(QPainter.Antialiasing)
         self.setAcceptDrops(True)
@@ -2361,7 +2597,31 @@ class FlowsheetCanvas(QGraphicsView):
 
 
 class FlowsheetWidget(QWidget):
-    def __init__(self):
+    """
+    Widget principal para diagrama de processo industrial (PFD).
+    
+    Layout:
+    - Toolbar: Botões de controle (Equipamentos, Calcular, Exportar)
+    - Splitter H: Paleta de equipamentos (esquerda) + Canvas (direita)
+    - Tabela de resultados: Grid com dados de balanço de massa
+    
+    Funcionalidades:
+    - Canvas interativo com drag-drop de equipamentos
+    - Conexão de correntes com roudeamento ortogonal
+    - Editor avançado de correntes (composição, vazão)
+    - Cálculo de balanço de massa global
+    - Exportação para Excel (equipamentos + correntes + resultados)
+    - Integração com sistema de tema
+    
+    Estado:
+    - global_components: list ~200 substâncias químicas
+    - Equipamentos, conexões, dados de fluxo em self.scene
+    
+    Métodos:
+    - solve_mass_balance(): Cálculo iterativo node-by-node
+    - export_to_excel(): Exporta para arquivo .xlsx
+    - refresh_theme(): Atualiza cores após mudança de tema
+    """
         super().__init__()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -3442,6 +3702,27 @@ class FlowsheetWidget(QWidget):
 
 
 class _FlowsheetModule(BaseModule):
+    """
+    Adaptador BaseModule para integração do PFD Flowsheet em ProEng.
+    
+    Responsabilidades:
+    - Wrapper do FlowsheetWidget com interface padrão BaseModule
+    - Gerencia zoom (reset_zoom, zoom_in, zoom_out)
+    - Persistência JSON via get_state/set_state
+    - Integração com sistema de temas
+    - Exporta diagrama para formatos suportados
+    
+    Métodos BaseModule:
+    - get_state(): Retorna {schema: 'flowsheet.v1', nodes, edges, ...}
+    - set_state(state): Restaura estado anterior (equipamentos + conexões)
+    - get_view(): Retorna QGraphicsView para renderização
+    - refresh_theme(): Reconecta cores de tema após mudança
+    
+    API de Zoom:
+    - reset_zoom(): Volta a 1.0 (100%)
+    - zoom_in(): Incrementa fator de zoom
+    - zoom_out(): Decrementa fator de zoom
+    """
     def __init__(self):
         super().__init__()
         self._inner = FlowsheetWidget()
