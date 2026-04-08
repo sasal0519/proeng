@@ -62,37 +62,37 @@ graph TB
     PDCA -.implementa.-> BaseModule
     Script -.implementa.-> BaseModule
     
-    Gantt -->|get_state/set_state| Project
-    Flowsheet -->|get_state/set_state| Project
-    BPMN -->|get_state/set_state| Project
-    EAP -->|get_state/set_state| Project
-    Canvas -->|get_state/set_state| Project
-    W5H2 -->|get_state/set_state| Project
-    Ishikawa -->|get_state/set_state| Project
-    Kanban -->|get_state/set_state| Project
-    Scrum -->|get_state/set_state| Project
-    PDCA -->|get_state/set_state| Project
-    Script -->|get_state/set_state| Project
+    Gantt -->|state persistence| Project
+    Flowsheet -->|state persistence| Project
+    BPMN -->|state persistence| Project
+    EAP -->|state persistence| Project
+    Canvas -->|state persistence| Project
+    W5H2 -->|state persistence| Project
+    Ishikawa -->|state persistence| Project
+    Kanban -->|state persistence| Project
+    Scrum -->|state persistence| Project
+    PDCA -->|state persistence| Project
+    Script -->|state persistence| Project
     
-    Gantt -->|T()| Themes
-    Flowsheet -->|T()| Themes
-    BPMN -->|T()| Themes
-    EAP -->|T()| Themes
-    Canvas -->|T()| Themes
-    W5H2 -->|T()| Themes
-    Ishikawa -->|T()| Themes
-    Kanban -->|T()| Themes
-    Scrum -->|T()| Themes
-    PDCA -->|T()| Themes
-    Script -->|T()| Themes
+    Gantt -->|T function| Themes
+    Flowsheet -->|T function| Themes
+    BPMN -->|T function| Themes
+    EAP -->|T function| Themes
+    Canvas -->|T function| Themes
+    W5H2 -->|T function| Themes
+    Ishikawa -->|T function| Themes
+    Kanban -->|T function| Themes
+    Scrum -->|T function| Themes
+    PDCA -->|T function| Themes
+    Script -->|T function| Themes
     
-    Gantt -->|get_view()| Utils
-    Flowsheet -->|get_view()| Utils
-    BPMN -->|get_view()| Utils
-    EAP -->|get_view()| Utils
-    Canvas -->|get_view()| Utils
-    Ishikawa -->|get_view()| Utils
-    PDCA -->|get_view()| Utils
+    Gantt -->|get view| Utils
+    Flowsheet -->|get view| Utils
+    BPMN -->|get view| Utils
+    EAP -->|get view| Utils
+    Canvas -->|get view| Utils
+    Ishikawa -->|get view| Utils
+    PDCA -->|get view| Utils
     
     style MainApp fill:#FFE500,stroke:#000,stroke-width:4px,color:#000
     style NavBar fill:#FFE500,stroke:#000,stroke-width:4px,color:#000
