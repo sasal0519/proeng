@@ -734,17 +734,62 @@ _THEME_ORDER = [
 
 
 def T():
-    # Retorna dicionário do tema ativo.
+    """Retorna o dicionário do tema ativo.
+    
+    O dicionário retornado contém todas as chaves de tema (bg_app, accent,
+    border_width, etc.) usadas pela aplicação para estilo e renderização.
+    Utilizado por widgets para aplicar dinamicamente cores e dimensões
+    do tema ativo.
+    
+    Returns:
+        dict: Dicionário do tema ativo da constante THEMES.
+        
+    Exemplo:
+        >>> tema = T()
+        >>> cor_fundo = tema["bg_app"]
+        >>> largura_borda = tema["border_width"]
+    """
     return _ACTIVE["theme"]
 
 
-def set_theme(name: str):
-    # Define tema ativo pelo nome.
+def set_theme(name: str) -> None:
+    """Define o tema ativo pelo nome.
+    
+    Atualiza o estado global de tema para apontar para o tema especificado.
+    Após chamar esta função, todas as chamadas subsequentes a T()
+    retornarão o novo tema. Widgets devem chamar refresh_theme()
+    para aplicar os novos estilos.
+    
+    Args:
+        name: String do nome do tema. Deve existir no dicionário THEMES
+              (ex.: "neo_brutalist", "dark", "light").
+              
+    Raises:
+        KeyError: Se o nome do tema não existir em THEMES.
+        
+    Exemplo:
+        >>> set_theme("dark")
+        >>> print(T()["name"])  # "dark"
+    """
     _ACTIVE["theme"] = THEMES[name]
 
 
-def cycle_theme():
-    # Avança para o próximo tema na sequência de 7 temas.
+def cycle_theme() -> str:
+    """Avança para o próximo tema no ciclo de rotação.
+    
+    Rotaciona entre a ordem de temas predefinida (13 temas no total).
+    Após alcançar o último tema, volta para o primeiro.
+    Útil para atalhos de teclado ou botões toggle da UI para
+    rotacionar entre temas disponíveis.
+    
+    Returns:
+        str: Nome do tema agora ativo.
+        
+    Exemplo:
+        >>> atual = T()["name"]
+        >>> proximo = cycle_theme()
+        >>> print(proximo)  # ex.: "dark" se era "neo_brutalist"
+    """
     current = _ACTIVE["theme"]["name"]
     if current in _THEME_ORDER:
         idx = _THEME_ORDER.index(current)

@@ -33,11 +33,17 @@ from proeng.ui.main_app import MODULE_PREVIEWS
 
 
 class ModuleCardNB(QFrame):
-    """
-    Card de modulo com estilo neo-brutalist (universal, aplica a todos os temas).
-
-    Responsabilidade: Exibir informacoes de um modulo (nome, descricao, icone),
-    gerenciar estados de hover e clique, emitir sinal para abertura do modulo.
+    """Card de módulo com estilo neo-brutalist.
+    
+    Exibe um card clicável representando um módulo de engenharia.
+    Mostra ícone do módulo, título e descrição com elementos visuais
+    neo-brutalist (bordas duras, sombras afiadas, tipografia em negrito).
+    
+    Suporta estados de hover e press para feedback interativo.
+    Emite sinal clicked quando usuário clica no card.
+    
+    Attributes:
+        clicked (pyqtSignal): Emitido com module_id quando card é clicado.
     """
 
     clicked = pyqtSignal(str)
@@ -177,17 +183,21 @@ class ModuleCardNB(QFrame):
 
 
 class WelcomeScreen(QWidget):
-    """
-    Tela de boas-vindas principal da aplicacao.
-
-    Responsabilidade: Exibir logo, botoes de acao (Novo/Abrir),
-    grade de modulos disponiveis.
-
-    Sinais emitidos:
-        - open_module(str): Click em modulo
-        - new_project(): Click em Novo Projeto
-        - open_project(): Click em Abrir Projeto
-        - load_example(str): Solicitacao de carregar exemplo
+    """Tela de boas-vindas exibida no início da aplicação.
+    
+    Mostra o logo PRO ENG, botões de ação (Novo/Abrir projeto)
+    e grid de módulos de engenharia disponíveis.
+    
+    Emite sinais para permitir MainApp coordenar navegação de módulo
+    e gerenciamento de projeto a partir desta tela.
+    
+    Suporta propagação de tema via método refresh_theme().
+    
+    Attributes:
+        open_module (pyqtSignal): Emitido com module_id quando card é clicado.
+        new_project (pyqtSignal): Emitido quando botão "Novo Projeto" é clicado.
+        open_project (pyqtSignal): Emitido quando botão "Abrir Projeto" é clicado.
+        load_example (pyqtSignal): Emitido com example_id quando exemplo é carregado.
     """
 
     open_module = pyqtSignal(str)
@@ -196,6 +206,11 @@ class WelcomeScreen(QWidget):
     load_example = pyqtSignal(str)
 
     def __init__(self, parent=None):
+        """Inicializa a tela de boas-vindas.
+        
+        Args:
+            parent: Widget pai opcional.
+        """
         super().__init__(parent)
         self._build_ui()
 
@@ -319,6 +334,12 @@ class WelcomeScreen(QWidget):
         self.refresh_theme()
 
     def refresh_theme(self):
+        """Reaplica todos os estilos com base no tema ativo.
+        
+        Chamado após mudança de tema para atualizar cores, bordas, fontes
+        e outras propriedades visuais. Itera entre todos widgets filhos
+        e aplica entradas stylesheet do dicionário de tema ativo.
+        """
         t = T()
         ff = t.get("font_family", "Arial, sans-serif")
         bw = t.get("border_width", 4)
