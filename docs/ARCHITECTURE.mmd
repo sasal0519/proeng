@@ -1,0 +1,114 @@
+graph TB
+    subgraph "📱 UI Layer"
+        MainApp["<b>MainApp</b><br/>Janela Principal<br/>Orquestra tudo"]
+        NavBar["<b>NavBar</b><br/>Navegação<br/>+ Theme Toggle"]
+        WelcomeScreen["<b>WelcomeScreen</b><br/>Grid de Módulos<br/>Cards interativos"]
+    end
+
+    subgraph "🔧 Core Layer"
+        BaseModule["<b>BaseModule</b><br/>Contrato abstrato<br/>get_state/set_state"]
+        Themes["<b>themes.py</b><br/>T() - Tema ativo<br/>cycle_theme()"]
+        Project["<b>project.py</b><br/>Persistência<br/>.proeng JSON"]
+        Utils["<b>utils.py</b><br/>Export (PNG/PDF)<br/>Renderização"]
+    end
+
+    subgraph "🧩 Modules Layer"
+        Gantt["📊 Gantt<br/>CPM Crono"]
+        Flowsheet["🔄 Flowsheet<br/>PFD"]
+        BPMN["🎯 BPMN<br/>Processos"]
+        EAP["📈 EAP<br/>WBS"]
+        Canvas["🎨 Canvas<br/>PM Model"]
+        W5H2["❓ 5W2H<br/>Planejamento"]
+        Ishikawa["🐟 Ishikawa<br/>Causa-Efeito"]
+        Kanban["📋 Kanban<br/>Drag-Drop"]
+        Scrum["⚡ Scrum<br/>Sprint Board"]
+        PDCA["♻️ PDCA<br/>Ciclo"]
+        Script["🐍 Script<br/>Python Exec"]
+    end
+
+    MainApp -->|controla| NavBar
+    MainApp -->|contém| WelcomeScreen
+    MainApp -->|lazy load| Gantt
+    MainApp -->|lazy load| Flowsheet
+    MainApp -->|lazy load| BPMN
+    MainApp -->|lazy load| EAP
+    MainApp -->|lazy load| Canvas
+    MainApp -->|lazy load| W5H2
+    MainApp -->|lazy load| Ishikawa
+    MainApp -->|lazy load| Kanban
+    MainApp -->|lazy load| Scrum
+    MainApp -->|lazy load| PDCA
+    MainApp -->|lazy load| Script
+    
+    NavBar -->|emite signals| MainApp
+    WelcomeScreen -->|module_requested| MainApp
+    
+    MainApp -->|usa| Themes
+    MainApp -->|usa| Project
+    MainApp -->|usa| Utils
+    
+    NavBar -->|refresh_theme| Themes
+    WelcomeScreen -->|refresh_theme| Themes
+    
+    Gantt -.implementa.-> BaseModule
+    Flowsheet -.implementa.-> BaseModule
+    BPMN -.implementa.-> BaseModule
+    EAP -.implementa.-> BaseModule
+    Canvas -.implementa.-> BaseModule
+    W5H2 -.implementa.-> BaseModule
+    Ishikawa -.implementa.-> BaseModule
+    Kanban -.implementa.-> BaseModule
+    Scrum -.implementa.-> BaseModule
+    PDCA -.implementa.-> BaseModule
+    Script -.implementa.-> BaseModule
+    
+    Gantt -->|get_state/set_state| Project
+    Flowsheet -->|get_state/set_state| Project
+    BPMN -->|get_state/set_state| Project
+    EAP -->|get_state/set_state| Project
+    Canvas -->|get_state/set_state| Project
+    W5H2 -->|get_state/set_state| Project
+    Ishikawa -->|get_state/set_state| Project
+    Kanban -->|get_state/set_state| Project
+    Scrum -->|get_state/set_state| Project
+    PDCA -->|get_state/set_state| Project
+    Script -->|get_state/set_state| Project
+    
+    Gantt -->|T()| Themes
+    Flowsheet -->|T()| Themes
+    BPMN -->|T()| Themes
+    EAP -->|T()| Themes
+    Canvas -->|T()| Themes
+    W5H2 -->|T()| Themes
+    Ishikawa -->|T()| Themes
+    Kanban -->|T()| Themes
+    Scrum -->|T()| Themes
+    PDCA -->|T()| Themes
+    Script -->|T()| Themes
+    
+    Gantt -->|get_view()| Utils
+    Flowsheet -->|get_view()| Utils
+    BPMN -->|get_view()| Utils
+    EAP -->|get_view()| Utils
+    Canvas -->|get_view()| Utils
+    Ishikawa -->|get_view()| Utils
+    PDCA -->|get_view()| Utils
+    
+    style MainApp fill:#FFE500,stroke:#000,stroke-width:4px,color:#000
+    style NavBar fill:#FFE500,stroke:#000,stroke-width:4px,color:#000
+    style WelcomeScreen fill:#FFE500,stroke:#000,stroke-width:4px,color:#000
+    style BaseModule fill:#0057FF,stroke:#000,stroke-width:4px,color:#fff
+    style Themes fill:#0057FF,stroke:#000,stroke-width:4px,color:#fff
+    style Project fill:#0057FF,stroke:#000,stroke-width:4px,color:#fff
+    style Utils fill:#0057FF,stroke:#000,stroke-width:4px,color:#fff
+    style Gantt fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style Flowsheet fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style BPMN fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style EAP fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style Canvas fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style W5H2 fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style Ishikawa fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style Kanban fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style Scrum fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style PDCA fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
+    style Script fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
