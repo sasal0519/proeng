@@ -1,3 +1,11 @@
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                            ║
+║                            🌐 ENGLISH VERSION / VERSÃO EM INGLÊS 🌐                                        ║
+║                                                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+---
+
 ```
 ╔════════════════════════════════════════════════════════════════════╗
 ║                                                                    ║
@@ -463,6 +471,13 @@ Built with Python, Qt Framework, and Precision Engineering
 
 ---
 
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                            ║
+║                         🌐 VERSÃO EM PORTUGUÊS / PORTUGUESE VERSION 🌐                                    ║ 
+║                                                                                                            ║
+
+---
+
 ────────────────────────────────────────────────────────────────────────
 FILOSOFIA DE DESIGN: MULTI-TEMA NEO-BRUTALISTA
 ────────────────────────────────────────────────────────────────────────
@@ -901,10 +916,10 @@ Para dúvidas técnicas, bugs ou sugestões de novos equipamentos:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ProEng Suite v2.0 — Industrial Engineering & Project Management
-10 Modules | 6 Themes | GPLv3
-License : GNU General Public License v3.0
-Built with Python, Qt Framework, and Precision Engineering
-(c) 2026 ProEng Systems — Knowledge must remain free.
+ProEng Suite v2.0 — Engenharia Industrial & Gestão de Projeto
+11 Módulos | 14 Temas | GPLv3
+Licença: GNU General Public License v3.0
+Construído com Python, Framework Qt e Engenharia de Precisão
+(c) 2026 ProEng Systems — O conhecimento deve permanecer livre.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
