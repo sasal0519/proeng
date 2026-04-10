@@ -478,6 +478,42 @@ Built with Python, Qt Framework, and Precision Engineering
 
 ---
 
+```
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║   ██████╗ ██████╗  ██████╗ ███████╗███╗   ██╗ ██████╗              ║
+║   ██╔══██╗██╔══██╗██╔═══██╗██╔════╝████╗  ██║██╔════╝              ║
+║   ██████╔╝██████╔╝██║   ██║█████╗  ██╔██╗ ██║██║  ███╗             ║
+║   ██╔═══╝ ██╔══██╗██║   ██║██╔══╝  ██║╚██╗██║██║   ██║             ║
+║   ██║     ██║  ██║╚██████╔╝███████╗██║ ╚████║╚██████╔╝             ║
+║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝              ║
+║                                                                    ║
+║             ███████╗██╗   ██╗██╗████████╗███████╗                  ║
+║             ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝                  ║
+║             ███████╗██║   ██║██║   ██║   █████╗                    ║
+║             ╚════██║██║   ██║██║   ██║   ██╔══╝                    ║
+║             ███████║╚██████╔╝██║   ██║   ███████╗                  ║
+║             ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝                  ║
+║                                                                    ║
+║          Engenharia Industrial & Gestão de Projeto                  ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
+```
+
+> **ProEng** é uma plataforma de engenharia industrial de ponta projetada para unificar planejamento técnico, modelagem de processos e gestão estratégica em um único ambiente visual de alta fidelidade.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+PREFÁCIO E VISÃO GERAL
+────────────────────────────────────────────────────────────────────────
+
+O projeto **ProEng** nasceu da necessidade de ferramentas de engenharia que não fossem apenas funcionais, mas também esteticamente superiores e intuitivas. Em um mundo onde softwares técnicos são frequentemente cinzas e burocráticos, ProEng introduz o conceito de **Engenharia Industrial Criativa** — onde o design auxilia na clareza de pensamento e na detecção de falhas.
+
+Esta suíte foi construída do zero utilizando o framework **PyQt5**, aproveitando a aceleração de hardware para renderizar diagramas vetoriais complexos com suavidade e precisão de pixel.
+
+---
+
 ────────────────────────────────────────────────────────────────────────
 FILOSOFIA DE DESIGN: MULTI-TEMA NEO-BRUTALISTA
 ────────────────────────────────────────────────────────────────────────
@@ -486,9 +522,9 @@ A estética do ProEng é um dos seus pilares fundamentais. Ela não é puramente
 
 ### Neo-Brutalismo Industrial
 
-O ProEng utiliza **13 temas visuais** com linguagem neo-brutalista consistente: bordas sólidas e grossas, sombras duras com offset, tipografia pesada em caixa alta e cores saturadas. Esse estilo prioriza a legibilidade e a hierarquia visual, sendo ideal para engenheiros que preferem interfaces diretas e sem distrações decorativas.
+O ProEng utiliza **14 temas visuais** com linguagem neo-brutalista consistente: bordas sólidas e grossas, sombras duras com offset, tipografia pesada em caixa alta e cores saturadas. Esse estilo prioriza a legibilidade e a hierarquia visual, sendo ideal para engenheiros que preferem interfaces diretas e sem distrações decorativas.
 
-### Sistema Multi-Tema (13 Temas)
+### Sistema Multi-Tema (14 Temas)
 
 O usuário pode alternar entre os temas a qualquer momento via seletor dropdown na barra de navegação:
 
@@ -505,6 +541,7 @@ O usuário pode alternar entre os temas a qualquer momento via seletor dropdown 
 11. **Mint** — Verde-menta suave com creme
 12. **Onyx** — Preto absoluto com acentos brancos
 13. **Lilac** — Lavanda com tonalidade delicada
+14. **Dracula** — Paleta oficial do tema Dracula (100% em conformidade com especificação)
 
 Cada tema atualiza em tempo real todos os módulos, diagramas, barras de ferramentas e diálogos, mantendo paridade funcional completa.
 
@@ -518,7 +555,7 @@ O ProEng utiliza uma arquitetura baseada em **Plugins Modulares**, onde o núcle
 
 ### A Classe `BaseModule`
 
-Todos os 10 módulos do ProEng (Flowsheet, BPMN, EAP, Canvas, Ishikawa, 5W2H, Gantt, Kanban, Scrum e PDCA) herdam da `BaseModule`. Esta classe define o contrato que todo módulo deve seguir:
+Todos os 11 módulos do ProEng (Flowsheet, BPMN, EAP, Canvas, Ishikawa, 5W2H, Gantt, Kanban, Scrum, PDCA e Script Engine) herdam da `BaseModule`. Esta classe define o contrato que todo módulo deve seguir:
 
 - `get_state()`: Serializa todos os objetos do canvas em um dicionário Python (JSON-friendly).
 - `set_state(state)`: Reconstitui o ambiente de trabalho a partir de um arquivo salvo.
@@ -567,23 +604,24 @@ proeng/
 │   ├── project.py              # Lógica de I/O de arquivos e metadados
 │   └── base_module.py          # Interface abstrata para integração de módulos
 │
-├── modules/                    # Ferramentas Especializadas (10 módulos)
+├── modules/                    # Ferramentas Especializadas (11 módulos)
 │   ├── __init__.py
-│   ├── flowsheet.py            # PFD (Process Flow Diagram)
-│   ├── bpmn.py                 # Fluxogramas de Processos de Negócio
-│   ├── eap.py                  # WBS (Work Breakdown Structure)
-│   ├── canvas.py               # Planejamento visual de projetos
+│   ├── flowsheet.py            # PFD (Diagrama de Fluxo de Processo)
+│   ├── bpmn.py                 # Modelos de Fluxo de Processos de Negócio
+│   ├── eap.py                  # EAP (Estrutura Analítica do Projeto)
+│   ├── canvas.py               # Planejamento Visual de Projetos
 │   ├── ishikawa.py             # Diagramas de Causa e Efeito (6M)
 │   ├── w5h2.py                 # Matrizes de Planos de Ação
 │   ├── gantt.py                # Cronograma com Caminho Crítico (CPM)
 │   ├── kanban.py               # Quadro Kanban com Cards Arrastáveis
-│   ├── scrum.py                # Scrum Sprint Board com Backlog
-│   └── pdca.py                 # Ciclo PDCA (Plan-Do-Check-Act)
+│   ├── scrum.py                # Quadro Scrum Sprint com Backlog
+│   ├── pdca.py                 # Ciclo PDCA (Plan-Do-Check-Act)
+│   └── script_module.py         # Mecanismo de Execução de Scripts Python
 │
 ├── ui/                         # A "Pele" da Aplicação
-│   ├── main_app.py             # Workspace principal, Sidebar e Logic Switcher
-│   ├── welcome.py              # Hub de entrada com gallery e carrossel
-│   └── selection_screen.py     # Grid visual de escolha de módulos
+│   ├── main_app.py             # Workspace principal, Sidebar e Seletor de Módulos
+│   ├── welcome.py              # Hub de entrada com galeria e carrossel
+│   └── nav_bar.py              # Barra de navegação com seletor de tema
 │
 └── resources/                  # Ativos Estáticos
     └── screenshots/            # Capturas de tela para documentação interna
