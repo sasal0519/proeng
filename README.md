@@ -16,11 +16,450 @@
 ║             ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝                  ║
 ║                                                                    ║
 ║          Industrial Engineering & Project Management               ║
-║               Professional Suite  v2.0 — 10 Modules               ║
+║            Professional Suite v2.0 – 11 Modules                    ║
 ╚════════════════════════════════════════════════════════════════════╝
 ```
 
-> **ProEng** é uma plataforma de engenharia industrial de ponta, desenhada para unificar o planejamento técnico, a modelagem de processos e a gestão estratégica em um único ambiente visual de alta fidelidade.
+> **ProEng** is a cutting-edge industrial engineering platform designed to unify technical planning, process modeling, and strategic management in a single high-fidelity visual environment.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+PREFACE AND OVERVIEW
+────────────────────────────────────────────────────────────────────────
+
+The **ProEng** project was born from the need for engineering tools that are not only functional but also aesthetically superior and intuitive. In a world where technical software is often gray and bureaucratic, ProEng introduces the concept of **Creative Industrial Engineering** — where design aids in clarity of thought and failure detection.
+
+This suite was built from scratch using the **PyQt5** framework, leveraging hardware acceleration to render complex vector diagrams smoothly with pixel-perfect precision.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DESIGN PHILOSOPHY: MULTI-THEME NEO-BRUTALISM
+────────────────────────────────────────────────────────────────────────
+
+The aesthetics of ProEng is one of its fundamental pillars. It is not purely decorative; every color and shadow choice serves a functional purpose.
+
+### Industrial Neo-Brutalism
+
+ProEng uses **14 visual themes** with consistent neo-brutalist language: thick solid borders, hard drop shadows with offset, heavy typography in uppercase, and saturated colors. This style prioritizes readability and visual hierarchy, making it ideal for engineers who prefer direct interfaces without decorative distractions.
+
+### Multi-Theme System (14 Themes)
+
+Users can switch between themes at any time via dropdown selector in the navigation bar:
+
+1. **Neo-Brutal** — Vibrant yellow on light background, thick black borders
+2. **Midnight** — Deep blue with electric cyan
+3. **Embers** — Charcoal gray with ember orange
+4. **Forest** — Dark organic green
+5. **Synthwave** — Neon purple and retro 80s magenta
+6. **Arctic** — Ice white with glacial blue
+7. **Solar** — Gold-yellow with earth brown
+8. **Crimson** — Deep wine with scarlet red
+9. **Ocean** — Navy blue with white foam
+10. **Volcano** — Basalt black with lava yellow
+11. **Mint** — Soft mint-green with cream
+12. **Onyx** — Absolute black with white accents
+13. **Lilac** — Lavender with delicate undertone
+14. **Dracula** — Official Dracula theme palette (100% spec-compliant)
+
+Each theme updates in real-time across all modules, diagrams, toolbars, and dialogs, maintaining complete functional parity.
+
+---
+
+╔════════════════════════════════════════════════════════════════════╗
+║  SYSTEM ARCHITECTURE: CORE ENGINE                                  ║
+╚════════════════════════════════════════════════════════════════════╝
+
+ProEng uses a **Modular Plugin Architecture**, where the system core only manages navigation and global state, while engineering functionality resides in independent modules.
+
+### The `BaseModule` Class
+
+All 11 modules of ProEng (Flowsheet, BPMN, EAP, Canvas, Ishikawa, 5W2H, Gantt, Kanban, Scrum, PDCA, and Script Engine) inherit from `BaseModule`. This class defines the contract every module must follow:
+
+- `get_state()`: Serializes all canvas objects into a Python dictionary (JSON-friendly).
+- `set_state(state)`: Reconstitutes the work environment from a saved file.
+- `refresh_theme()`: Informs the module that global colors have changed and it must redraw.
+
+### Detailed Directory Structure
+
+The file organization follows modern Python development standards:
+
+```text
+proeng/
+│
+├── core/                       # The "Brain" of the Application
+│   ├── __init__.py
+│   ├── themes.py               # Neo-Brutalist Theme (color palette)
+│   ├── utils.py                # Drawing utilities, export, colorimetric conversion
+│   ├── toolbar.py              # Custom toolbar factory
+│   ├── project.py              # File I/O logic and metadata
+│   └── base_module.py          # Abstract interface for module integration
+│
+├── modules/                    # Specialized Tools (11 modules)
+│   ├── __init__.py
+│   ├── flowsheet.py            # PFD (Process Flow Diagram)
+│   ├── bpmn.py                 # Business Process Flow Charts
+│   ├── eap.py                  # WBS (Work Breakdown Structure)
+│   ├── canvas.py               # Visual Project Planning
+│   ├── ishikawa.py             # Cause-Effect Diagrams (6M)
+│   ├── w5h2.py                 # Action Plan Matrices
+│   ├── gantt.py                # Timeline with Critical Path (CPM)
+│   ├── kanban.py               # Kanban Board with Drag-Drop Cards
+│   ├── scrum.py                # Scrum Sprint Board with Backlog
+│   ├── pdca.py                 # PDCA Cycle (Plan-Do-Check-Act)
+│   └── script_module.py         # Python Script Execution Engine
+│
+├── ui/                         # The "Skin" of the Application
+│   ├── main_app.py             # Main workspace, Sidebar, Module Switcher
+│   ├── welcome.py              # Entry hub with gallery and carousel
+│   └── nav_bar.py              # Navigation bar with theme switcher
+│
+└── resources/                  # Static Assets
+    └── screenshots/            # Screenshots for internal documentation
+```
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: PFD FLOWSHEET
+────────────────────────────────────────────────────────────────────────
+
+The **Process Flow Diagram** is the most technically complex tool. It uses the `QGraphicsScene` graphics engine to manage interactive objects.
+
+### Equipment Rendering Logic
+
+The `draw_equipment` function centralizes rendering of 50+ types of industrial machines.
+
+- **Vector Mathematics**: Each equipment is drawn using polygons (`QPolygonF`) and paths (`QPainterPath`) based on proportions relative to node size.
+- **Dynamic Gradients**: We use `QLinearGradient` to create surfaces that appear metallic or glass-like, reacting dynamically to the theme's accent color.
+
+### Smart Piping
+
+The `Edge` class manages connectivity between equipment.
+
+- **Normal Calculation**: Pipes exit orthogonally from ports (Top, Bottom, Left, Right).
+- **Masking Effect**: To prevent pipe lines from crossing identification text (Tag), we implement a label background that assumes the exact canvas color (`bg_app`), creating a professional "cut" technical visual.
+
+### Connection Ports
+
+Each `ProcessNode` has 12 invisible connection ports (3 on each side) that appear only during hover or line creation, reducing visual clutter.
+
+### Automatic Mass Balance
+
+The Flowsheet module implements a mass balance engine:
+
+- **Topological Sorting**: Kahn's algorithm for cycle detection and correct processing.
+- **Mixing and Distribution**: For each node, the system sums inputs and distributes to output components per fraction or fixed flow configuration.
+- **Global Verification**: At the end, verifies that total input mass equals output + retained.
+- **Auto-Calculation**: After diagram changes, balance recalculates automatically with 300ms debounce.
+- **Excel Export**: Exports all balance data to formatted spreadsheet.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: BPMN MODELER
+────────────────────────────────────────────────────────────────────────
+
+Focused on operational efficiency, ProEng's BPMN modeler rigorously follows international notation standards.
+
+### Swimlane System
+
+Unlike common flowcharts, ProEng's BPMN organizes tasks in **Swimming Lanes**.
+
+- **Pool Management**: Dynamically add or remove lanes.
+- **Headers**: Lane headers use the `_glass_grad` system for modern transparent visuals.
+- **Multi-Position Text**: Add text labels to elements in 5 directions (inside, above, below, left, right).
+- **Recall Arrows**: Automatic orthogonal paths (DOWN→LEFT→UP) with dashed styling for feedback loops.
+
+### Connection Types
+
+- **Hierarchical**: Parent-child connections (solid lines).
+- **Cross-Lane**: Manual interconnections (dashed accent-color lines).
+- **Recall**: Automatic DOWN→LEFT→UP routing with dashes for returns to previous elements.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: EAP (WORK BREAKDOWN STRUCTURE)
+────────────────────────────────────────────────────────────────────────
+
+The Work Breakdown Structure organizes project chaos into logical hierarchy.
+
+### Tree Algorithm
+
+The EAP module automatically generates links between "Work Packages".
+
+- **Visual Hierarchy**: Parent level always highlighted in warmer colors (Gold/Yellow), while lower levels follow the suite's palette.
+- **Selection and Editing**: Double-click to edit text, context menu to add sub-tasks.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: PROJECT MODEL CANVAS
+────────────────────────────────────────────────────────────────────────
+
+Agile planning tool to align the team before any technical project begins.
+
+### The 15 Planning Blocks
+
+- **External Factors**: Stakeholders, Constraints, Assumptions, Risks.
+- **Internal Factors**: Team, Costs, Requirements.
+- **Objectives**: Justification, SMART Objective, Benefits.
+- **Deliverables**: Deliverable Group and Timeline.
+
+Each block has a rich text editor supporting multiple lines and dynamic resizing.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: 5W2H ACTION PLAN
+────────────────────────────────────────────────────────────────────────
+
+A tabular matrix for tactical execution, where each action is detailed in 7 critical dimensions.
+
+### Table Structure
+
+1. **WHAT**: The task to be performed.
+2. **WHY**: The purpose of the action.
+3. **WHERE**: Execution location.
+4. **WHEN**: Planned schedule.
+5. **WHO**: Responsible owner.
+6. **HOW**: Technical procedure.
+7. **HOW MUCH**: Financial or HR budget.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: ISHIKAWA (6M)
+────────────────────────────────────────────────────────────────────────
+
+The Ishikawa (Fishbone) diagram identifies root causes of production line problems.
+
+### The 6 Quality Pillars
+
+ProEng segments causes into 6 pre-defined categories:
+
+- **Methods**: Operational processes and routines.
+- **Machines**: Equipment, tools, and software.
+- **Materials**: Raw materials and input quality.
+- **Manpower**: Skills, training, and personnel.
+- **Measurement**: Data, metrics, and instrument calibration.
+- **Environment**: Workplace, climate, and external conditions.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: GANTT (TIMELINE CPM)
+────────────────────────────────────────────────────────────────────────
+
+The **Gantt** module offers a complete timeline with Critical Path Method (CPM) and milestone support.
+
+### Main Features
+
+- **Tasks and Dependencies**: Create tasks with name, start date, end date, progress (%), and predecessor.
+- **Milestones**: Visual reference markers as circles on the timeline for key dates.
+- **Critical Path (CPM)**: Algorithm that automatically identifies tasks with zero slack, highlighting them in red for effort prioritization.
+- **Time Visualization**: Horizontal bars rendered on temporal grid with current date marked by dashed line.
+- **Visual Progress**: Green interior bars indicate percentage progress for each task.
+
+### Zoom Controls
+
+Use `Ctrl + Scroll` to adjust time scale. The graph automatically adapts keeping all tasks visible.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: KANBAN BOARD
+────────────────────────────────────────────────────────────────────────
+
+The **Kanban** module implements a visual task management board with 4 status columns.
+
+### Column System
+
+- **TO DO**: Planned tasks awaiting start.
+- **IN PROGRESS**: Currently executing tasks.
+- **DONE**: Successfully completed tasks.
+- **CANCELED**: Discarded tasks (history preserved).
+
+### Interactive Cards
+
+Each card displays title, description, and priority (HIGH / MEDIUM / LOW) with visual color emphasis. Cards support **drag-and-drop** between columns for quick status updates.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: SCRUM SPRINT BOARD
+────────────────────────────────────────────────────────────────────────
+
+The **Scrum Sprint Board** implements the Scrum agile framework with backlog and sprint management.
+
+### Features
+
+- **Backlog**: Repository of user stories awaiting prioritization.
+- **Sprint Board**: 4 columns (TODO → IN PROGRESS → REVIEW → DONE) with drag-and-drop.
+- **Story Points**: Each card carries a points estimate (Fibonacci scale recommended). Total sprint points displayed in header.
+- **Sprint Planning**: Tool to move items from Backlog to active Sprint.
+- **Sprint Closure**: Generates delivery metrics (items completed × points delivered).
+
+---
+
+────────────────────────────────────────────────────────────────────────
+DETAILED MODULE: PDCA (CONTINUOUS IMPROVEMENT CYCLE)
+────────────────────────────────────────────────────────────────────────
+
+The **PDCA** module implements Deming's continuous improvement cycle in a visual circular layout.
+
+### The 4 Quadrants
+
+The diagram is rendered as a circle divided into 4 colored quadrants:
+
+- **P (Plan)**: Identify problems and plan improvement actions.
+- **D (Do)**: Implement planned actions at pilot scale.
+- **C (Check)**: Measure results and compare against targets.
+- **A (Act)**: Standardize successful actions or correct deviations.
+
+### Interaction
+
+Each quadrant accepts interactive cards: click `(+)` to add steps, double-click to edit, use `(-)` to delete. Each quadrant has a thematic color that automatically adapts to the active theme.
+
+---
+
+╔════════════════════════════════════════════════════════════════════╗
+║  INSTALLATION GUIDE                                                 ║
+╠═══════════════════════════════════════════════════════════════╣
+║  Requirements: Python 3.8+  |  PyQt5  |  1366x768 minimum    ║
+╚═══════════════════════════════════════════════════════════════╝
+
+### System Requirements
+
+- **Operating System**: Windows 10/11, Linux (Ubuntu/Debian), or macOS.
+- **Python**: Version 3.8 or higher recommended.
+- **Screen Resolution**: Minimum 1366x768 (Optimized for Full HD 1920x1080).
+
+### Environment Setup
+
+1. **Download Code**:
+    ```bash
+    git clone https://github.com/username/proeng-suite.git
+    cd proeng-suite
+    ```
+
+2. **Prepare Python** — Create a virtual environment to isolate dependencies:
+    ```bash
+    python -m venv .venv
+    # On Windows:
+    .venv\Scripts\activate
+    # On Linux/Mac:
+    source .venv/bin/activate
+    ```
+
+3. **Install Dependencies** — The project uses only **PyQt5** as a major external dependency:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. **Run**:
+    ```bash
+    python main.py
+    ```
+
+---
+
+────────────────────────────────────────────────────────────────────────
+TECHNICAL MANUAL: THEME SYSTEM (themes.py)
+────────────────────────────────────────────────────────────────────────
+
+Visual customization is done through a centralized dictionary. Below, description of each color key:
+
+```
+THEME SYSTEM — COLOR KEYS
+┌─────────────────┬───────────────────────────┬────────────────────────────┐
+│ Key             │ Description               │ Primary Usage              │
+├─────────────────┼───────────────────────────┼────────────────────────────┤
+│ bg_app          │ Application Background    │ Window canvas base color   │
+│ bg_card         │ Card / Glass Surface      │ Sidebars, context menus    │
+│ accent          │ Primary Accent            │ Buttons, focus borders     │
+│ accent_bright   │ Bright Accent             │ Hover, active selection    │
+│ text            │ Primary Text              │ Labels, high-priority      │
+│ text_dim        │ Dimmed Text               │ Descriptions, placeholders │
+│ line            │ Pipe / Connection Lines   │ Flowsheet tubulation       │
+│ toolbar_bg      │ Toolbar Background        │ Top and side toolbars      │
+│ border_width    │ Border Thickness          │ Neo-brutal 4px solid       │
+│ shadow_offset   │ Shadow Offset             │ Hard 8x8 drop shadow       │
+└─────────────────┴───────────────────────────┴────────────────────────────┘
+```
+
+---
+
+────────────────────────────────────────────────────────────────────────
+KEYBOARD SHORTCUTS (POWER USER)
+────────────────────────────────────────────────────────────────────────
+
+```
+KEYBOARD SHORTCUTS
+┌───────────────┬────────────────────────────────┬──────────────────┐
+│ Shortcut      │ Action                         │ Context          │
+├───────────────┼────────────────────────────────┼──────────────────┤
+│ Ctrl + N      │ New Project                    │ Global           │
+│ Ctrl + S      │ Save Project (.proeng)         │ Global           │
+│ Ctrl + L      │ Cycle Themes                   │ Global           │
+│ Ctrl + B      │ Toggle Sidebar                 │ Global           │
+│ Ctrl + E      │ Export Diagram as PNG          │ Graphic Modules  │
+│ Ctrl + Shift+P│ Export Diagram as PDF          │ Graphic Modules  │
+│ Delete        │ Remove Selected Object         │ Canvas           │
+│ Space         │ Pan Canvas                     │ Canvas           │
+│ Esc           │ Cancel Active Tool             │ Global           │
+└───────────────┴────────────────────────────────┴──────────────────┘
+```
+
+---
+
+────────────────────────────────────────────────────────────────────────
+CONTRIBUTION AND PHILOSOPHY
+────────────────────────────────────────────────────────────────────────
+
+ProEng is a **Free Software** project that values altruistic cooperation. To contribute, you not only follow a technical workflow but also commit to keeping knowledge open:
+
+1. **Audit the Code**: As an engineering tool, security depends on your review.
+2. **Improve and Share**: If you created a new symbol or fix, submit it so everyone benefits.
+3. **Respect Freedom**: Any contribution will be licensed under the same GPL v3 terms.
+
+- **Fork & Pull Request**: The classic GitHub collaboration flow is welcome.
+- **Inspired by Stallman**: See our [MANIFESTO.md](MANIFESTO.md) to understand our ethical vision.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+LICENSE: FREE SOFTWARE (GPLv3)
+────────────────────────────────────────────────────────────────────────
+
+This software is **Free Software** (Libre Software), distributed under the **GNU General Public License v3.0**.
+
+Unlike permissive licenses, GPL v3 ensures ProEng remains free forever. This means you have the freedom to use, study, and modify the software for any purpose, provided you keep these freedoms available to others. See [LICENSE](LICENSE) for complete terms.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+CONTACT AND SUPPORT
+────────────────────────────────────────────────────────────────────────
+
+For technical questions, bug reports, or suggestions for new equipment:
+
+- **Issues**: [GitHub Issues Page](https://github.com/username/proeng-suite/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/username/proeng-suite/discussions)
+
+---
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ProEng Suite v2.0 — Industrial Engineering & Project Management
+11 Modules | 14 Themes | GPLv3
+License: GNU General Public License v3.0
+Built with Python, Qt Framework, and Precision Engineering
+(c) 2026 ProEng Systems — Knowledge must remain free.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 ---
 
@@ -86,9 +525,9 @@ Todos os 10 módulos do ProEng (Flowsheet, BPMN, EAP, Canvas, Ishikawa, 5W2H, Ga
 PROENG CORE ARCHITECTURE
 ┌─────────────────────────────────────────────────────────────────┐
 │  APPLICATION LAYER                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │  main_app.py │  │  welcome.py  │  │   │   │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+│  ┌──────────────┐  ┌──────────────┐                             │
+│  │  main_app.py │  │  welcome.py  │                             │
+│  └──────────────┘  └──────────────┘                             │
 ├─────────────────────────────────────────────────────────────────┤
 │  CORE ENGINE                                                    │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │

@@ -15,8 +15,91 @@
 ║          ██║     ██║  ██║╚██████╔╝███████╗██║ ╚████║╚██████╔╝      ║
 ║          ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝       ║
 ║                                                                    ║
-║        Liberdade de Software na Engenharia Industrial              ║
+║     Free Software for Industrial Engineering & Sovereignty          ║
 ╚════════════════════════════════════════════════════════════════════╝
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   "Free software is a matter of liberty, not price.                 │
+│    To understand the concept, you should think of                   │
+│    'freedom of speech', not 'free beer'."                           │
+│                                                                     │
+│                                          — Richard Stallman         │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+The **ProEng** project adheres to the fundamental principles established by Richard Stallman in the **GNU Manifesto**. We believe that engineering tools—which literally move the world's physical infrastructure—should not be proprietary black boxes that restrict technical knowledge and human collaboration.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+WHY THIS MANIFESTO
+────────────────────────────────────────────────────────────────────────
+
+In modern industry, engineering software has become a guardian of knowledge. By using proprietary formats and closed algorithms, software companies create artificial dependency (lock-in) that stifles innovation and prevents engineers from understanding, auditing, or improving their own work tools.
+
+**ProEng** was created to break this cycle, ensuring that the "Gnu" of industrial engineering remains free, open, and communal.
+
+---
+
+╔════════════════════════════════════════════════════════════════════╗
+║  THE FOUR ESSENTIAL FREEDOMS                                        ║
+╚════════════════════════════════════════════════════════════════════╝
+
+As a Free Software work, ProEng guarantees all users:
+
+```
+┌────────────────┬──────────────────────────────────────────────────────────────────┐
+│  Freedom 0     │ Run the program for any purpose without restrictions.            │
+├────────────────┼──────────────────────────────────────────────────────────────────┤
+│  Freedom 1     │ Study how the program works and adapt it to your needs.          │
+│                │ Access to source code is a prerequisite.                         │
+├────────────────┼──────────────────────────────────────────────────────────────────┤
+│  Freedom 2     │ Redistribute copies to help your neighbor.                       │
+├────────────────┼──────────────────────────────────────────────────────────────────┤
+│  Freedom 3     │ Distribute copies of modified versions to third parties,         │
+│                │ giving the entire community the chance to benefit from           │
+│                │ your improvements.                                               │
+└────────────────┴──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+────────────────────────────────────────────────────────────────────────
+COOPERATION VS. PROPRIETARY COMPETITION
+────────────────────────────────────────────────────────────────────────
+
+The GNU Manifesto argues that altruistic cooperation between programmers is superior to competition based on information restriction. In ProEng, we apply this to engineering:
+
+- **Elimination of Redundancy**: Engineers don't need to reinvent the wheel (or the heat exchanger) if code to model it already exists.
+- **Transparency in Decision-Making**: In PFD and BPMN, calculation and visualization logic is open, allowing real industrial safety audits.
+- **Technical Solidarity**: By sharing improvements across modules (Ishikawa, 5W2H), we elevate the technical level of the entire professional category.
+
+---
+
+────────────────────────────────────────────────────────────────────────
+COMMITMENT TO GPL LICENSE
+────────────────────────────────────────────────────────────────────────
+
+To ensure ProEng remains free forever, it is distributed under the **GNU General Public License (GPL) version 3**. This "copyleft" license guarantees that any derivative work of ProEng must also be free, preventing parts of the project from being captured by proprietary interests in the future.
+
+See [LICENSE](LICENSE) for complete terms.
+
+---
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Join us in building truly sovereign and free engineering.
+
+Inspired by "The GNU Manifesto" by Richard M. Stallman (1985).
+
+ProEng Suite — Industrial Engineering & Project Management
+License: GNU General Public License v3.0
+(c) 2026 ProEng Systems — Knowledge must remain free.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ```
