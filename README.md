@@ -16,7 +16,7 @@
 ║             ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝                  ║
 ║                                                                    ║
 ║          Industrial Engineering & Project Management               ║
-║            Professional Suite v2.0 – 11 Modules                    ║
+║                       ║
 ╚════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -460,16 +460,6 @@ Built with Python, Qt Framework, and Precision Engineering
 (c) 2026 ProEng Systems — Knowledge must remain free.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
-
----
-
-────────────────────────────────────────────────────────────────────────
-PREFÁCIO E VISÃO GERAL
-────────────────────────────────────────────────────────────────────────
-
-O projeto **ProEng** nasceu da necessidade de ferramentas de engenharia que não fossem apenas funcionais, mas também esteticamente superiores e intuitivas. Em um mundo onde softwares técnicos costumam ser cinzas e burocráticos, o ProEng introduz o conceito de **Creative Industrial Engineering** — onde o design auxilia na clareza de pensamento e na detecção de falhas.
-
-Esta suíte foi construída do zero utilizando o framework **PyQt5**, aproveitando o poder da aceleração de hardware para renderizar diagramas vetoriais complexos com suavidade e precisão de pixel.
 
 ---
 
