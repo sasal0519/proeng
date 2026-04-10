@@ -77,6 +77,7 @@ class BPMNNodeSignals(QObject):
     add_root = pyqtSignal(int)
     link_to = pyqtSignal(int)
     move_lane = pyqtSignal(int, int)
+    recall_create = pyqtSignal(int)  # Sinal para criar recall
 
 
 class HeaderItem(QGraphicsRectItem):
@@ -255,6 +256,137 @@ class AddLaneItem(QGraphicsRectItem):
         )
 
 
+def _nb_paint_geometric_shape(painter, shape_type, rect, border_color, bg_color, zoom, hovered=False):
+    """
+    Desenha forma geométrica BPMN com estilo neo-brutalist.
+    
+    Parâmetros:
+        painter: QPainter em operação
+        shape_type: tipo de forma (Evento, Gateway, Base de Dados, Objeto de Dados)
+        rect: QRectF da forma
+        border_color: cor da borda (hex string)
+        bg_color: cor de fundo (hex string) - segue o tema ativo
+        zoom: fator de zoom
+        hovered: boolean para estado de hover
+    """
+    t = T()
+    # Borda grossa no estilo neo-brutalista
+    border_width = 4.0 if hovered else 4.0
+    
+    # Fundo usa cor do tema (bg_color passado)
+    fill_color = QColor(bg_color)
+    
+    # Desenhar forma principal sem sombra
+    painter.setBrush(QBrush(fill_color))
+    painter.setPen(QPen(QColor(border_color), border_width))
+    
+    if "Evento" in shape_type:
+        painter.drawEllipse(rect)
+    elif "Gateway" in shape_type:
+        poly = QPolygonF([
+            QPointF(rect.center().x(), rect.top()),
+            QPointF(rect.right(), rect.center().y()),
+            QPointF(rect.center().x(), rect.bottom()),
+            QPointF(rect.left(), rect.center().y()),
+        ])
+        painter.drawPolygon(poly)
+    elif "Base de Dados" in shape_type:
+        painter.drawRect(QRectF(rect.left(), rect.top() + rect.height() * 0.15, rect.width(), rect.height() * 0.7))
+        painter.drawEllipse(QRectF(rect.left(), rect.top(), rect.width(), rect.height() * 0.3))
+        painter.drawEllipse(QRectF(rect.left(), rect.top() + rect.height() * 0.7, rect.width(), rect.height() * 0.3))
+    elif "Objeto de Dados" in shape_type:
+        poly = QPolygonF([
+            QPointF(rect.left(), rect.top()),
+            QPointF(rect.left() + rect.width() * 0.7, rect.top()),
+            QPointF(rect.right(), rect.top() + rect.height() * 0.3),
+            QPointF(rect.right(), rect.bottom()),
+            QPointF(rect.left(), rect.bottom()),
+        ])
+        painter.drawPolygon(poly)
+
+
+class BPMNRecallArrow(QGraphicsItem):
+    """
+    Seta de recall que sai de um ponto origem, vai para baixo, depois para esquerda, 
+    e sobe até o elemento destino. Composta por linhas retas.
+    
+    Trajetória: Começa no ponto de origem → vai para baixo (offset_down) → 
+    vai para esquerda (offset_left) → sobe até o destino
+    """
+    def __init__(self, origin_pos, target_pos, zoom):
+        super().__init__()
+        self.origin_pos = origin_pos  # QPointF
+        self.target_pos = target_pos  # QPointF
+        self.zoom = zoom
+        self._stroke_width = 2.5
+        self._arrow_size = 10 * zoom
+        
+    def boundingRect(self):
+        return QRectF(-3000, -3000, 6000, 6000)
+    
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Cores do tema
+        t = T()
+        pen_color = QColor(t.get("accent", "#7367F0"))
+        
+        # Criar caneta tracejada
+        pen = QPen(pen_color, self._stroke_width)
+        pen.setCapStyle(Qt.RoundCap)
+        pen.setJoinStyle(Qt.RoundJoin)
+        pen.setDashPattern([5, 5])  # Padrão tracejado: 5px traço, 5px espaço
+        painter.setPen(pen)
+        
+        # Desenhar a trajetória: DOWN→LEFT→UP→RIGHT→UP (entrando pelo BAIXO)
+        down_offset = 60 * self.zoom
+        left_offset = 80 * self.zoom
+        bottom_offset = 40 * self.zoom  # Offset abaixo do alvo para entrar por baixo
+        
+        # Segmento 1: Vertical para BAIXO
+        p1 = QPointF(self.origin_pos.x(), self.origin_pos.y() + down_offset)
+        painter.drawLine(self.origin_pos, p1)
+        
+        # Segmento 2: Horizontal para ESQUERDA
+        p2 = QPointF(self.origin_pos.x() - left_offset, self.origin_pos.y() + down_offset)
+        painter.drawLine(p1, p2)
+        
+        # Segmento 3: Vertical para CIMA até estar ABAIXO do target
+        p3 = QPointF(p2.x(), self.target_pos.y() + bottom_offset)
+        painter.drawLine(p2, p3)
+        
+        # Segmento 4: Horizontal para DIREITA até o target
+        p4 = QPointF(self.target_pos.x(), self.target_pos.y() + bottom_offset)
+        painter.drawLine(p3, p4)
+        
+        # Segmento 5: Vertical para CIMA ENTRANDO pelo BAIXO
+        painter.drawLine(p4, self.target_pos)
+        
+        # Desenhar a ponta da seta (vindo de baixo)
+        self._draw_arrow_head(painter, p4, self.target_pos, pen_color)
+    
+    def _draw_arrow_head(self, painter, start, end, color):
+        """Desenha a ponta da seta"""
+        line = end - start
+        if line.manhattanLength() < 0.001:
+            return
+        
+        # Normalizar a direção
+        angle = _math.atan2(-line.y(), -line.x())
+        arrow_p1 = end + QPointF(
+            _math.cos(angle - _math.pi / 6) * self._arrow_size,
+            _math.sin(angle - _math.pi / 6) * self._arrow_size
+        )
+        arrow_p2 = end + QPointF(
+            _math.cos(angle + _math.pi / 6) * self._arrow_size,
+            _math.sin(angle + _math.pi / 6) * self._arrow_size
+        )
+        
+        # Desenhar triângulo de seta
+        painter.setBrush(QBrush(color))
+        painter.drawPolygon(QPolygonF([end, arrow_p1, arrow_p2]))
+
+
 class BPMNAutoNode(QGraphicsItem):
     def __init__(self, node_id, text, shape, lane, signals, zoom):
         super().__init__()
@@ -265,6 +397,16 @@ class BPMNAutoNode(QGraphicsItem):
         self.signals = signals
         self.zoom = zoom
         self._hovered = False
+        
+        # Dicionário para armazenar textos em múltiplas posições
+        # Chaves: "inside", "below", "right", "left", "above"
+        self._texts = {
+            "inside": "",
+            "below": text.strip(),  # Text principal fica em "below" por padrão
+            "right": "",
+            "left": "",
+            "above": ""
+        }
 
         t = T()
         ff = t.get("font_family_content", "Segoe UI")
@@ -334,7 +476,21 @@ class BPMNAutoNode(QGraphicsItem):
             border_color = t.get("block_orange", t["accent"])
 
         # Fundo sólido — neo-brutalist ou convencional
-        if _is_nb(t):
+        # Não aplicar _nb_paint_node para formas geométricas
+        is_geometric_shape = any(
+            keyword in self.shape 
+            for keyword in ["Evento", "Gateway", "Base de Dados", "Objeto de Dados"]
+        )
+        
+        bg_color = QColor(t.get("bg_card", "#FFFFFF" if t["name"] == "light" else "#1E1E1E")).name()
+        
+        if is_geometric_shape:
+            # Usar helper para formas geométricas com estilo neo-brutalista
+            _nb_paint_geometric_shape(
+                painter, self.shape, r, border_color, bg_color, self.zoom, self._hovered
+            )
+        elif _is_nb(t):
+            # Usar _nb_paint_node para formas retangulares
             _nb_paint_node(
                 painter, r, self._hovered,
                 border_color=border_color,
@@ -342,16 +498,20 @@ class BPMNAutoNode(QGraphicsItem):
                 radius=4,
             )
         else:
-            bg_color = QColor(255, 255, 255) if t["name"] == "light" else QColor(30, 30, 30)
-            painter.setBrush(QBrush(bg_color))
+            bg_color_q = QColor(255, 255, 255) if t["name"] == "light" else QColor(30, 30, 30)
+            painter.setBrush(QBrush(bg_color_q))
             painter.setPen(QPen(QColor(border_color), pen_width))
-
+        
+        # Desenhar detalhes (ícones internos) das formas geométricas
+        # Notar: as formas base já foram desenhadas por _nb_paint_geometric_shape
         if "Evento" in self.shape:
-            painter.drawEllipse(r)
             if "Intermediário" in self.shape:
+                painter.setPen(QPen(QColor(border_color), 1.0))
+                painter.setBrush(Qt.NoBrush)
                 painter.drawEllipse(QRectF(4, 4, self._w - 8, self._h - 8))
             if "Mensagem" in self.shape:
                 painter.setPen(QPen(QColor(border_color), 1.5))
+                painter.setBrush(Qt.NoBrush)
                 painter.drawRect(
                     QRectF(self._w * 0.25, self._h * 0.3, self._w * 0.5, self._h * 0.4)
                 )
@@ -363,9 +523,9 @@ class BPMNAutoNode(QGraphicsItem):
                     QPointF(self._w * 0.5, self._h * 0.5),
                     QPointF(self._w * 0.75, self._h * 0.3),
                 )
-                painter.setPen(QPen(Qt.NoPen))
             if "Tempo" in self.shape:
                 painter.setPen(QPen(QColor(border_color), 1.5))
+                painter.setBrush(Qt.NoBrush)
                 painter.drawEllipse(
                     QRectF(self._w * 0.2, self._h * 0.2, self._w * 0.6, self._h * 0.6)
                 )
@@ -377,21 +537,12 @@ class BPMNAutoNode(QGraphicsItem):
                     QPointF(self._w * 0.5, self._h * 0.5),
                     QPointF(self._w * 0.65, self._h * 0.5),
                 )
-                painter.setPen(QPen(Qt.NoPen))
 
         elif "Gateway" in self.shape:
-            painter.drawPolygon(
-                QPolygonF(
-                    [
-                        QPointF(self._w / 2, 0),
-                        QPointF(self._w, self._h / 2),
-                        QPointF(self._w / 2, self._h),
-                        QPointF(0, self._h / 2),
-                    ]
-                )
-            )
+            # Detalhes do gateway (cruzes, linhas)
             if "Exclusivo" in self.shape:
                 painter.setPen(QPen(QColor(border_color), 2.5))
+                painter.setBrush(Qt.NoBrush)
                 painter.drawLine(
                     QPointF(self._w * 0.35, self._h * 0.35),
                     QPointF(self._w * 0.65, self._h * 0.65),
@@ -400,9 +551,9 @@ class BPMNAutoNode(QGraphicsItem):
                     QPointF(self._w * 0.65, self._h * 0.35),
                     QPointF(self._w * 0.35, self._h * 0.65),
                 )
-                painter.setPen(QPen(Qt.NoPen))
             elif "Paralelo" in self.shape:
                 painter.setPen(QPen(QColor(border_color), 2.5))
+                painter.setBrush(Qt.NoBrush)
                 painter.drawLine(
                     QPointF(self._w * 0.5, self._h * 0.25),
                     QPointF(self._w * 0.5, self._h * 0.75),
@@ -411,25 +562,17 @@ class BPMNAutoNode(QGraphicsItem):
                     QPointF(self._w * 0.25, self._h * 0.5),
                     QPointF(self._w * 0.75, self._h * 0.5),
                 )
-                painter.setPen(QPen(Qt.NoPen))
             elif "Inclusivo" in self.shape:
                 painter.setPen(QPen(QColor(border_color), 1.5))
+                painter.setBrush(Qt.NoBrush)
                 painter.drawEllipse(
                     QRectF(self._w * 0.3, self._h * 0.3, self._w * 0.4, self._h * 0.4)
                 )
-                painter.setPen(QPen(Qt.NoPen))
 
         elif "Objeto de Dados" in self.shape:
-            poly = QPolygonF(
-                [
-                    QPointF(0, 0),
-                    QPointF(self._w * 0.7, 0),
-                    QPointF(self._w, self._h * 0.3),
-                    QPointF(self._w, self._h),
-                    QPointF(0, self._h),
-                ]
-            )
-            painter.drawPolygon(poly)
+            # Detalhes do objeto de dados (linhas de dobradura)
+            painter.setPen(QPen(QColor(border_color), 1.5))
+            painter.setBrush(Qt.NoBrush)
             painter.drawLine(
                 QPointF(self._w * 0.7, 0), QPointF(self._w * 0.7, self._h * 0.3)
             )
@@ -437,17 +580,17 @@ class BPMNAutoNode(QGraphicsItem):
                 QPointF(self._w * 0.7, self._h * 0.3), QPointF(self._w, self._h * 0.3)
             )
 
-        elif "Base de Dados" in self.shape:
-            painter.drawRect(QRectF(0, self._h * 0.15, self._w, self._h * 0.7))
-            painter.drawEllipse(QRectF(0, 0, self._w, self._h * 0.3))
-            painter.drawEllipse(QRectF(0, self._h * 0.7, self._w, self._h * 0.3))
-
-        else:
-            painter.drawRoundedRect(r, 4, 4)
+        elif not is_geometric_shape:
+            # Para formas retangulares (Tarefas)
+            if not _is_nb(t):
+                painter.drawRoundedRect(r, 4, 4)
             if "Usuário" in self.shape:
+                painter.setPen(QColor(border_color))
+                painter.setBrush(QBrush(QColor(border_color)))
                 painter.drawEllipse(
                     QRectF(self._w * 0.05, self._h * 0.1, self._w * 0.1, self._h * 0.15)
                 )
+                painter.setBrush(Qt.NoBrush)
                 painter.drawArc(
                     QRectF(
                         self._w * 0.02, self._h * 0.25, self._w * 0.16, self._h * 0.2
@@ -456,14 +599,19 @@ class BPMNAutoNode(QGraphicsItem):
                     180 * 16,
                 )
             elif "Serviço" in self.shape:
+                painter.setPen(QColor(border_color))
+                painter.setBrush(QBrush(QColor(border_color)))
                 painter.drawEllipse(
                     QRectF(self._w * 0.05, self._h * 0.1, self._w * 0.1, self._h * 0.15)
                 )
+                painter.setBrush(Qt.NoBrush)
                 painter.drawLine(
                     QPointF(self._w * 0.05, self._h * 0.1),
                     QPointF(self._w * 0.15, self._h * 0.25),
                 )
             elif "Subprocesso" in self.shape:
+                painter.setPen(QPen(QColor(border_color), 1.5))
+                painter.setBrush(Qt.NoBrush)
                 painter.drawRect(
                     QRectF(
                         self._w / 2 - 6 * self.zoom,
@@ -483,25 +631,38 @@ class BPMNAutoNode(QGraphicsItem):
 
         painter.setFont(self._font_text if self.text else self._font_ph)
         painter.setPen(QColor(T()["text"] if self.text else T()["text_dim"]))
-        display_text = self.text if self.text else "✎ Nomear"
-        if (
-            "Evento" in self.shape
-            or "Gateway" in self.shape
-            or "Objeto" in self.shape
-            or "Base" in self.shape
-        ):
-            # Labels below the shape - use word wrap and high-Z for visibility
-            text_rect = QRectF(
-                -self._w, self._h + 4 * self.zoom, self._w * 3, 60 * self.zoom
-            )
-            painter.drawText(
-                text_rect, Qt.AlignTop | Qt.AlignHCenter | Qt.TextWordWrap, display_text
-            )
-        else:
-            # Task text - precisely centered with padding
-            px = 8 * self.zoom
-            inner = r.adjusted(px, 4 * self.zoom, -px, -4 * self.zoom)
-            painter.drawText(inner, Qt.AlignCenter | Qt.TextWordWrap, display_text)
+        
+        # Renderizar textos de TODAS as 5 posições
+        for position, text_content in self._texts.items():
+            if not text_content:  # Se vazio, pula
+                continue
+            
+            display_text = text_content
+            
+            if position == "inside":
+                # Dentro da forma
+                if self._w > 0 and self._h > 0:
+                    text_rect = QRectF(r.left() - self._w * 0.2, r.top() - self._h * 0.2, 
+                                       self._w * 1.4, self._h * 1.4)
+                    painter.drawText(text_rect, Qt.AlignCenter | Qt.TextWordWrap, display_text)
+            elif position == "right":
+                # À direita da forma
+                text_rect = QRectF(r.right() + 8 * self.zoom, r.top(), 
+                                   100 * self.zoom, self._h + 20 * self.zoom)
+                painter.drawText(text_rect, Qt.AlignLeft | Qt.AlignVCenter | Qt.TextWordWrap, display_text)
+            elif position == "left":
+                # À esquerda da forma
+                text_rect = QRectF(r.left() - 108 * self.zoom, r.top(), 
+                                   100 * self.zoom, self._h + 20 * self.zoom)
+                painter.drawText(text_rect, Qt.AlignRight | Qt.AlignVCenter | Qt.TextWordWrap, display_text)
+            elif position == "above":
+                # Acima da forma
+                text_rect = QRectF(-self._w, -60 * self.zoom, self._w * 3, 50 * self.zoom)
+                painter.drawText(text_rect, Qt.AlignBottom | Qt.AlignHCenter | Qt.TextWordWrap, display_text)
+            elif position == "below":
+                # Abaixo da forma (padrão)
+                text_rect = QRectF(-self._w, self._h + 4 * self.zoom, self._w * 3, 60 * self.zoom)
+                painter.drawText(text_rect, Qt.AlignTop | Qt.AlignHCenter | Qt.TextWordWrap, display_text)
 
     def _draw_btn(self, painter, rect, label, color):
         t = T()
@@ -517,6 +678,23 @@ class BPMNAutoNode(QGraphicsItem):
 
     def hoverLeaveEvent(self, event):
         self._hovered = False
+        self.update()
+
+    def _set_text_position(self, position):
+        """Define/edita texto em uma posição específica"""
+        text, ok = QInputDialog.getText(
+            None,
+            f"Adicionar/Editar Texto - {position.upper()}",
+            f"Digite o texto para {position}:",
+            text=self._texts.get(position, "")
+        )
+        if ok:
+            self._texts[position] = text.strip()
+            self.update()
+
+    def _delete_text_position(self, position):
+        """Deleta texto de uma posição específica"""
+        self._texts[position] = ""
         self.update()
 
     def mousePressEvent(self, event):
@@ -549,6 +727,7 @@ class BPMNAutoNode(QGraphicsItem):
         )  # Negativo indica conexão interdisciplinar
 
         m_link = menu.addAction("🔗 Interligar com outro Elemento")
+        m_recall = menu.addAction("🔄↩ Criar Recall (Seta de Volta)")
         menu.addSeparator()
 
         m_lane = menu.addMenu("↕ Mover entre Baias")
@@ -561,11 +740,44 @@ class BPMNAutoNode(QGraphicsItem):
 
         m_shape = menu.addAction("🔄 Mudar Formato")
         menu.addSeparator()
+        
+        # Opção para ADICIONAR/EDITAR TEXTO em qualquer posição
+        m_add_text = menu.addMenu("➕ Adicionar/Editar Texto")
+        a_inside = m_add_text.addAction("📍 Dentro")
+        a_below = m_add_text.addAction("📍 Abaixo")
+        a_right = m_add_text.addAction("📍 À Direita")
+        a_left = m_add_text.addAction("📍 À Esquerda")
+        a_above = m_add_text.addAction("📍 Acima")
+        menu.addSeparator()
+        
+        a_inside.triggered.connect(lambda: self._set_text_position("inside"))
+        a_below.triggered.connect(lambda: self._set_text_position("below"))
+        a_right.triggered.connect(lambda: self._set_text_position("right"))
+        a_left.triggered.connect(lambda: self._set_text_position("left"))
+        a_above.triggered.connect(lambda: self._set_text_position("above"))
+        
+        # Opção para DELETAR TEXTOS de posições específicas
+        m_del_text = menu.addMenu("🗑 Excluir Texto")
+        d_inside = m_del_text.addAction("🗑 Dentro")
+        d_below = m_del_text.addAction("🗑 Abaixo")
+        d_right = m_del_text.addAction("🗑 À Direita")
+        d_left = m_del_text.addAction("🗑 À Esquerda")
+        d_above = m_del_text.addAction("🗑 Acima")
+        menu.addSeparator()
+        
+        d_inside.triggered.connect(lambda: self._delete_text_position("inside"))
+        d_below.triggered.connect(lambda: self._delete_text_position("below"))
+        d_right.triggered.connect(lambda: self._delete_text_position("right"))
+        d_left.triggered.connect(lambda: self._delete_text_position("left"))
+        d_above.triggered.connect(lambda: self._delete_text_position("above"))
+        
         m_del = menu.addAction("🗑 Excluir Elemento")
 
         action = menu.exec_(event.screenPos())
         if action == m_link:
             self.signals.link_to.emit(self.node_id)
+        elif action == m_recall:
+            self.signals.recall_create.emit(self.node_id)
         elif action == m_shape:
             self.signals.change_shape.emit(self.node_id)
         elif action == m_del:
@@ -640,6 +852,7 @@ class BPMNAutoWidget(QWidget):
                 "lane": 0,
                 "children": [],
                 "parent": None,
+                "recall_links": [],
             }
         }
 
@@ -653,6 +866,7 @@ class BPMNAutoWidget(QWidget):
         self.signals.change_shape.connect(self._on_change_shape)
         self.signals.add_root.connect(self._on_add_root)
         self.signals.link_to.connect(self._on_link_to)
+        self.signals.recall_create.connect(self._on_recall_create)
 
         self._setup_ui()
         self._float_editor = BPMNFloatingEditor(self.view)
@@ -685,6 +899,51 @@ class BPMNAutoWidget(QWidget):
                 self.draw_diagram()
             except Exception:
                 pass
+
+    def _on_recall_create(self, node_id: int) -> None:
+        """Handler para criação de recall arrow com dialog de seleção.
+        
+        Args:
+            node_id: ID do nó que iniciou o recall
+        """
+        choices = []
+        mapping = {}
+        for nid, data in self.nodes.items():
+            if nid != node_id:
+                lbl = f"ID {nid} - {data['text'] or data['shape']}"
+                choices.append(lbl)
+                mapping[lbl] = nid
+        if not choices:
+            return
+        
+        item, ok = QInputDialog.getItem(
+            self,
+            "Criar Seta de Recall",
+            "Selecione o elemento de destino (DOWN→LEFT→UP):",
+            choices,
+            0,
+            False,
+        )
+        if ok and item:
+            dest_id = mapping[item]
+            self._add_recall_link(node_id, dest_id)
+
+    def _add_recall_link(self, source_id: int, target_id: int) -> None:
+        """Adiciona uma seta de recall entre dois nós.
+        
+        Args:
+            source_id: ID do nó de origem
+            target_id: ID do nó de destino
+        """
+        if source_id not in self.nodes or target_id not in self.nodes:
+            return
+        if source_id == target_id:
+            return
+        if "recall_links" not in self.nodes[source_id]:
+            self.nodes[source_id]["recall_links"] = []
+        if target_id not in self.nodes[source_id]["recall_links"]:
+            self.nodes[source_id]["recall_links"].append(target_id)
+            self.draw_diagram()
 
     def zoom_in(self):
         self.update_zoom(self.zoom * 1.15)
@@ -839,6 +1098,7 @@ class BPMNAutoWidget(QWidget):
             "lane": lane_idx,
             "children": [],
             "parent": None,
+            "recall_links": [],
         }
         self.draw_diagram()
         if "Tarefa" in shape:
@@ -982,6 +1242,7 @@ class BPMNAutoWidget(QWidget):
             "lane": self.nodes[parent_id]["lane"],
             "children": [],
             "parent": parent_id,
+            "recall_links": [],
         }
         self.nodes[parent_id]["children"].append(new_id)
         self.draw_diagram()
@@ -1004,6 +1265,7 @@ class BPMNAutoWidget(QWidget):
             "lane": self.nodes[node_id]["lane"],
             "children": [],
             "parent": parent_id,
+            "recall_links": [],
         }
         self.nodes[parent_id]["children"].append(new_id)
         self.draw_diagram()
@@ -1303,6 +1565,26 @@ class BPMNAutoWidget(QWidget):
                     )
                 )
 
+        # Conexões de recall (setas DOWN→LEFT→UP automáticas)
+        if "recall_links" in self.nodes[node_id]:
+            for cid in self.nodes[node_id]["recall_links"]:
+                if cid not in self.node_positions:
+                    continue
+                
+                # Posição central do nó de origem
+                origin_x, origin_y = self.node_positions[node_id]
+                # Posição central do nó de destino
+                target_x, target_y = self.node_positions[cid]
+                
+                # Criar e adicionar BPMNRecallArrow ao scene
+                arrow = BPMNRecallArrow(
+                    QPointF(origin_x, origin_y),
+                    QPointF(target_x, target_y),
+                    self.zoom
+                )
+                self.scene.addItem(arrow)
+                self._scene_items.append(arrow)
+
     def _draw_nodes(self):
         for nid, (x, y) in self.node_positions.items():
             nw, nh = self.node_dimensions[nid]
@@ -1336,13 +1618,16 @@ class _BPMNModule(BaseModule):
             "COMO USAR:\n"
             "• Clique com o botao direito sobre qualquer elemento para "
             "acessar opcoes: adicionar filho, irmao, mudar forma, "
-            "mover entre raias ou interligar a outro elemento.\n"
+            "mover entre raias, interligar ou criar seta de recall.\n"
             "• Use os botoes na base do diagrama para adicionar novos "
             "elementos em uma raia especifica ou criar novas raias.\n"
             "• Clique duas vezes em qualquer elemento para editar "
             "seu texto (nome da tarefa, evento, etc.).\n"
             "• Clique duas vezes nos cabecalhos para renomear o "
             "projeto, pool ou raias.\n\n"
+            "CONEXOES:\n"
+            "• Interligar (🔗): Cria ligacao com linha tracejada e curvatura automatica.\n"
+            "• Seta de Recall (🔄↩): Cria seta com 3 segmentos (DOWN→LEFT→UP) para voltar a elementos anteriores.\n\n"
             "ELEMENTOS DISPONIVEIS:\n"
             "• Tarefas: Simples, de Usuario, de Servico, Subprocesso\n"
             "• Eventos: Inicio, Fim, Intermediario, Tempo, Mensagem\n"

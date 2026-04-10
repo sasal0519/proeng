@@ -27,7 +27,10 @@ from PyQt5.QtGui import (
     QColor,
     QPainter,
     QPixmap,
+    QPdfWriter,
+    QPageLayout,
 )
+from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtCore import Qt, QRectF
 
 from proeng.core.themes import T, _ACTIVE
@@ -231,36 +234,40 @@ def _export_view(view, fmt, parent=None):
 
     elif fmt == "pdf":
         try:
-            from PyQt5.QtPrintSupport import QPrinter
-
-            HAS_PRINT = True
+            from PyQt5.QtGui import QPdfWriter
+            HAS_PDF = True
         except ImportError:
-            HAS_PRINT = False
+            HAS_PDF = False
 
-        if not HAS_PRINT:
+        if not HAS_PDF:
             QMessageBox.warning(
                 parent,
                 "Módulo ausente",
-                "QPrintSupport não encontrado.\nExecute: pip install PyQt5 --upgrade",
+                "QPdfWriter não encontrado.\nExecute: pip install PyQt5 --upgrade",
             )
             return
+            
         path, _ = QFileDialog.getSaveFileName(
             parent, "Exportar como PDF", "diagrama.pdf", "PDF (*.pdf)"
         )
         if not path:
             return
-        printer = QPrinter(QPrinter.HighResolution)
-        printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setOutputFileName(path)
-        printer.setPageSize(QPrinter.A3)
-        printer.setOrientation(QPrinter.Landscape)
-        p = QPainter(printer)
+        
+        # Usar QPdfWriter (específico para PDF, não impressora)
+        pdf_writer = QPdfWriter(path)
+        pdf_writer.setPageSize(QPrinter.A3)
+        pdf_writer.setPageOrientation(QPageLayout.Landscape)
+        pdf_writer.setTitle("Diagrama ProEng")
+        pdf_writer.setCreator("ProEng")
+        
+        p = QPainter(pdf_writer)
         p.setRenderHint(QPainter.Antialiasing)
         p.setRenderHint(QPainter.TextAntialiasing)
+        p.setRenderHint(QPainter.SmoothPixmapTransform)
 
-        target_rect = QRectF(0, 0, printer.width(), printer.height())
+        target_rect = QRectF(0, 0, pdf_writer.width(), pdf_writer.height())
         scene.render(
-            p, target=target_rect, source=rect, aspectRatioMode=Qt.KeepAspectRatio
+            p, target=target_rect, source=rect, mode=Qt.KeepAspectRatio
         )
         p.end()
         QMessageBox.information(parent, "PDF Exportado", f"Arquivo salvo em:\n{path}")
