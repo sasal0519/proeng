@@ -469,8 +469,7 @@ Built with Python, Qt Framework, and Precision Engineering
 
 ---
 
-╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║                                                                                                            ║
+
                           🌐 VERSÃO EM PORTUGUÊS / PORTUGUESE VERSION 🌐                                     
                                                                                                             
 
