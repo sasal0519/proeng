@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProEng v2.0 — Suite de Engenharia Industrial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+
+/* ═══════════════════════════════════════════
+   TOKENS — INDUSTRIAL NEO-BRUTALISM
+═══════════════════════════════════════════ */
+:root {
+  --ink:       #0A0A0A;
+  --paper:     #F0EDE4;
+  --steel:     #1A1A2E;
+  --acid:      #C8FF00;
+  --cyan:      #00FFCC;
+  --orange:    #FF5500;
+  --red:       #FF1744;
+  --blue:      #0057FF;
+  --muted:     #555555;
+  --rule:      2px solid var(--ink);
+  --rule-fat:  4px solid var(--ink);
+  --shadow:    6px 6px 0 var(--ink);
+  --shadow-lg: 10px 10px 0 var(--ink);
+  --r: 0px;
+  --ff-display: 'Bebas Neue', sans-serif;
+  --ff-mono:    'Space Mono', monospace;
+  --ff-body:    'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--ff-body);
+  background: var(--paper);
+  color: var(--ink);
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+::selection { background: var(--acid); color: var(--ink); }
+
+/* ═══════════════════════════════════════════
+   NOISE + GRID TEXTURE
+═══════════════════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: var(--ink);
+  border-bottom: var(--rule-fat);
+  border-color: var(--acid);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 56px;
+}
+
+.nav-logo {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  color: var(--acid);
+  letter-spacing: 3px;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0;
+  list-style: none;
+}
+
+.nav-links a {
+  display: block;
+  font-family: var(--ff-mono);
+  font-size: 0.7rem;
+  color: var(--paper);
+  text-decoration: none;
+  padding: 0 1.2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  height: 56px;
+  line-height: 56px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-links a:hover { background: var(--acid); color: var(--ink); }
+
+.nav-badge {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  background: var(--orange);
+  color: #fff;
+  padding: 3px 8px;
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════ */
+#hero {
+  min-height: 100vh;
+  padding-top: 56px;
+  background: var(--steel);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5rem 4rem 5rem 4rem;
+  border-right: var(--rule-fat);
+  border-color: rgba(200,255,0,0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.hero-tag {
+  font-family: var(--ff-mono);
+  font-size: 0.7rem;
+  color: var(--cyan);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hero-tag::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 2px;
+  background: var(--cyan);
+}
+
+.hero-title {
+  font-family: var(--ff-display);
+  font-size: clamp(5rem, 10vw, 9rem);
+  color: var(--paper);
+  line-height: 0.9;
+  letter-spacing: 2px;
+  margin-bottom: 0.25rem;
+}
+
+.hero-title span {
+  color: var(--acid);
+  display: block;
+}
+
+.hero-subtitle {
+  font-family: var(--ff-display);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  color: var(--orange);
+  letter-spacing: 4px;
+  margin-bottom: 2rem;
+}
+
+.hero-desc {
+  font-size: 1rem;
+  color: rgba(240,237,228,0.65);
+  line-height: 1.7;
+  max-width: 480px;
+  margin-bottom: 3rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: var(--ff-mono);
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 0.85rem 1.8rem;
+  text-decoration: none;
+  border: var(--rule-fat);
+  transition: transform 0.1s, box-shadow 0.1s;
+  display: inline-block;
+  cursor: crosshair;
+}
+
+.btn:active { transform: translate(3px,3px); box-shadow: none !important; }
+
+.btn-primary {
+  background: var(--acid);
+  color: var(--ink);
+  border-color: var(--acid);
+  box-shadow: 5px 5px 0 var(--acid);
+}
+
+.btn-primary:hover { box-shadow: 8px 8px 0 var(--cyan); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--paper);
+  border-color: rgba(240,237,228,0.4);
+  box-shadow: 5px 5px 0 rgba(240,237,228,0.15);
+}
+
+.btn-ghost:hover { border-color: var(--paper); box-shadow: 8px 8px 0 rgba(240,237,228,0.3); }
+
+.hero-stats {
+  display: flex;
+  gap: 2.5rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(200,255,0,0.2);
+}
+
+.stat-item { display: flex; flex-direction: column; }
+
+.stat-num {
+  font-family: var(--ff-display);
+  font-size: 2.5rem;
+  color: var(--acid);
+  line-height: 1;
+}
+
+.stat-label {
+  font-family: var(--ff-mono);
+  font-size: 0.6rem;
+  color: rgba(240,237,228,0.5);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+/* HERO RIGHT — animated diagram */
+.hero-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 4rem;
+}
+
+.hero-diagram {
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+}
+
+.diagram-ring {
+  width: 320px;
+  height: 320px;
+  border: 3px solid rgba(200,255,0,0.25);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation: spin 30s linear infinite;
+}
+
+.diagram-ring:nth-child(2) {
+  width: 240px; height: 240px;
+  border-color: rgba(0,255,204,0.2);
+  animation-direction: reverse;
+  animation-duration: 20s;
+}
+
+.diagram-ring:nth-child(3) {
+  width: 160px; height: 160px;
+  border-color: rgba(255,85,0,0.25);
+  animation-duration: 15s;
+}
+
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+.diagram-center {
+  width: 320px;
+  height: 320px;
+  margin: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.module-node {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  background: var(--ink);
+  border: 3px solid var(--acid);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0 var(--acid);
+  animation: float 4s ease-in-out infinite;
+  cursor: default;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.module-node:hover {
+  transform: translate(-2px,-2px) scale(1.08) !important;
+  box-shadow: 8px 8px 0 var(--cyan) !important;
+  z-index: 10;
+}
+
+.module-node .node-icon { font-size: 1.4rem; line-height: 1; }
+.module-node .node-label { font-family: var(--ff-mono); font-size: 0.45rem; color: var(--acid); letter-spacing: 1px; margin-top: 2px; text-align: center; }
+
+.module-node:nth-child(1)  { top: 0%;    left: 38%;  animation-delay: 0s; }
+.module-node:nth-child(2)  { top: 12%;   left: 68%;  animation-delay: 0.5s; border-color: var(--cyan); box-shadow: 4px 4px 0 var(--cyan); }
+.module-node:nth-child(3)  { top: 38%;   left: 80%;  animation-delay: 1s; border-color: var(--orange); box-shadow: 4px 4px 0 var(--orange); }
+.module-node:nth-child(4)  { top: 62%;   left: 70%;  animation-delay: 1.5s; }
+.module-node:nth-child(5)  { top: 76%;   left: 38%;  animation-delay: 2s; border-color: var(--cyan); box-shadow: 4px 4px 0 var(--cyan); }
+.module-node:nth-child(6)  { top: 62%;   left: 8%;   animation-delay: 2.5s; border-color: var(--orange); box-shadow: 4px 4px 0 var(--orange); }
+.module-node:nth-child(7)  { top: 38%;   left: 0%;   animation-delay: 3s; }
+.module-node:nth-child(8)  { top: 12%;   left: 10%;  animation-delay: 3.5s; border-color: var(--red); box-shadow: 4px 4px 0 var(--red); }
+
+.module-node .node-label { color: inherit; }
+.module-node:nth-child(2) .node-label { color: var(--cyan); }
+.module-node:nth-child(3) .node-label { color: var(--orange); }
+.module-node:nth-child(5) .node-label { color: var(--cyan); }
+.module-node:nth-child(6) .node-label { color: var(--orange); }
+.module-node:nth-child(8) .node-label { color: var(--red); }
+.module-node:nth-child(1) .node-label,
+.module-node:nth-child(4) .node-label,
+.module-node:nth-child(7) .node-label { color: var(--acid); }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.center-core {
+  width: 90px;
+  height: 90px;
+  background: var(--acid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  box-shadow: 6px 6px 0 var(--ink);
+  border: 3px solid var(--ink);
+  z-index: 5;
+}
+
+.center-core .core-label {
+  font-family: var(--ff-display);
+  font-size: 1.1rem;
+  color: var(--ink);
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.center-core .core-sub {
+  font-family: var(--ff-mono);
+  font-size: 0.42rem;
+  color: var(--ink);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════
+   SECTION BASE
+═══════════════════════════════════════════ */
+.section { position: relative; z-index: 1; }
+
+.section-header {
+  padding: 5rem 4rem 3rem;
+  border-bottom: var(--rule-fat);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.section-number {
+  font-family: var(--ff-display);
+  font-size: 6rem;
+  color: rgba(0,0,0,0.06);
+  line-height: 1;
+  position: absolute;
+  left: 4rem;
+  top: 2rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+.section-title {
+  font-family: var(--ff-display);
+  font-size: clamp(3rem, 6vw, 5rem);
+  line-height: 1;
+  letter-spacing: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.section-desc {
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 380px;
+  text-align: right;
+}
+
+/* ═══════════════════════════════════════════
+   TICKER / MARQUEE
+═══════════════════════════════════════════ */
+.ticker {
+  background: var(--acid);
+  border-top: var(--rule-fat);
+  border-bottom: var(--rule-fat);
+  overflow: hidden;
+  padding: 0.6rem 0;
+  white-space: nowrap;
+}
+
+.ticker-inner {
+  display: inline-flex;
+  animation: marquee 20s linear infinite;
+  gap: 0;
+}
+
+.ticker-item {
+  font-family: var(--ff-mono);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding: 0 2rem;
+}
+
+.ticker-item::after {
+  content: '◆';
+  margin-left: 2rem;
+  opacity: 0.4;
+}
+
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ═══════════════════════════════════════════
+   MODULES GRID
+═══════════════════════════════════════════ */
+#modules { background: var(--paper); }
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-left: var(--rule-fat);
+}
+
+.module-card {
+  border-right: var(--rule-fat);
+  border-bottom: var(--rule-fat);
+  padding: 2.5rem 2rem;
+  transition: background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.module-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 3px;
+  background: var(--card-accent, var(--acid));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+
+.module-card:hover { background: var(--ink); }
+.module-card:hover .card-title { color: var(--paper); }
+.module-card:hover .card-desc { color: rgba(240,237,228,0.55); }
+.module-card:hover .card-num { color: rgba(240,237,228,0.08); }
+.module-card:hover::after { transform: scaleX(1); }
+
+.card-num {
+  font-family: var(--ff-display);
+  font-size: 4rem;
+  color: rgba(0,0,0,0.06);
+  line-height: 1;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.card-icon-wrap {
+  width: 56px;
+  height: 56px;
+  background: var(--card-accent, var(--acid));
+  border: var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm, 4px 4px 0 var(--ink));
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.module-card:hover .card-icon-wrap {
+  box-shadow: 6px 6px 0 var(--card-accent, var(--acid));
+  transform: translate(-2px,-2px);
+}
+
+.card-title {
+  font-family: var(--ff-display);
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+  transition: color 0.2s;
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+  transition: color 0.2s;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+}
+
+.tag {
+  font-family: var(--ff-mono);
+  font-size: 0.58rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid rgba(0,0,0,0.15);
+  color: var(--muted);
+}
+
+.module-card:hover .tag { border-color: rgba(240,237,228,0.2); color: rgba(240,237,228,0.5); }
+
+/* color accents per card */
+.mc-1  { --card-accent: #C8FF00; }
+.mc-2  { --card-accent: #00FFCC; }
+.mc-3  { --card-accent: #FF5500; }
+.mc-4  { --card-accent: #0057FF; }
+.mc-5  { --card-accent: #FF1744; }
+.mc-6  { --card-accent: #FFDD00; }
+.mc-7  { --card-accent: #00C853; }
+.mc-8  { --card-accent: #FF5500; }
+.mc-9  { --card-accent: #7C4DFF; }
+.mc-10 { --card-accent: #00FFCC; }
+.mc-11 { --card-accent: #FF6D00; }
+
+/* ═══════════════════════════════════════════
+   PHILOSOPHY / MANIFESTO SECTION
+═══════════════════════════════════════════ */
+#philosophy {
+  background: var(--steel);
+  color: var(--paper);
+}
+
+#philosophy .section-header { border-color: rgba(200,255,0,0.25); }
+#philosophy .section-title { color: var(--paper); }
+#philosophy .section-desc { color: rgba(240,237,228,0.5); }
+#philosophy .section-number { color: rgba(255,255,255,0.04); }
+
+.philosophy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-left: 4px solid rgba(200,255,0,0.2);
+}
+
+.philosophy-card {
+  padding: 3rem 2.5rem;
+  border-right: 2px solid rgba(200,255,0,0.12);
+  border-bottom: 2px solid rgba(200,255,0,0.12);
+  position: relative;
+}
+
+.phil-accent {
+  width: 40px;
+  height: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.phil-num {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  color: var(--acid);
+  letter-spacing: 3px;
+  margin-bottom: 1rem;
+}
+
+.phil-title {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  letter-spacing: 1px;
+  color: var(--paper);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+}
+
+.phil-text {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: rgba(240,237,228,0.6);
+}
+
+/* ═══════════════════════════════════════════
+   THEMES SHOWCASE
+═══════════════════════════════════════════ */
+#themes { background: var(--paper); }
+
+.themes-row {
+  display: flex;
+  overflow-x: auto;
+  border-top: var(--rule-fat);
+  border-bottom: var(--rule-fat);
+  scrollbar-width: none;
+}
+
+.themes-row::-webkit-scrollbar { display: none; }
+
+.theme-chip {
+  flex: 0 0 180px;
+  height: 200px;
+  border-right: var(--rule-fat);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  cursor: crosshair;
+  position: relative;
+  overflow: hidden;
+  transition: flex 0.3s;
+}
+
+.theme-chip:hover { flex: 0 0 260px; }
+
+.theme-chip-label {
+  font-family: var(--ff-display);
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  z-index: 1;
+  position: relative;
+  line-height: 1;
+}
+
+.theme-chip-sub {
+  font-family: var(--ff-mono);
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-top: 0.4rem;
+  z-index: 1;
+  position: relative;
+}
+
+.theme-swatches {
+  display: flex;
+  gap: 4px;
+  margin-top: auto;
+  z-index: 1;
+  position: relative;
+}
+
+.swatch {
+  width: 20px; height: 20px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+/* theme colors */
+.th-1  { background: #F4F1E8; color: #0A0A0A; }
+.th-2  { background: #050816; color: #E5E7EB; }
+.th-3  { background: #1A1009; color: #E5D5C5; }
+.th-4  { background: #0D1A0D; color: #D4F0C8; }
+.th-5  { background: #120720; color: #F0D0FF; }
+.th-6  { background: #E8F4F8; color: #0A2030; }
+.th-7  { background: #1A1400; color: #FFF3C0; }
+.th-8  { background: #1A0008; color: #FFD0D8; }
+.th-9  { background: #000A1A; color: #C8E0FF; }
+.th-10 { background: #0A0400; color: #FFE8B0; }
+.th-11 { background: #F0FFF4; color: #003320; }
+.th-12 { background: #000000; color: #FFFFFF; }
+.th-13 { background: #1A0A2E; color: #E8D8FF; }
+.th-14 { background: #282A36; color: #F8F8F2; }
+
+/* ═══════════════════════════════════════════
+   ARCHITECTURE SECTION
+═══════════════════════════════════════════ */
+#architecture { background: var(--ink); color: var(--paper); }
+#architecture .section-header { border-color: rgba(255,85,0,0.3); }
+#architecture .section-title { color: var(--paper); }
+#architecture .section-desc { color: rgba(240,237,228,0.5); }
+#architecture .section-number { color: rgba(255,255,255,0.04); }
+
+.arch-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  border-top: 2px solid rgba(255,255,255,0.07);
+}
+
+.arch-tree {
+  padding: 3rem;
+  border-right: 2px solid rgba(255,255,255,0.07);
+  font-family: var(--ff-mono);
+  font-size: 0.78rem;
+  line-height: 2;
+  color: rgba(240,237,228,0.6);
+}
+
+.arch-tree .tree-title {
+  font-family: var(--ff-display);
+  font-size: 1.2rem;
+  color: var(--orange);
+  letter-spacing: 2px;
+  margin-bottom: 1.5rem;
+}
+
+.arch-tree .t-root { color: var(--acid); }
+.arch-tree .t-core { color: var(--cyan); }
+.arch-tree .t-module { color: var(--orange); }
+.arch-tree .t-ui { color: var(--red); }
+.arch-tree .t-comment { color: rgba(240,237,228,0.3); font-style: italic; }
+
+.arch-features {
+  padding: 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-content: start;
+}
+
+.arch-feat {
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 1.5rem;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.arch-feat:hover { border-color: var(--orange); }
+
+.arch-feat-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.arch-feat-title {
+  font-family: var(--ff-mono);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 0.5rem;
+}
+
+.arch-feat-text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(240,237,228,0.55);
+}
+
+/* ═══════════════════════════════════════════
+   API REFERENCE SECTION
+═══════════════════════════════════════════ */
+#api { background: #0F0F1A; color: var(--paper); }
+#api .section-header { border-color: rgba(0,255,204,0.2); }
+#api .section-title { color: var(--paper); }
+#api .section-desc { color: rgba(240,237,228,0.5); }
+#api .section-number { color: rgba(255,255,255,0.03); }
+
+.api-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid rgba(0,255,204,0.1);
+}
+
+.api-block {
+  padding: 2.5rem;
+  border-right: 1px solid rgba(0,255,204,0.1);
+  border-bottom: 1px solid rgba(0,255,204,0.1);
+}
+
+.api-block-title {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.api-block-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(0,255,204,0.2);
+}
+
+.code-block {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,255,204,0.12);
+  padding: 1.25rem 1.5rem;
+  font-family: var(--ff-mono);
+  font-size: 0.75rem;
+  line-height: 1.8;
+  color: rgba(240,237,228,0.7);
+  overflow-x: auto;
+}
+
+.code-block .kw  { color: var(--cyan); }
+.code-block .fn  { color: var(--acid); }
+.code-block .str { color: var(--orange); }
+.code-block .cm  { color: rgba(255,255,255,0.3); font-style: italic; }
+.code-block .tp  { color: #FF79C6; }
+
+.method-list { margin-top: 1.5rem; }
+
+.method-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.method-name {
+  font-family: var(--ff-mono);
+  font-size: 0.75rem;
+  color: var(--acid);
+  white-space: nowrap;
+}
+
+.method-desc {
+  font-size: 0.8rem;
+  color: rgba(240,237,228,0.45);
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════
+   INSTALL SECTION
+═══════════════════════════════════════════ */
+#install {
+  background: var(--acid);
+  border-top: var(--rule-fat);
+  border-bottom: var(--rule-fat);
+}
+
+.install-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-left: var(--rule-fat);
+}
+
+.install-left {
+  padding: 5rem 4rem;
+  border-right: var(--rule-fat);
+}
+
+.install-title {
+  font-family: var(--ff-display);
+  font-size: clamp(3rem, 6vw, 5rem);
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: 2px;
+  margin-bottom: 1.5rem;
+}
+
+.install-sub {
+  font-size: 1rem;
+  color: rgba(10,10,10,0.6);
+  line-height: 1.65;
+  margin-bottom: 2.5rem;
+  max-width: 400px;
+}
+
+.install-right {
+  padding: 4rem;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.install-step {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.step-num {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  color: var(--acid);
+  line-height: 1;
+  flex-shrink: 0;
+  width: 36px;
+}
+
+.step-content { flex: 1; }
+
+.step-title {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: rgba(240,237,228,0.5);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.step-code {
+  background: rgba(200,255,0,0.08);
+  border: 1px solid rgba(200,255,0,0.2);
+  padding: 0.6rem 1rem;
+  font-family: var(--ff-mono);
+  font-size: 0.75rem;
+  color: var(--acid);
+  overflow-x: auto;
+}
+
+.req-list {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.req-tag {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  background: rgba(200,255,0,0.1);
+  border: 1px solid rgba(200,255,0,0.25);
+  color: var(--acid);
+  padding: 4px 10px;
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════
+   SHORTCUTS TABLE
+═══════════════════════════════════════════ */
+#shortcuts { background: var(--paper); }
+
+.shortcuts-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: var(--rule-fat);
+  border-left: var(--rule-fat);
+}
+
+.shortcut-col {
+  border-right: var(--rule-fat);
+  border-bottom: var(--rule-fat);
+}
+
+.shortcut-col-header {
+  padding: 1.5rem 2rem;
+  border-bottom: var(--rule);
+  background: var(--ink);
+  font-family: var(--ff-display);
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  color: var(--acid);
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 2rem;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  transition: background 0.15s;
+}
+
+.shortcut-row:hover { background: rgba(200,255,0,0.06); }
+
+.shortcut-action {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.kbd-combo {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+kbd {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 3px 8px;
+  border-bottom: 3px solid rgba(255,255,255,0.1);
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+footer {
+  background: var(--ink);
+  color: var(--paper);
+  border-top: 4px solid var(--acid);
+}
+
+.footer-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  border-left: 4px solid rgba(200,255,0,0.15);
+}
+
+.footer-col {
+  padding: 3rem 2.5rem;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+
+.footer-logo {
+  font-family: var(--ff-display);
+  font-size: 3rem;
+  color: var(--acid);
+  letter-spacing: 4px;
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.footer-tagline {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: rgba(240,237,228,0.4);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.footer-desc {
+  font-size: 0.85rem;
+  color: rgba(240,237,228,0.45);
+  line-height: 1.65;
+  max-width: 320px;
+}
+
+.footer-col-title {
+  font-family: var(--ff-mono);
+  font-size: 0.6rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--acid);
+  margin-bottom: 1.5rem;
+}
+
+.footer-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-list a {
+  font-size: 0.85rem;
+  color: rgba(240,237,228,0.5);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-list a::before {
+  content: '→';
+  color: var(--acid);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.footer-list a:hover { color: var(--paper); }
+.footer-list a:hover::before { opacity: 1; }
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 1.25rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-copy {
+  font-family: var(--ff-mono);
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  color: rgba(240,237,228,0.3);
+  text-transform: uppercase;
+}
+
+.license-badge {
+  font-family: var(--ff-mono);
+  font-size: 0.6rem;
+  background: rgba(200,255,0,0.1);
+  border: 1px solid rgba(200,255,0,0.25);
+  color: var(--acid);
+  padding: 4px 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════
+   SCROLL ANIMATIONS
+═══════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  #hero { grid-template-columns: 1fr; }
+  .hero-right { display: none; }
+  .hero-left { padding: 3rem 2rem; }
+  .modules-grid { grid-template-columns: 1fr 1fr; }
+  .philosophy-grid { grid-template-columns: 1fr; }
+  .arch-layout { grid-template-columns: 1fr; }
+  .api-grid { grid-template-columns: 1fr; }
+  .install-inner { grid-template-columns: 1fr; }
+  .shortcuts-wrap { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr; }
+  .section-header { padding: 3rem 2rem 2rem; flex-direction: column; align-items: flex-start; }
+  .section-desc { text-align: left; }
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+}
+
+@media (max-width: 600px) {
+  .modules-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: 4rem; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">PRO<span style="color:var(--orange)">ENG</span></a>
+  <ul class="nav-links">
+    <li><a href="#modules">Módulos</a></li>
+    <li><a href="#philosophy">Filosofia</a></li>
+    <li><a href="#themes">Temas</a></li>
+    <li><a href="#architecture">Arquitetura</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#install">Instalação</a></li>
+  </ul>
+  <span class="nav-badge">v2.0 — GPLv3</span>
+</nav>
+
+<!-- ════════════════════════════════
+     HERO
+════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-tag">Suite de Engenharia Industrial</div>
+    <h1 class="hero-title">
+      PRO
+      <span>ENG</span>
+    </h1>
+    <div class="hero-subtitle">v2.0 — Industrial Suite</div>
+    <p class="hero-desc">
+      Plataforma desktop de engenharia industrial que unifica planejamento técnico, modelagem de processos e gestão estratégica em um ambiente visual de alta fidelidade. Construída com Python 3 e PyQt5.
+    </p>
+    <div class="hero-actions">
+      <a href="#install" class="btn btn-primary">↓ Instalar Agora</a>
+      <a href="#modules" class="btn btn-ghost">Ver Módulos →</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-num">11</span>
+        <span class="stat-label">Módulos</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">14</span>
+        <span class="stat-label">Temas</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">50+</span>
+        <span class="stat-label">Equipamentos</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">300+</span>
+        <span class="stat-label">Componentes</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-diagram">
+      <div class="diagram-ring"></div>
+      <div class="diagram-ring"></div>
+      <div class="diagram-ring"></div>
+      <div class="diagram-center">
+        <!-- orbit nodes -->
+        <div class="module-node" style="animation-delay:0s">
+          <span class="node-icon">⚗️</span>
+          <span class="node-label">FLOWSHEET</span>
+        </div>
+        <div class="module-node" style="animation-delay:0.5s">
+          <span class="node-icon">🔄</span>
+          <span class="node-label">BPMN</span>
+        </div>
+        <div class="module-node" style="animation-delay:1s">
+          <span class="node-icon">🗂️</span>
+          <span class="node-label">EAP/WBS</span>
+        </div>
+        <div class="module-node" style="animation-delay:1.5s">
+          <span class="node-icon">📊</span>
+          <span class="node-label">GANTT</span>
+        </div>
+        <div class="module-node" style="animation-delay:2s">
+          <span class="node-icon">🃏</span>
+          <span class="node-label">KANBAN</span>
+        </div>
+        <div class="module-node" style="animation-delay:2.5s">
+          <span class="node-icon">🔁</span>
+          <span class="node-label">PDCA</span>
+        </div>
+        <div class="module-node" style="animation-delay:3s">
+          <span class="node-icon">🐟</span>
+          <span class="node-label">ISHIKAWA</span>
+        </div>
+        <div class="module-node" style="animation-delay:3.5s">
+          <span class="node-icon">🏃</span>
+          <span class="node-label">SCRUM</span>
+        </div>
+        <!-- center -->
+        <div class="center-core">
+          <span class="core-label">CORE</span>
+          <span class="core-sub">BaseModule</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker-inner">
+    <!-- JS will duplicate content -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODULES
+════════════════════════════════ -->
+<section id="modules" class="section">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <h2 class="section-title">11 Módulos<br>Independentes</h2>
+    <p class="section-desc">Cada módulo implementa a interface BaseModule e pode ser executado isoladamente ou integrado à suíte completa.</p>
+  </div>
+
+  <div class="modules-grid">
+
+    <div class="module-card mc-1 reveal">
+      <div class="card-num">01</div>
+      <div class="card-icon-wrap">⚗️</div>
+      <h3 class="card-title">FLOWSHEET</h3>
+      <p class="card-desc">Diagrama de fluxo de processo (PFD) com balanço de massa automático via algoritmo de Kahn. Suporte a 50+ equipamentos industriais e ~300 componentes químicos.</p>
+      <div class="card-tags">
+        <span class="tag">PFD</span>
+        <span class="tag">Balanço de Massa</span>
+        <span class="tag">Kahn's Algorithm</span>
+        <span class="tag">QGraphicsScene</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-2 reveal" style="transition-delay:0.05s">
+      <div class="card-num">02</div>
+      <div class="card-icon-wrap">🔄</div>
+      <h3 class="card-title">BPMN 2.0</h3>
+      <p class="card-desc">Modelador de processos de negócios com swimlanes, eventos, tarefas, gateways e artefatos conforme especificação OMG BPMN 2.0.</p>
+      <div class="card-tags">
+        <span class="tag">OMG BPMN</span>
+        <span class="tag">Swimlanes</span>
+        <span class="tag">Gateways</span>
+        <span class="tag">Auto-layout</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-3 reveal" style="transition-delay:0.1s">
+      <div class="card-num">03</div>
+      <div class="card-icon-wrap">🗂️</div>
+      <h3 class="card-title">EAP / WBS</h3>
+      <p class="card-desc">Estrutura Analítica do Projeto com geração automática de código WBS recursivo (1 → 1.1 → 1.1.1). Hierarquia visual até 10 níveis.</p>
+      <div class="card-tags">
+        <span class="tag">WBS</span>
+        <span class="tag">PMBOK</span>
+        <span class="tag">Hierarquico</span>
+        <span class="tag">Auto-WBS</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-4 reveal" style="transition-delay:0.15s">
+      <div class="card-num">04</div>
+      <div class="card-icon-wrap">🗺️</div>
+      <h3 class="card-title">PM CANVAS</h3>
+      <p class="card-desc">Project Model Canvas com 15 blocos: justificativas, objetivos SMART, benefícios, stakeholders, entregas, restrições, riscos e linha do tempo.</p>
+      <div class="card-tags">
+        <span class="tag">PM Canvas</span>
+        <span class="tag">15 Blocos</span>
+        <span class="tag">SMART</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-5 reveal" style="transition-delay:0.2s">
+      <div class="card-num">05</div>
+      <div class="card-icon-wrap">🐟</div>
+      <h3 class="card-title">ISHIKAWA</h3>
+      <p class="card-desc">Diagrama de espinha de peixe (Causa-Efeito) com as 6 categorias 6M: Método, Máquina, Material, Mão de Obra, Meio Ambiente e Medição.</p>
+      <div class="card-tags">
+        <span class="tag">6M</span>
+        <span class="tag">Causa-Efeito</span>
+        <span class="tag">Qualidade</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-6 reveal" style="transition-delay:0.25s">
+      <div class="card-num">06</div>
+      <div class="card-icon-wrap">📋</div>
+      <h3 class="card-title">5W2H</h3>
+      <p class="card-desc">Plano de ação estruturado com nós hierárquicos: ROOT → WHAT → WHY / WHO / WHERE / WHEN / HOW / COST. Visualização em árvore interativa.</p>
+      <div class="card-tags">
+        <span class="tag">5W2H</span>
+        <span class="tag">Plano de Ação</span>
+        <span class="tag">Árvore</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-7 reveal" style="transition-delay:0.3s">
+      <div class="card-num">07</div>
+      <div class="card-icon-wrap">📊</div>
+      <h3 class="card-title">GANTT / CPM</h3>
+      <p class="card-desc">Cronograma de Gantt com cálculo de Caminho Crítico (CPM). Suporte a predecessores, marcos, percentual de progresso e visualização de folgas.</p>
+      <div class="card-tags">
+        <span class="tag">CPM</span>
+        <span class="tag">Caminho Crítico</span>
+        <span class="tag">Predecessores</span>
+        <span class="tag">Marcos</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-8 reveal" style="transition-delay:0.35s">
+      <div class="card-num">08</div>
+      <div class="card-icon-wrap">🃏</div>
+      <h3 class="card-title">KANBAN</h3>
+      <p class="card-desc">Quadro Kanban com 4 colunas (A Fazer, Em Andamento, Feito, Cancelado), drag-and-drop de cards e controle de prioridade.</p>
+      <div class="card-tags">
+        <span class="tag">Kanban</span>
+        <span class="tag">Drag-and-Drop</span>
+        <span class="tag">Prioridade</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-9 reveal" style="transition-delay:0.4s">
+      <div class="card-num">09</div>
+      <div class="card-icon-wrap">🏃</div>
+      <h3 class="card-title">SCRUM</h3>
+      <p class="card-desc">Sprint Board com Backlog, story points (Fibonacci), colunas TODO→IN PROGRESS→REVIEW→DONE, planejamento e fechamento de sprint.</p>
+      <div class="card-tags">
+        <span class="tag">Scrum</span>
+        <span class="tag">Story Points</span>
+        <span class="tag">Backlog</span>
+        <span class="tag">Sprint</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-10 reveal" style="transition-delay:0.45s">
+      <div class="card-num">10</div>
+      <div class="card-icon-wrap">🔁</div>
+      <h3 class="card-title">PDCA</h3>
+      <p class="card-desc">Ciclo de melhoria contínua de Deming em layout circular com 4 quadrantes (Plan → Do → Check → Act), cards interativos por fase.</p>
+      <div class="card-tags">
+        <span class="tag">Deming</span>
+        <span class="tag">Melhoria Contínua</span>
+        <span class="tag">Circular</span>
+      </div>
+    </div>
+
+    <div class="module-card mc-11 reveal" style="transition-delay:0.5s">
+      <div class="card-num">11</div>
+      <div class="card-icon-wrap">💻</div>
+      <h3 class="card-title">SCRIPT ENGINE</h3>
+      <p class="card-desc">Interpretador Python embutido para automação de tarefas, cálculos personalizados e extensão da suíte com scripts do usuário.</p>
+      <div class="card-tags">
+        <span class="tag">Python</span>
+        <span class="tag">Automação</span>
+        <span class="tag">Scripts</span>
+      </div>
+    </div>
+
+    <!-- empty cell for visual balance -->
+    <div class="module-card" style="background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.02) 8px, rgba(0,0,0,0.02) 9px);">
+      <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:0.2;">
+        <span style="font-family:var(--ff-display);font-size:3rem;letter-spacing:4px;">+∞</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════
+     PHILOSOPHY
+════════════════════════════════ -->
+<section id="philosophy" class="section">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <h2 class="section-title">Filosofia<br>de Design</h2>
+    <p class="section-desc">Engenharia Industrial Criativa — onde o design auxilia na clareza do pensamento e na detecção de falhas.</p>
+  </div>
+
+  <div class="philosophy-grid">
+    <div class="philosophy-card reveal">
+      <div class="phil-num">// 01</div>
+      <div class="phil-accent" style="background:var(--acid)"></div>
+      <h3 class="phil-title">Neo-Brutalismo Industrial</h3>
+      <p class="phil-text">Bordas sólidas de 4px, sombras hard offset de 8×8px, tipografia pesada uppercase. Um estilo que prioriza legibilidade e hierarquia visual, ideal para engenheiros que preferem interfaces diretas sem distrações decorativas.</p>
+    </div>
+    <div class="philosophy-card reveal" style="transition-delay:0.1s">
+      <div class="phil-num">// 02</div>
+      <div class="phil-accent" style="background:var(--cyan)"></div>
+      <h3 class="phil-title">Arquitetura Modular</h3>
+      <p class="phil-text">Plugin architecture onde o core gerencia apenas navegação e estado global. Cada um dos 11 módulos é independente — pode ser executado isoladamente ou integrado à suíte. Lazy-loading para performance máxima.</p>
+    </div>
+    <div class="philosophy-card reveal" style="transition-delay:0.2s">
+      <div class="phil-num">// 03</div>
+      <div class="phil-accent" style="background:var(--orange)"></div>
+      <h3 class="phil-title">Software Livre</h3>
+      <p class="phil-text">Distribuído sob GPLv3. Diferente de licenças permissivas, a GPLv3 garante que o ProEng permaneça livre para sempre — liberdade de usar, estudar, modificar e distribuir, mantendo essas liberdades para outros.</p>
+    </div>
+    <div class="philosophy-card reveal" style="transition-delay:0.05s">
+      <div class="phil-num">// 04</div>
+      <div class="phil-accent" style="background:var(--red)"></div>
+      <h3 class="phil-title">Persistência Total</h3>
+      <p class="phil-text">Estado completo de todos os módulos serializado em JSON no formato .proeng. Salvar, carregar, versionar. Cada diagrama, cada corrente, cada card — tudo preservado com fidelidade absoluta.</p>
+    </div>
+    <div class="philosophy-card reveal" style="transition-delay:0.15s">
+      <div class="phil-num">// 05</div>
+      <div class="phil-accent" style="background:var(--acid)"></div>
+      <h3 class="phil-title">14 Temas Dinâmicos</h3>
+      <p class="phil-text">Troca de tema em tempo real em todos os módulos, diagramas, toolbars e diálogos simultaneamente. Do Neo-Brutal ao Dracula — paridade funcional completa em todos os 14 esquemas visuais.</p>
+    </div>
+    <div class="philosophy-card reveal" style="transition-delay:0.25s">
+      <div class="phil-num">// 06</div>
+      <div class="phil-accent" style="background:var(--cyan)"></div>
+      <h3 class="phil-title">Export de Alta Resolução</h3>
+      <p class="phil-text">Exportação em PNG com 3× supersampling para qualidade de publicação e PDF A3 landscape para relatórios técnicos profissionais. Cada diagrama, pronto para apresentação.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════
+     THEMES
+════════════════════════════════ -->
+<section id="themes" class="section">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <h2 class="section-title">14 Temas<br>Visuais</h2>
+    <p class="section-desc">Troca em tempo real via dropdown na barra de navegação. Design neo-brutalista consistente em todos.</p>
+  </div>
+
+  <div class="themes-row">
+    <div class="theme-chip th-1">
+      <span class="theme-chip-label">NEO-BRUTAL</span>
+      <span class="theme-chip-sub">Amarelo vivo · fundo claro</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#F4F1E8"></div>
+        <div class="swatch" style="background:#F5C800"></div>
+        <div class="swatch" style="background:#0A0A0A"></div>
+        <div class="swatch" style="background:#FF5C00"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-2">
+      <span class="theme-chip-label">MIDNIGHT</span>
+      <span class="theme-chip-sub">Azul profundo · ciano elétrico</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#050816"></div>
+        <div class="swatch" style="background:#2563EB"></div>
+        <div class="swatch" style="background:#38BDF8"></div>
+        <div class="swatch" style="background:#E5E7EB"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-3">
+      <span class="theme-chip-label">EMBERS</span>
+      <span class="theme-chip-sub">Carvão · laranja brasa</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#1A1009"></div>
+        <div class="swatch" style="background:#B45309"></div>
+        <div class="swatch" style="background:#F97316"></div>
+        <div class="swatch" style="background:#E5D5C5"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-4">
+      <span class="theme-chip-label">FOREST</span>
+      <span class="theme-chip-sub">Verde orgânico · escuro</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#0D1A0D"></div>
+        <div class="swatch" style="background:#16A34A"></div>
+        <div class="swatch" style="background:#4ADE80"></div>
+        <div class="swatch" style="background:#D4F0C8"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-5">
+      <span class="theme-chip-label">SYNTHWAVE</span>
+      <span class="theme-chip-sub">Neon roxo · magenta 80s</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#120720"></div>
+        <div class="swatch" style="background:#7C3AED"></div>
+        <div class="swatch" style="background:#EC4899"></div>
+        <div class="swatch" style="background:#F0D0FF"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-6">
+      <span class="theme-chip-label">ARCTIC</span>
+      <span class="theme-chip-sub">Branco gelo · azul glacial</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#E8F4F8"></div>
+        <div class="swatch" style="background:#0EA5E9"></div>
+        <div class="swatch" style="background:#BAE6FD"></div>
+        <div class="swatch" style="background:#0A2030"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-7">
+      <span class="theme-chip-label">SOLAR</span>
+      <span class="theme-chip-sub">Ouro · marrom terra</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#1A1400"></div>
+        <div class="swatch" style="background:#CA8A04"></div>
+        <div class="swatch" style="background:#FDE68A"></div>
+        <div class="swatch" style="background:#FFF3C0"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-8">
+      <span class="theme-chip-label">CRIMSON</span>
+      <span class="theme-chip-sub">Vinho profundo · escarlate</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#1A0008"></div>
+        <div class="swatch" style="background:#9F1239"></div>
+        <div class="swatch" style="background:#F43F5E"></div>
+        <div class="swatch" style="background:#FFD0D8"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-9">
+      <span class="theme-chip-label">OCEAN</span>
+      <span class="theme-chip-sub">Navy · espuma branca</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#000A1A"></div>
+        <div class="swatch" style="background:#1D4ED8"></div>
+        <div class="swatch" style="background:#93C5FD"></div>
+        <div class="swatch" style="background:#C8E0FF"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-10">
+      <span class="theme-chip-label">VOLCANO</span>
+      <span class="theme-chip-sub">Basalto preto · lava amarela</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#0A0400"></div>
+        <div class="swatch" style="background:#B45309"></div>
+        <div class="swatch" style="background:#FCD34D"></div>
+        <div class="swatch" style="background:#FFE8B0"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-11">
+      <span class="theme-chip-label">MINT</span>
+      <span class="theme-chip-sub">Verde menta suave · creme</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#F0FFF4"></div>
+        <div class="swatch" style="background:#10B981"></div>
+        <div class="swatch" style="background:#6EE7B7"></div>
+        <div class="swatch" style="background:#003320"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-12">
+      <span class="theme-chip-label">ONYX</span>
+      <span class="theme-chip-sub">Preto absoluto · branco</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#000000"></div>
+        <div class="swatch" style="background:#444444"></div>
+        <div class="swatch" style="background:#AAAAAA"></div>
+        <div class="swatch" style="background:#FFFFFF"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-13">
+      <span class="theme-chip-label">LILAC</span>
+      <span class="theme-chip-sub">Lavanda · tom delicado</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#1A0A2E"></div>
+        <div class="swatch" style="background:#8B5CF6"></div>
+        <div class="swatch" style="background:#C4B5FD"></div>
+        <div class="swatch" style="background:#E8D8FF"></div>
+      </div>
+    </div>
+    <div class="theme-chip th-14">
+      <span class="theme-chip-label">DRACULA</span>
+      <span class="theme-chip-sub">100% spec compliant</span>
+      <div class="theme-swatches">
+        <div class="swatch" style="background:#282A36"></div>
+        <div class="swatch" style="background:#BD93F9"></div>
+        <div class="swatch" style="background:#FF79C6"></div>
+        <div class="swatch" style="background:#F8F8F2"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════
+     ARCHITECTURE
+════════════════════════════════ -->
+<section id="architecture" class="section">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <h2 class="section-title">Arquitetura<br>do Sistema</h2>
+    <p class="section-desc">Plugin architecture com lazy-loading. O core gerencia estado global; módulos são completamente independentes.</p>
+  </div>
+
+  <div class="arch-layout">
+    <div class="arch-tree reveal">
+      <div class="tree-title">// ESTRUTURA DE ARQUIVOS</div>
+<pre><span class="t-root">main.py</span>
+└── <span class="t-root">proeng/</span>
+    ├── <span class="t-core">core/</span>
+    │   ├── <span class="t-core">themes.py</span>       <span class="t-comment">← 14 temas + T() singleton</span>
+    │   ├── <span class="t-core">project.py</span>      <span class="t-comment">← Persistência JSON .proeng</span>
+    │   ├── <span class="t-core">toolbar.py</span>      <span class="t-comment">← Toolbar unificada</span>
+    │   ├── <span class="t-core">base_module.py</span>  <span class="t-comment">← Interface abstrata</span>
+    │   └── <span class="t-core">utils.py</span>        <span class="t-comment">← Export PNG/PDF</span>
+    │
+    ├── <span class="t-module">modules/</span>        <span class="t-comment">← 11 módulos independentes</span>
+    │   ├── <span class="t-module">flowsheet.py</span>    <span class="t-comment">← PFD + Balanço de Massa</span>
+    │   ├── <span class="t-module">bpmn.py</span>         <span class="t-comment">← BPMN 2.0 com swimlanes</span>
+    │   ├── <span class="t-module">eap.py</span>          <span class="t-comment">← WBS hierárquico</span>
+    │   ├── <span class="t-module">canvas.py</span>       <span class="t-comment">← PM Canvas 15 blocos</span>
+    │   ├── <span class="t-module">ishikawa.py</span>     <span class="t-comment">← Espinha de peixe 6M</span>
+    │   ├── <span class="t-module">w5h2.py</span>         <span class="t-comment">← Plano de ação 5W2H</span>
+    │   ├── <span class="t-module">gantt.py</span>        <span class="t-comment">← Cronograma + CPM</span>
+    │   ├── <span class="t-module">kanban.py</span>       <span class="t-comment">← Quadro drag-and-drop</span>
+    │   ├── <span class="t-module">scrum.py</span>        <span class="t-comment">← Sprint Board + Backlog</span>
+    │   ├── <span class="t-module">pdca.py</span>         <span class="t-comment">← Ciclo PDCA circular</span>
+    │   └── <span class="t-module">script_module.py</span> <span class="t-comment">← Python interpreter</span>
+    │
+    └── <span class="t-ui">ui/</span>
+        ├── <span class="t-ui">main_app.py</span>     <span class="t-comment">← Orquestração + lazy-load</span>
+        ├── <span class="t-ui">nav_bar.py</span>      <span class="t-comment">← Barra + seletor temas</span>
+        └── <span class="t-ui">welcome.py</span>      <span class="t-comment">← Tela inicial + grid</span></pre>
+    </div>
+
+    <div class="arch-features">
+      <div class="arch-feat reveal">
+        <span class="arch-feat-icon">⚡</span>
+        <div class="arch-feat-title">Lazy Loading</div>
+        <p class="arch-feat-text">Módulos instanciados somente quando acessados. Startup rápido mesmo com 11 módulos pesados.</p>
+      </div>
+      <div class="arch-feat reveal" style="transition-delay:0.1s">
+        <span class="arch-feat-icon">🎨</span>
+        <div class="arch-feat-title">T() Singleton</div>
+        <p class="arch-feat-text">Acesso ao tema ativo via <code style="color:var(--acid);font-family:var(--ff-mono);font-size:0.8rem">T()["accent"]</code>. refresh_theme_recursive() propagado para todos os widgets.</p>
+      </div>
+      <div class="arch-feat reveal" style="transition-delay:0.05s">
+        <span class="arch-feat-icon">💾</span>
+        <div class="arch-feat-title">Persistência JSON</div>
+        <p class="arch-feat-text">Formato .proeng: snapshot completo de todos os módulos. get_state() / set_state() em cada módulo.</p>
+      </div>
+      <div class="arch-feat reveal" style="transition-delay:0.15s">
+        <span class="arch-feat-icon">📐</span>
+        <div class="arch-feat-title">Vector Rendering</div>
+        <p class="arch-feat-text">QGraphicsScene com aceleração de hardware. Gradientes dinâmicos, sombras e geração de polígonos em tempo real.</p>
+      </div>
+      <div class="arch-feat reveal" style="transition-delay:0.1s">
+        <span class="arch-feat-icon">🔌</span>
+        <div class="arch-feat-title">BaseModule</div>
+        <p class="arch-feat-text">Interface abstrata: get_state, set_state, refresh_theme, get_view. Contrato que garante integração perfeita.</p>
+      </div>
+      <div class="arch-feat reveal" style="transition-delay:0.2s">
+        <span class="arch-feat-icon">📤</span>
+        <div class="arch-feat-title">Export Engine</div>
+        <p class="arch-feat-text">PNG 3× supersampling para publicação. PDF A3 landscape para relatórios técnicos profissionais.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════
+     API REFERENCE
+════════════════════════════════ -->
+<section id="api" class="section">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <h2 class="section-title">Referência<br>de API</h2>
+    <p class="section-desc">Classes e interfaces dos módulos principais. Toda a API usa Python 3 com PyQt5.</p>
+  </div>
+
+  <div class="api-grid">
+
+    <div class="api-block reveal">
+      <div class="api-block-title">Sistema de Temas</div>
+      <div class="code-block"><span class="kw">from</span> proeng.core.themes <span class="kw">import</span> <span class="fn">T</span>, set_theme
+
+<span class="cm"># Acessar cor do tema ativo</span>
+color = <span class="fn">T</span>()[<span class="str">"accent"</span>]      <span class="cm"># #2563EB</span>
+bg    = <span class="fn">T</span>()[<span class="str">"bg_app"</span>]     <span class="cm"># #050816</span>
+line  = <span class="fn">T</span>()[<span class="str">"line"</span>]       <span class="cm"># #38BDF8</span>
+
+<span class="cm"># Trocar tema</span>
+<span class="fn">set_theme</span>(<span class="str">"synthwave"</span>)
+<span class="fn">set_theme</span>(<span class="str">"dracula"</span>)</div>
+      <div class="method-list">
+        <div class="method-row">
+          <span class="method-name">T()</span>
+          <span class="method-desc">Retorna dicionário de cores do tema ativo</span>
+        </div>
+        <div class="method-row">
+          <span class="method-name">set_theme(name)</span>
+          <span class="method-desc">Altera tema ativo. Aceita qualquer dos 14 slugs</span>
+        </div>
+        <div class="method-row">
+          <span class="method-name">cycle_theme()</span>
+          <span class="method-desc">Avança para o próximo tema na sequência</span>
+        </div>
+        <div class="method-row">
+          <span class="method-name">refresh_theme_recursive(w)</span>
+          <span class="method-desc">Propaga atualização para todos os widgets filhos</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="api-block reveal" style="transition-delay:0.1s">
+      <div class="api-block-title">Flowsheet — PFD</div>
+      <div class="code-block"><span class="kw">from</span> proeng.modules.flowsheet <span class="kw">import</span> <span class="tp">FlowsheetWidget</span>
+
+widget = <span class="tp">FlowsheetWidget</span>()
+
+<span class="cm"># Executar balanço de massa (Kahn)</span>
+widget.<span class="fn">solve_mass_balance</span>()
+
+<span class="cm"># Persistência</span>
+state = widget.<span class="fn">get_state</span>()   <span class="cm"># {nodes, edges, streams}</span>
+widget.<span class="fn">set_state</span>(state)
+
+<span class="cm"># Exemplo industrial</span>
+widget.<span class="fn">load_example</span>()</div>
+      <div class="method-list">
+        <div class="method-row">
+          <span class="method-name">solve_mass_balance()</span>
+          <span class="method-desc">Algoritmo de Kahn para cálculo topológico de vazões</span>
+        </div>
+        <div class="method-row">
+          <span class="method-name">node_added (sinal)</span>
+          <span class="method-desc">Emitido com node_id ao adicionar equipamento</span>
+        </div>
+        <div class="method-row">
+          <span class="method-name">connection_made (sinal)</span>
+          <span class="method-desc">Emitido com (source, target) ao criar conexão</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="api-block reveal" style="transition-delay:0.05s">
+      <div class="api-block-title">BPMN 2.0</div>
+      <div class="code-block"><span class="kw">from</span> proeng.modules.bpmn <span class="kw">import</span> <span class="tp">BPMNAutoWidget</span>
+
+widget = <span class="tp">BPMNAutoWidget</span>()
+widget.<span class="fn">zoom_in</span>()        <span class="cm"># +15%</span>
+widget.<span class="fn">update_zoom</span>(<span class="str">1.5</span>) <span class="cm"># zoom direto</span>
+widget.<span class="fn">draw_diagram</span>()   <span class="cm"># redesenha</span>
+
+<span class="cm"># shapes: "Tarefa", "Gateway Exclusivo (X)",</span>
+<span class="cm">#         "Evento Início", "Subprocesso" ...</span></div>
+      <div class="method-list">
+        <div class="method-row">
+          <span class="method-name">nodes dict</span>
+          <span class="method-desc">{id: {text, shape, level, lane, children, parent}}</span>
+        </div>
+        <div class="method-row">
+          <span class="method-name">zoom range</span>
+          <span class="method-desc">0.3 a 3.0 — controle preciso de visualização</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="api-block reveal" style="transition-delay:0.15s">
+      <div class="api-block-title">Gantt — CPM</div>
+      <div class="code-block"><span class="kw">from</span> proeng.modules.gantt <span class="kw">import</span> <span class="tp">GanttWidget</span>
+
+widget = <span class="tp">GanttWidget</span>()
+widget.<span class="fn">add_task</span>(
+    name=<span class="str">"Análise de Requisitos"</span>,
+    start=<span class="str">"2026-04-01"</span>,
+    end=<span class="str">"2026-04-15"</span>,
+    progress=<span class="str">80</span>,
+    predecessor=<span class="str">None</span>
+)
+widget.<span class="fn">calculate_cpm</span>()  <span class="cm"># Critical Path</span></div>
+      <div class="method-list">
+        <div class="method-row">
+          <span class="method-name">task.critical</span>
+          <span class="method-desc">Preenchido pelo CPM — True se no caminho crítico</span>
+        </div>
+        <div class="method-row">
+          <span class="method-name">task.milestone</span>
+          <span class="method-desc">Marca tarefa como marco do projeto</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="api-block reveal">
+      <div class="api-block-title">BaseModule — Interface</div>
+      <div class="code-block"><span class="kw">from</span> proeng.core.base_module <span class="kw">import</span> <span class="tp">BaseModule</span>
+
+<span class="kw">class</span> <span class="tp">MeuModulo</span>(<span class="tp">BaseModule</span>):
+
+    <span class="kw">def</span> <span class="fn">get_state</span>(self) -> <span class="tp">dict</span>:
+        <span class="cm">"""Estado serializável para .proeng"""</span>
+        <span class="kw">return</span> {<span class="str">"schema"</span>: <span class="str">"v2"</span>, ...}
+
+    <span class="kw">def</span> <span class="fn">set_state</span>(self, state: <span class="tp">dict</span>):
+        <span class="cm">"""Restaura estado do arquivo"""</span>
+
+    <span class="kw">def</span> <span class="fn">refresh_theme</span>(self):
+        <span class="cm">"""Reaplica T() após mudança de tema"""</span></div>
+    </div>
+
+    <div class="api-block reveal" style="transition-delay:0.1s">
+      <div class="api-block-title">5W2H — Estrutura de Nós</div>
+      <div class="code-block"><span class="cm"># W5H2_TYPES — cores e títulos</span>
+W5H2_TYPES = {
+    <span class="str">"ROOT"</span>:  {<span class="str">"t"</span>: <span class="str">"PLANO DE AÇÃO"</span>, <span class="str">"c"</span>: <span class="str">"#E03535"</span>},
+    <span class="str">"WHAT"</span>:  {<span class="str">"t"</span>: <span class="str">"O QUÊ?"</span>,        <span class="str">"c"</span>: <span class="str">"#3498DB"</span>},
+    <span class="str">"WHY"</span>:   {<span class="str">"t"</span>: <span class="str">"POR QUÊ?"</span>,      <span class="str">"c"</span>: <span class="str">"#F1C40F"</span>},
+    <span class="str">"WHO"</span>:   {<span class="str">"t"</span>: <span class="str">"QUEM?"</span>,         <span class="str">"c"</span>: <span class="str">"#9B59B6"</span>},
+    <span class="str">"WHERE"</span>: {<span class="str">"t"</span>: <span class="str">"ONDE?"</span>,         <span class="str">"c"</span>: <span class="str">"#2ECC71"</span>},
+    <span class="str">"WHEN"</span>:  {<span class="str">"t"</span>: <span class="str">"QUANDO?"</span>,       <span class="str">"c"</span>: <span class="str">"#E67E22"</span>},
+    <span class="str">"HOW"</span>:   {<span class="str">"t"</span>: <span class="str">"COMO?"</span>,         <span class="str">"c"</span>: <span class="str">"#1ABC9C"</span>},
+    <span class="str">"COST"</span>:  {<span class="str">"t"</span>: <span class="str">"QUANTO?"</span>,       <span class="str">"c"</span>: <span class="str">"#E74C3C"</span>},
+}</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════
+     INSTALL
+════════════════════════════════ -->
+<section id="install" class="section">
+  <div class="install-inner">
+    <div class="install-left">
+      <h2 class="install-title">INSTALE<br>EM 4 PASSOS</h2>
+      <p class="install-sub">Requisitos mínimos: Python 3.8+ e PyQt5. Funciona em Windows 10/11, Linux e macOS. Resolução mínima 1366×768.</p>
+      <div class="req-list">
+        <span class="req-tag">Python 3.8+</span>
+        <span class="req-tag">PyQt5</span>
+        <span class="req-tag">Windows / Linux / macOS</span>
+        <span class="req-tag">1366×768 mín.</span>
+      </div>
+      <br><br>
+      <a href="https://github.com/proeng-systems/proeng-suite" class="btn btn-primary" style="background:var(--ink);border-color:var(--ink);color:var(--acid);box-shadow:6px 6px 0 var(--ink);">
+        ↗ GitHub — proeng-systems
+      </a>
+    </div>
+
+    <div class="install-right">
+      <div class="install-step reveal">
+        <span class="step-num">01</span>
+        <div class="step-content">
+          <div class="step-title">Clone o repositório</div>
+          <div class="step-code">git clone https://github.com/proeng-systems/proeng-suite.git
+cd proeng-suite</div>
+        </div>
+      </div>
+      <div class="install-step reveal" style="transition-delay:0.1s">
+        <span class="step-num">02</span>
+        <div class="step-content">
+          <div class="step-title">Crie o ambiente virtual</div>
+          <div class="step-code">python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/Mac: source .venv/bin/activate</div>
+        </div>
+      </div>
+      <div class="install-step reveal" style="transition-delay:0.2s">
+        <span class="step-num">03</span>
+        <div class="step-content">
+          <div class="step-title">Instale a dependência</div>
+          <div class="step-code">pip install pyqt5</div>
+        </div>
+      </div>
+      <div class="install-step reveal" style="transition-delay:0.3s">
+        <span class="step-num">04</span>
+        <div class="step-content">
+          <div class="step-title">Execute a suíte</div>
+          <div class="step-code">python main.py
+
+# Ou módulo individual:
+python -m proeng.modules.flowsheet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════
+     SHORTCUTS
+════════════════════════════════ -->
+<section id="shortcuts" class="section">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <h2 class="section-title">Atalhos<br>de Teclado</h2>
+    <p class="section-desc">Power user shortcuts para máxima produtividade. Todos os módulos compartilham os atalhos universais.</p>
+  </div>
+
+  <div class="shortcuts-wrap">
+    <div class="shortcut-col">
+      <div class="shortcut-col-header">UNIVERSAIS</div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Novo Projeto</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>N</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Salvar Projeto</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>S</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Toggle Dark/Light</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>L</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Toggle Sidebar</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>B</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Exportar PNG</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>E</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Zoom +</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>+</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Zoom −</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>-</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Reset Zoom</span>
+        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>0</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Excluir seleção</span>
+        <div class="kbd-combo"><kbd>Delete</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Pan Canvas</span>
+        <div class="kbd-combo"><kbd>Space</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Cancelar Ferramenta</span>
+        <div class="kbd-combo"><kbd>Esc</kbd></div>
+      </div>
+    </div>
+
+    <div class="shortcut-col">
+      <div class="shortcut-col-header">POR MÓDULO</div>
+      <div class="shortcut-row" style="background:rgba(200,255,0,0.04)">
+        <span class="shortcut-action" style="font-weight:600;font-size:0.75rem;letter-spacing:1px;font-family:var(--ff-mono)">FLOWSHEET</span>
+        <span></span>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Adicionar equipamento</span>
+        <div class="kbd-combo"><kbd>E</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Editar corrente</span>
+        <div class="kbd-combo"><kbd>2×click</kbd></div>
+      </div>
+      <div class="shortcut-row" style="background:rgba(0,255,204,0.04)">
+        <span class="shortcut-action" style="font-weight:600;font-size:0.75rem;letter-spacing:1px;font-family:var(--ff-mono)">BPMN</span>
+        <span></span>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Adicionar Tarefa</span>
+        <div class="kbd-combo"><kbd>T</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Adicionar Gateway</span>
+        <div class="kbd-combo"><kbd>G</kbd></div>
+      </div>
+      <div class="shortcut-row" style="background:rgba(255,85,0,0.04)">
+        <span class="shortcut-action" style="font-weight:600;font-size:0.75rem;letter-spacing:1px;font-family:var(--ff-mono)">EAP / WBS</span>
+        <span></span>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Adicionar filho</span>
+        <div class="kbd-combo"><kbd>Tab</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Adicionar irmão</span>
+        <div class="kbd-combo"><kbd>Enter</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Renomear nó</span>
+        <div class="kbd-combo"><kbd>F2</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Expandir tudo</span>
+        <div class="kbd-combo"><kbd>*</kbd></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-action">Recolher tudo</span>
+        <div class="kbd-combo"><kbd>-</kbd></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════
+     FOOTER
+════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-col">
+      <div class="footer-logo">PROENG</div>
+      <div class="footer-tagline">Industrial Engineering Suite v2.0</div>
+      <p class="footer-desc">Suite desktop de ferramentas de engenharia construída com Python 3 + PyQt5. 11 módulos independentes, 14 temas neo-brutalistas, persistência JSON e export profissional.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">// Módulos</div>
+      <ul class="footer-list">
+        <li><a href="#modules">Flowsheet PFD</a></li>
+        <li><a href="#modules">BPMN 2.0</a></li>
+        <li><a href="#modules">EAP / WBS</a></li>
+        <li><a href="#modules">PM Canvas</a></li>
+        <li><a href="#modules">Ishikawa 6M</a></li>
+        <li><a href="#modules">5W2H</a></li>
+        <li><a href="#modules">Gantt / CPM</a></li>
+        <li><a href="#modules">Kanban</a></li>
+        <li><a href="#modules">Scrum</a></li>
+        <li><a href="#modules">PDCA</a></li>
+        <li><a href="#modules">Script Engine</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">// Links</div>
+      <ul class="footer-list">
+        <li><a href="#architecture">Arquitetura</a></li>
+        <li><a href="#api">Referência API</a></li>
+        <li><a href="#install">Instalação</a></li>
+        <li><a href="#themes">14 Temas</a></li>
+        <li><a href="https://github.com/proeng-systems/proeng-suite">GitHub</a></li>
+      </ul>
+      <br>
+      <div class="footer-col-title">// Tecnologia</div>
+      <ul class="footer-list">
+        <li><a href="#">Python 3.8+</a></li>
+        <li><a href="#">PyQt5 Framework</a></li>
+        <li><a href="#">QGraphicsScene</a></li>
+        <li><a href="#">GNU GPLv3</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2026 ProEng Systems — O conhecimento deve permanecer livre.</span>
+    <span class="license-badge">GNU GPLv3</span>
+  </div>
+</footer>
+
+<script>
+// ─── TICKER ───────────────────────────
+const items = [
+  "Flowsheet PFD", "BPMN 2.0", "EAP / WBS", "PM Canvas",
+  "Ishikawa 6M", "5W2H", "Gantt CPM", "Kanban", "Scrum Sprint",
+  "PDCA Circular", "Script Engine", "14 Temas", "GPLv3", "PyQt5",
+  "Balanço de Massa", "Caminho Crítico", "Drag & Drop", "Story Points"
+];
+
+const ticker = document.getElementById('ticker-inner');
+const full = [...items, ...items].map(t =>
+  `<span class="ticker-item">${t}</span>`
+).join('');
+ticker.innerHTML = full + full; // duplicate for seamless loop
+
+// ─── SCROLL REVEAL ────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ─── NAV active highlight ─────────────
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => a.style.background = '');
+      const active = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+      if (active) active.style.background = 'rgba(200,255,0,0.12)';
+    }
+  });
+}, { threshold: 0.4 });
+
+sections.forEach(s => sectionObserver.observe(s));
+</script>
+</body>
+</html>
