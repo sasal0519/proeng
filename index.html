@@ -5,1176 +5,430 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ProEng v2.0 — Suite de Engenharia Industrial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
-
-/* ═══════════════════════════════════════════
-   TOKENS — INDUSTRIAL NEO-BRUTALISM
-═══════════════════════════════════════════ */
 :root {
-  --ink:       #0A0A0A;
-  --paper:     #F0EDE4;
-  --steel:     #1A1A2E;
+  --ink:       #080808;
+  --paper:     #EDEAD9;
+  --dim:       #E2DFC8;
+  --steel:     #0E0E1C;
+  --steel2:    #181828;
   --acid:      #C8FF00;
+  --acid2:     #A8D800;
   --cyan:      #00FFCC;
   --orange:    #FF5500;
   --red:       #FF1744;
-  --blue:      #0057FF;
-  --muted:     #555555;
-  --rule:      2px solid var(--ink);
-  --rule-fat:  4px solid var(--ink);
-  --shadow:    6px 6px 0 var(--ink);
-  --shadow-lg: 10px 10px 0 var(--ink);
-  --r: 0px;
-  --ff-display: 'Bebas Neue', sans-serif;
-  --ff-mono:    'Space Mono', monospace;
-  --ff-body:    'DM Sans', sans-serif;
+  --violet:    #7C3AED;
+  --muted:     #5A5A5A;
+  --lite:      #8A8A8A;
+  --fat:       4px solid var(--ink);
+  --mid:       2px solid var(--ink);
+  --thin:      1px solid rgba(0,0,0,0.11);
+  --ff-h:  'Bebas Neue', sans-serif;
+  --ff-m:  'Space Mono', monospace;
+  --ff-b:  'DM Sans', sans-serif;
+  --ease:  cubic-bezier(0.22,1,0.36,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--ff-b);background:var(--paper);color:var(--ink);overflow-x:hidden;cursor:crosshair}
+::selection{background:var(--acid);color:var(--ink)}
+
+/* grid texture */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(0,0,0,.03) 59px,rgba(0,0,0,.03) 60px),
+             repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(0,0,0,.03) 59px,rgba(0,0,0,.03) 60px)}
+
+/* ── NAV ─────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
+    background:var(--ink);border-bottom:3px solid var(--acid);
+    display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem}
+
+.logo{font-family:var(--ff-h);font-size:1.8rem;color:var(--paper);letter-spacing:5px;
+      text-decoration:none;line-height:1;position:relative}
+.logo em{color:var(--acid);font-style:normal}
+.logo sup{font-family:var(--ff-m);font-size:.45rem;color:rgba(200,255,0,.6);
+          letter-spacing:2px;position:absolute;right:-2.8rem;top:.1rem}
+
+.nav-links{display:flex;list-style:none}
+.nav-links a{display:block;font-family:var(--ff-m);font-size:.6rem;color:rgba(240,237,220,.45);
+             text-decoration:none;padding:0 1.1rem;letter-spacing:2px;text-transform:uppercase;
+             border-left:1px solid rgba(255,255,255,.06);height:52px;line-height:52px;
+             transition:background .14s,color .14s}
+.nav-links a:hover,.nav-links a.on{background:rgba(200,255,0,.09);color:var(--acid)}
+
+.nav-pill{font-family:var(--ff-m);font-size:.55rem;letter-spacing:2px;
+          color:var(--acid);border:1px solid rgba(200,255,0,.28);padding:4px 10px}
+
+/* ── HERO ─────────────────────────────────────────── */
+#hero{min-height:100vh;padding-top:52px;background:var(--steel);
+      display:grid;grid-template-columns:55% 45%;overflow:hidden;position:relative}
+
+.hero-left{display:flex;flex-direction:column;justify-content:center;
+           padding:6rem 5rem;position:relative;z-index:2;
+           border-right:2px solid rgba(200,255,0,.1)}
+
+.eyebrow{font-family:var(--ff-m);font-size:.62rem;color:var(--cyan);
+         letter-spacing:5px;text-transform:uppercase;margin-bottom:2.5rem;
+         display:flex;align-items:center;gap:1rem}
+.eyebrow::before{content:'';width:32px;height:1px;background:var(--cyan);flex-shrink:0}
+.eyebrow::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--cyan),transparent);opacity:.22}
+
+.h-title{font-family:var(--ff-h);font-size:clamp(5.5rem,11vw,10.5rem);
+         color:var(--paper);line-height:.86;letter-spacing:2px}
+.h-title-eng{font-family:var(--ff-h);font-size:clamp(5.5rem,11vw,10.5rem);
+             color:var(--acid);line-height:.86;letter-spacing:2px;display:block;
+             margin-bottom:2rem;position:relative}
+.h-title-eng::after{content:'';display:block;width:55%;height:5px;
+                    background:var(--orange);margin-top:.5rem}
+
+.h-ver{font-family:var(--ff-h);font-size:clamp(.9rem,1.8vw,1.5rem);
+       color:rgba(240,237,220,.25);letter-spacing:8px;margin-bottom:2.5rem}
+
+.h-desc{font-size:.97rem;color:rgba(240,237,220,.55);line-height:1.8;
+        max-width:450px;margin-bottom:3rem;font-weight:300}
+.h-desc strong{color:rgba(240,237,220,.88);font-weight:500}
+
+.cta{display:flex;gap:.9rem;flex-wrap:wrap;margin-bottom:4rem}
+
+.btn{font-family:var(--ff-m);font-size:.68rem;letter-spacing:2.5px;text-transform:uppercase;
+     padding:.88rem 2rem;text-decoration:none;border:var(--fat);
+     transition:transform .12s var(--ease),box-shadow .12s var(--ease);
+     display:inline-block;cursor:crosshair}
+.btn:active{transform:translate(4px,4px)!important;box-shadow:none!important}
+
+.btn-a{background:var(--acid);color:var(--ink);border-color:var(--acid);
+       box-shadow:6px 6px 0 var(--acid2)}
+.btn-a:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--cyan)}
+
+.btn-g{background:transparent;color:rgba(240,237,220,.65);
+       border-color:rgba(240,237,220,.2);box-shadow:4px 4px 0 rgba(255,255,255,.05)}
+.btn-g:hover{transform:translate(-2px,-2px);border-color:rgba(240,237,220,.5);
+             color:var(--paper);box-shadow:6px 6px 0 rgba(255,255,255,.1)}
+
+.metrics{display:flex;padding-top:2.5rem;border-top:1px solid rgba(200,255,0,.12)}
+.metric{flex:1;padding-right:2rem;margin-right:2rem;
+        border-right:1px solid rgba(200,255,0,.1)}
+.metric:last-child{border:none;margin:0;padding:0}
+.mval{font-family:var(--ff-h);font-size:3rem;color:var(--acid);line-height:1;display:block}
+.mlbl{font-family:var(--ff-m);font-size:.52rem;letter-spacing:2.5px;
+      color:rgba(240,237,220,.28);text-transform:uppercase;margin-top:.3rem;display:block}
+
+.hero-right{display:flex;align-items:center;justify-content:center;padding:4rem 3rem;z-index:1}
+.hero-svg{width:100%;max-width:460px}
+
+/* ── TICKER ───────────────────────────────────────── */
+.ticker-wrap{background:var(--acid);border-top:var(--fat);border-bottom:var(--fat);
+             overflow:hidden;padding:.6rem 0;position:relative;z-index:1}
+.ticker-track{display:inline-flex;animation:marquee 32s linear infinite;white-space:nowrap}
+.t-item{font-family:var(--ff-m);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;
+        color:var(--ink);padding:0 2rem;display:inline-flex;align-items:center;gap:2rem}
+.t-dot{display:inline-block;width:4px;height:4px;background:rgba(0,0,0,.3)}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ── SECTION SCAFFOLD ─────────────────────────────── */
+.s{position:relative;z-index:1}
+
+.s-head{padding:5.5rem 5rem 3.5rem;border-bottom:var(--fat);
+        display:flex;align-items:flex-end;justify-content:space-between;
+        gap:3rem;position:relative;overflow:hidden}
+
+.s-num{position:absolute;top:1.5rem;left:5rem;font-family:var(--ff-h);
+       font-size:9rem;color:rgba(0,0,0,.04);line-height:1;
+       pointer-events:none;user-select:none}
+
+.s-title{font-family:var(--ff-h);font-size:clamp(3rem,5.5vw,5.5rem);
+         line-height:.95;letter-spacing:1px;position:relative;z-index:1}
+
+.s-aside{max-width:340px;text-align:right}
+.s-aside p{font-size:.87rem;color:var(--muted);line-height:1.72}
+.s-tag{font-family:var(--ff-m);font-size:.57rem;letter-spacing:3px;text-transform:uppercase;
+       color:var(--lite);margin-bottom:.6rem;display:block}
+
+/* dark sections */
+.dk{background:var(--steel)}
+.dk .s-head{border-color:rgba(200,255,0,.1)}
+.dk .s-title{color:var(--paper)}
+.dk .s-num{color:rgba(255,255,255,.03)}
+.dk .s-aside p{color:rgba(240,237,220,.36)}
+.dk .s-tag{color:rgba(200,255,0,.4)}
+
+.dk2{background:var(--steel2)}
+.dk2 .s-head{border-color:rgba(0,255,204,.1)}
+.dk2 .s-title{color:var(--paper)}
+.dk2 .s-num{color:rgba(255,255,255,.025)}
+.dk2 .s-aside p{color:rgba(240,237,220,.36)}
+.dk2 .s-tag{color:rgba(0,255,204,.4)}
+
+/* ── MODULES GRID ─────────────────────────────────── */
+#modules{background:var(--paper)}
+.mod-grid{display:grid;grid-template-columns:repeat(4,1fr);border-left:var(--fat)}
+
+.mod{border-right:var(--fat);border-bottom:var(--fat);padding:2.5rem 2.25rem;
+     position:relative;overflow:hidden;transition:background .22s var(--ease);cursor:default}
+
+.mod::before{content:'';position:absolute;bottom:0;left:0;width:100%;height:4px;
+             background:var(--mc,var(--acid));transform:scaleX(0);
+             transform-origin:left;transition:transform .3s var(--ease)}
+
+.mod:hover{background:var(--ink)}
+.mod:hover::before{transform:scaleX(1)}
+.mod:hover .mc-t{color:var(--paper)}
+.mod:hover .mc-d{color:rgba(240,237,220,.47)}
+.mod:hover .mc-n{color:rgba(255,255,255,.04)}
+.mod:hover .mc-tag{border-color:rgba(255,255,255,.1);color:rgba(240,237,220,.37)}
+.mod:hover .mc-ico{box-shadow:6px 6px 0 var(--mc,var(--acid));transform:translate(-2px,-2px)}
+
+.mc-n{font-family:var(--ff-h);font-size:3.2rem;color:rgba(0,0,0,.055);
+      line-height:1;margin-bottom:1.2rem;transition:color .22s}
+.mc-ico{width:50px;height:50px;background:var(--mc,var(--acid));border:var(--mid);
+        display:flex;align-items:center;justify-content:center;margin-bottom:1.4rem;
+        box-shadow:4px 4px 0 var(--ink);transition:box-shadow .22s,transform .22s}
+.mc-ico svg{width:22px;height:22px;fill:var(--ink)}
+.mc-t{font-family:var(--ff-h);font-size:1.4rem;letter-spacing:1px;
+      margin-bottom:.7rem;transition:color .22s}
+.mc-d{font-size:.81rem;color:var(--muted);line-height:1.65;transition:color .22s}
+.mc-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:1.15rem}
+.mc-tag{font-family:var(--ff-m);font-size:.54rem;letter-spacing:1px;text-transform:uppercase;
+        padding:3px 7px;border:1px solid rgba(0,0,0,.12);color:var(--muted);
+        transition:border-color .22s,color .22s}
+
+.mod-ghost{background:repeating-linear-gradient(-45deg,transparent,transparent 11px,
+           rgba(0,0,0,.02) 11px,rgba(0,0,0,.02) 12px);
+           display:flex;align-items:center;justify-content:center}
+.mod-ghost span{font-family:var(--ff-h);font-size:2.8rem;color:rgba(0,0,0,.08);letter-spacing:4px}
+
+.mc-1{--mc:#C8FF00}.mc-2{--mc:#00FFCC}.mc-3{--mc:#FF5500}
+.mc-4{--mc:#0057FF}.mc-5{--mc:#FF1744}.mc-6{--mc:#FFD600}
+.mc-7{--mc:#00C853}.mc-8{--mc:#FF6D00}.mc-9{--mc:#7C4DFF}
+.mc-10{--mc:#00B0FF}.mc-11{--mc:#F50057}
+
+/* ── PHILOSOPHY ───────────────────────────────────── */
+.phil-grid{display:grid;grid-template-columns:1fr 1fr 1fr;
+           border-left:4px solid rgba(200,255,0,.08)}
+.phil{padding:3.5rem 3rem;border-right:1px solid rgba(200,255,0,.08);
+      border-bottom:1px solid rgba(200,255,0,.08)}
+.ph-idx{font-family:var(--ff-m);font-size:.57rem;color:rgba(200,255,0,.45);
+        letter-spacing:4px;margin-bottom:1.4rem}
+.ph-bar{height:3px;width:46px;margin-bottom:1.9rem}
+.ph-t{font-family:var(--ff-h);font-size:1.8rem;letter-spacing:1px;color:var(--paper);
+      margin-bottom:.9rem;line-height:1.1}
+.ph-p{font-size:.86rem;line-height:1.76;color:rgba(240,237,220,.46);font-weight:300}
+.ph-p code{font-family:var(--ff-m);font-size:.82em;color:var(--acid)}
+
+/* ── THEMES ───────────────────────────────────────── */
+#themes{background:var(--paper)}
+.theme-strip{display:flex;border-top:var(--fat);border-bottom:var(--fat);
+             overflow-x:auto;scrollbar-width:none}
+.theme-strip::-webkit-scrollbar{display:none}
+
+.th-tile{flex:0 0 155px;min-height:210px;border-right:var(--fat);
+         padding:1.7rem 1.4rem;display:flex;flex-direction:column;
+         cursor:crosshair;transition:flex-basis .32s var(--ease);overflow:hidden}
+.th-tile:hover{flex-basis:230px}
+.th-name{font-family:var(--ff-h);font-size:1.22rem;letter-spacing:1px;line-height:1;
+         position:relative;z-index:1}
+.th-sub{font-family:var(--ff-m);font-size:.5rem;letter-spacing:1.5px;
+        text-transform:uppercase;opacity:.5;margin-top:.45rem;
+        position:relative;z-index:1}
+.th-sw{display:flex;gap:5px;margin-top:auto;padding-top:.9rem;
+       position:relative;z-index:1}
+.sw{width:20px;height:20px;border:1px solid rgba(0,0,0,.1)}
+
+.t1{background:#F4F1E8;color:#0A0A0A}.t2{background:#050816;color:#E5E7EB}
+.t3{background:#1A1009;color:#E5D5C5}.t4{background:#0D1A0D;color:#D4F0C8}
+.t5{background:#120720;color:#F0D0FF}.t6{background:#E8F4F8;color:#0A2030}
+.t7{background:#1A1400;color:#FFF3C0}.t8{background:#1A0008;color:#FFD0D8}
+.t9{background:#000A1A;color:#C8E0FF}.t10{background:#0A0400;color:#FFE8B0}
+.t11{background:#F0FFF4;color:#003320}.t12{background:#000000;color:#FFFFFF}
+.t13{background:#1A0A2E;color:#E8D8FF}.t14{background:#282A36;color:#F8F8F2}
+
+/* ── ARCHITECTURE ─────────────────────────────────── */
+#architecture{background:#060610}
+#architecture .s-head{border-color:rgba(255,85,0,.16)}
+#architecture .s-title{color:var(--paper)}
+#architecture .s-num{color:rgba(255,255,255,.025)}
+#architecture .s-aside p{color:rgba(240,237,220,.36)}
+#architecture .s-tag{color:rgba(255,85,0,.5)}
+
+.arch-wrap{display:grid;grid-template-columns:1.15fr 1fr;
+           border-top:1px solid rgba(255,255,255,.04)}
+.arch-tree{padding:4rem;border-right:1px solid rgba(255,255,255,.04)}
+.arch-h{font-family:var(--ff-m);font-size:.57rem;letter-spacing:4px;color:var(--orange);
+        text-transform:uppercase;margin-bottom:2.5rem;display:flex;align-items:center;gap:1rem}
+.arch-h::after{content:'';flex:1;height:1px;background:rgba(255,85,0,.18)}
+
+pre{font-family:var(--ff-m);font-size:.72rem;line-height:2.05;
+    color:rgba(240,237,220,.4);white-space:pre;overflow-x:auto}
+.cr{color:var(--acid)}.cc{color:var(--cyan)}.cm{color:var(--orange)}
+.cu{color:#FF79C6}.cn{color:rgba(255,255,255,.19);font-style:italic}
+
+.arch-feats{padding:3rem;display:grid;grid-template-columns:1fr 1fr;
+            gap:1px;background:rgba(255,255,255,.03);align-content:start}
+.af{background:#060610;padding:1.7rem;border-bottom:1px solid rgba(255,255,255,.03);
+    transition:background .18s}
+.af:hover{background:#0f0f1e}
+.af-l{font-family:var(--ff-m);font-size:.57rem;letter-spacing:3px;text-transform:uppercase;
+      color:var(--orange);margin-bottom:.55rem}
+.af-t{font-size:.8rem;line-height:1.65;color:rgba(240,237,220,.4)}
+.af-t code{font-family:var(--ff-m);font-size:.82em;color:var(--acid)}
+
+/* ── API ─────────────────────────────────────────── */
+#api{background:#0A0A18}
+.api-grid{display:grid;grid-template-columns:1fr 1fr;
+          border-top:1px solid rgba(0,255,204,.06)}
+.api-block{padding:3rem;border-right:1px solid rgba(0,255,204,.06);
+           border-bottom:1px solid rgba(0,255,204,.06)}
+.api-lbl{font-family:var(--ff-m);font-size:.56rem;letter-spacing:3.5px;
+         text-transform:uppercase;color:var(--cyan);margin-bottom:1.4rem;
+         display:flex;align-items:center;gap:1rem}
+.api-lbl::after{content:'';flex:1;height:1px;background:rgba(0,255,204,.1)}
+
+.code-box{background:rgba(0,0,0,.5);border:1px solid rgba(0,255,204,.08);
+          padding:1.4rem;font-family:var(--ff-m);font-size:.7rem;
+          line-height:1.9;color:rgba(240,237,220,.55);overflow-x:auto}
+.kw{color:var(--cyan)}.fn{color:var(--acid)}.st{color:var(--orange)}
+.co{color:rgba(255,255,255,.2);font-style:italic}.tp{color:#FF79C6}.nb{color:#BD93F9}
+
+.mlist{margin-top:1.65rem}
+.mrow{display:flex;align-items:baseline;gap:1.2rem;padding:.58rem 0;
+      border-bottom:1px solid rgba(255,255,255,.04)}
+.mn{font-family:var(--ff-m);font-size:.68rem;color:var(--acid);white-space:nowrap;flex-shrink:0}
+.md{font-size:.76rem;color:rgba(240,237,220,.34);line-height:1.5}
+
+/* ── INSTALL ─────────────────────────────────────── */
+#install{background:var(--acid);border-top:var(--fat);border-bottom:var(--fat)}
+.inst-grid{display:grid;grid-template-columns:1fr 1fr;border-left:var(--fat)}
+.inst-l{padding:6rem 5rem;border-right:var(--fat)}
+.inst-pre{font-family:var(--ff-m);font-size:.57rem;letter-spacing:4px;
+          text-transform:uppercase;color:rgba(10,10,10,.42);margin-bottom:.9rem}
+.inst-t{font-family:var(--ff-h);font-size:clamp(3.5rem,6vw,5.5rem);color:var(--ink);
+        line-height:.93;letter-spacing:1px;margin-bottom:1.8rem}
+.inst-d{font-size:.92rem;color:rgba(10,10,10,.5);line-height:1.72;
+        max-width:380px;margin-bottom:2.5rem}
+.req-pills{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.8rem}
+.req{font-family:var(--ff-m);font-size:.59rem;letter-spacing:1px;padding:5px 11px;
+     background:rgba(0,0,0,.07);border:1px solid rgba(0,0,0,.13);color:rgba(0,0,0,.52)}
+
+.inst-r{padding:5rem 4rem;background:var(--ink);display:flex;
+        flex-direction:column;gap:1.7rem}
+.step{display:flex;gap:1.7rem;align-items:flex-start}
+.step-n{font-family:var(--ff-h);font-size:2.4rem;color:var(--acid);
+        line-height:1;flex-shrink:0;width:38px}
+.step-b{flex:1}
+.step-l{font-family:var(--ff-m);font-size:.55rem;letter-spacing:2px;
+        text-transform:uppercase;color:rgba(240,237,220,.3);margin-bottom:.45rem}
+.step-c{background:rgba(200,255,0,.06);border:1px solid rgba(200,255,0,.15);
+        padding:.7rem 1.2rem;font-family:var(--ff-m);font-size:.69rem;
+        color:var(--acid);line-height:1.7;overflow-x:auto}
+
+/* ── SHORTCUTS ───────────────────────────────────── */
+#shortcuts{background:var(--dim)}
+.kbd-wrap{display:grid;grid-template-columns:1fr 1fr;
+          border-left:var(--fat);border-top:var(--fat)}
+.kbd-col{border-right:var(--fat);border-bottom:var(--fat)}
+.kbd-h{padding:1.2rem 2rem;background:var(--ink);border-bottom:3px solid var(--acid);
+       font-family:var(--ff-h);font-size:1.05rem;letter-spacing:3px;color:var(--acid)}
+.krow{display:flex;align-items:center;justify-content:space-between;
+      padding:.85rem 2rem;border-bottom:1px solid rgba(0,0,0,.06);transition:background .11s}
+.krow:hover{background:rgba(200,255,0,.05)}
+.krow.grp{background:rgba(0,0,0,.04);padding:.58rem 2rem}
+.grp-l{font-family:var(--ff-m);font-size:.57rem;letter-spacing:3px;
+       text-transform:uppercase;color:var(--lite)}
+.kact{font-size:.82rem;color:var(--muted)}
+.kcomb{display:flex;gap:3px;align-items:center}
+kbd{font-family:var(--ff-m);font-size:.59rem;background:var(--ink);color:var(--paper);
+    padding:3px 9px;border-bottom:3px solid rgba(200,255,0,.2);letter-spacing:.5px}
+
+/* ── GITHUB CTA ──────────────────────────────────── */
+#github{background:var(--steel);border-top:var(--fat)}
+.gh-inner{padding:5rem;display:flex;align-items:center;justify-content:space-between;gap:4rem;
+          border-left:4px solid rgba(200,255,0,.1);flex-wrap:wrap}
+.gh-left{}
+.gh-eyebrow{font-family:var(--ff-m);font-size:.6rem;letter-spacing:4px;
+            text-transform:uppercase;color:rgba(200,255,0,.45);margin-bottom:1rem}
+.gh-title{font-family:var(--ff-h);font-size:clamp(2.5rem,5vw,4.5rem);
+          color:var(--paper);letter-spacing:1px;line-height:.95}
+.gh-title em{color:var(--acid);font-style:normal}
+
+.gh-right{display:flex;flex-direction:column;gap:1rem;align-items:flex-start}
+.gh-url-box{background:rgba(200,255,0,.06);border:1px solid rgba(200,255,0,.2);
+            padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem}
+.gh-url-icon{width:20px;height:20px;fill:var(--acid);flex-shrink:0}
+.gh-url-txt{font-family:var(--ff-m);font-size:.75rem;color:var(--acid);letter-spacing:1px;
+            text-decoration:none}
+.gh-url-txt:hover{text-decoration:underline}
+.gh-meta{font-family:var(--ff-m);font-size:.58rem;letter-spacing:2px;
+         color:rgba(240,237,220,.25);text-transform:uppercase}
+
+/* ── FOOTER ──────────────────────────────────────── */
+footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)}
+.ft-cols{display:grid;grid-template-columns:2.2fr 1fr 1fr 1.2fr;
+         border-left:1px solid rgba(200,255,0,.06)}
+.ft-col{padding:4rem 3rem;border-right:1px solid rgba(200,255,0,.06)}
+.ft-wm{font-family:var(--ff-h);font-size:4rem;color:var(--acid);
+       letter-spacing:5px;line-height:1;margin-bottom:.4rem}
+.ft-tl{font-family:var(--ff-m);font-size:.55rem;letter-spacing:3px;
+       color:rgba(240,237,220,.2);text-transform:uppercase;margin-bottom:2rem}
+.ft-bl{font-size:.82rem;color:rgba(240,237,220,.33);line-height:1.72;
+       max-width:280px;font-weight:300}
+.ft-ct{font-family:var(--ff-m);font-size:.55rem;letter-spacing:3px;
+       text-transform:uppercase;color:rgba(200,255,0,.45);margin-bottom:1.65rem}
+.ft-links{list-style:none;display:flex;flex-direction:column;gap:.8rem}
+.ft-links a{font-size:.8rem;color:rgba(240,237,220,.33);text-decoration:none;
+            transition:color .13s;display:flex;align-items:center;gap:.5rem}
+.ft-links a::before{content:'';width:9px;height:1px;background:var(--acid);
+                    flex-shrink:0;opacity:0;transition:opacity .13s}
+.ft-links a:hover{color:var(--paper)}
+.ft-links a:hover::before{opacity:1}
+.ft-tech{margin-top:1.8rem}
+.ft-ti{font-family:var(--ff-m);font-size:.62rem;letter-spacing:1px;
+       color:rgba(240,237,220,.2);padding:.5rem 0;
+       border-bottom:1px solid rgba(255,255,255,.04);
+       display:flex;align-items:center;justify-content:space-between}
+.ft-ti span{color:rgba(200,255,0,.4);font-size:.52rem}
+.ft-bot{border-top:1px solid rgba(200,255,0,.07);padding:1.4rem 3rem;
+        display:flex;align-items:center;justify-content:space-between}
+.ft-copy{font-family:var(--ff-m);font-size:.58rem;letter-spacing:1.5px;
+         color:rgba(240,237,220,.18);text-transform:uppercase}
+.gpl{font-family:var(--ff-m);font-size:.55rem;letter-spacing:2px;text-transform:uppercase;
+     color:var(--acid);border:1px solid rgba(200,255,0,.2);padding:5px 13px}
+
+/* ── REVEAL ──────────────────────────────────────── */
+.rv{opacity:0;transform:translateY(20px);
+    transition:opacity .55s var(--ease),transform .55s var(--ease)}
+.rv.in{opacity:1;transform:none}
+
+/* ── RESPONSIVE ───────────────────────────────────── */
+@media(max-width:1100px){
+  .mod-grid{grid-template-columns:repeat(3,1fr)}
+  .ft-cols{grid-template-columns:1fr 1fr}
+}
+@media(max-width:900px){
+  #hero{grid-template-columns:1fr}
+  .hero-right{display:none}
+  .hero-left{padding:3.5rem 2.5rem}
+  .mod-grid{grid-template-columns:1fr 1fr}
+  .phil-grid,.arch-wrap,.api-grid,.inst-grid,.kbd-wrap{grid-template-columns:1fr}
+  .ft-cols{grid-template-columns:1fr}
+  .s-head{padding:3.5rem 2.5rem 2.5rem;flex-direction:column;align-items:flex-start}
+  .s-aside{text-align:left}
+  nav{padding:0 1.5rem}
+  .nav-links{display:none}
+  .gh-inner{flex-direction:column}
+}
+@media(max-width:600px){
+  .mod-grid{grid-template-columns:1fr}
+  .metrics{flex-wrap:wrap;gap:1.5rem}
+  .metric{border:none;margin:0;padding:0}
 }
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; font-size: 16px; }
-
-body {
-  font-family: var(--ff-body);
-  background: var(--paper);
-  color: var(--ink);
-  overflow-x: hidden;
-  cursor: crosshair;
-}
-
-::selection { background: var(--acid); color: var(--ink); }
-
-/* ═══════════════════════════════════════════
-   NOISE + GRID TEXTURE
-═══════════════════════════════════════════ */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px),
-    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ═══════════════════════════════════════════
-   NAV
-═══════════════════════════════════════════ */
-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  background: var(--ink);
-  border-bottom: var(--rule-fat);
-  border-color: var(--acid);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  height: 56px;
-}
-
-.nav-logo {
-  font-family: var(--ff-display);
-  font-size: 2rem;
-  color: var(--acid);
-  letter-spacing: 3px;
-  text-decoration: none;
-  line-height: 1;
-}
-
-.nav-links {
-  display: flex;
-  gap: 0;
-  list-style: none;
-}
-
-.nav-links a {
-  display: block;
-  font-family: var(--ff-mono);
-  font-size: 0.7rem;
-  color: var(--paper);
-  text-decoration: none;
-  padding: 0 1.2rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  border-left: 1px solid rgba(255,255,255,0.1);
-  height: 56px;
-  line-height: 56px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.nav-links a:hover { background: var(--acid); color: var(--ink); }
-
-.nav-badge {
-  font-family: var(--ff-mono);
-  font-size: 0.65rem;
-  background: var(--orange);
-  color: #fff;
-  padding: 3px 8px;
-  letter-spacing: 1px;
-}
-
-/* ═══════════════════════════════════════════
-   HERO
-═══════════════════════════════════════════ */
-#hero {
-  min-height: 100vh;
-  padding-top: 56px;
-  background: var(--steel);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-left {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 5rem 4rem 5rem 4rem;
-  border-right: var(--rule-fat);
-  border-color: rgba(200,255,0,0.3);
-  position: relative;
-  z-index: 2;
-}
-
-.hero-tag {
-  font-family: var(--ff-mono);
-  font-size: 0.7rem;
-  color: var(--cyan);
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.hero-tag::before {
-  content: '';
-  display: block;
-  width: 32px;
-  height: 2px;
-  background: var(--cyan);
-}
-
-.hero-title {
-  font-family: var(--ff-display);
-  font-size: clamp(5rem, 10vw, 9rem);
-  color: var(--paper);
-  line-height: 0.9;
-  letter-spacing: 2px;
-  margin-bottom: 0.25rem;
-}
-
-.hero-title span {
-  color: var(--acid);
-  display: block;
-}
-
-.hero-subtitle {
-  font-family: var(--ff-display);
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
-  color: var(--orange);
-  letter-spacing: 4px;
-  margin-bottom: 2rem;
-}
-
-.hero-desc {
-  font-size: 1rem;
-  color: rgba(240,237,228,0.65);
-  line-height: 1.7;
-  max-width: 480px;
-  margin-bottom: 3rem;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.btn {
-  font-family: var(--ff-mono);
-  font-size: 0.75rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  padding: 0.85rem 1.8rem;
-  text-decoration: none;
-  border: var(--rule-fat);
-  transition: transform 0.1s, box-shadow 0.1s;
-  display: inline-block;
-  cursor: crosshair;
-}
-
-.btn:active { transform: translate(3px,3px); box-shadow: none !important; }
-
-.btn-primary {
-  background: var(--acid);
-  color: var(--ink);
-  border-color: var(--acid);
-  box-shadow: 5px 5px 0 var(--acid);
-}
-
-.btn-primary:hover { box-shadow: 8px 8px 0 var(--cyan); }
-
-.btn-ghost {
-  background: transparent;
-  color: var(--paper);
-  border-color: rgba(240,237,228,0.4);
-  box-shadow: 5px 5px 0 rgba(240,237,228,0.15);
-}
-
-.btn-ghost:hover { border-color: var(--paper); box-shadow: 8px 8px 0 rgba(240,237,228,0.3); }
-
-.hero-stats {
-  display: flex;
-  gap: 2.5rem;
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(200,255,0,0.2);
-}
-
-.stat-item { display: flex; flex-direction: column; }
-
-.stat-num {
-  font-family: var(--ff-display);
-  font-size: 2.5rem;
-  color: var(--acid);
-  line-height: 1;
-}
-
-.stat-label {
-  font-family: var(--ff-mono);
-  font-size: 0.6rem;
-  color: rgba(240,237,228,0.5);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-top: 0.25rem;
-}
-
-/* HERO RIGHT — animated diagram */
-.hero-right {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  padding: 4rem;
-}
-
-.hero-diagram {
-  width: 100%;
-  max-width: 500px;
-  position: relative;
-}
-
-.diagram-ring {
-  width: 320px;
-  height: 320px;
-  border: 3px solid rgba(200,255,0,0.25);
-  border-radius: 50%;
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  animation: spin 30s linear infinite;
-}
-
-.diagram-ring:nth-child(2) {
-  width: 240px; height: 240px;
-  border-color: rgba(0,255,204,0.2);
-  animation-direction: reverse;
-  animation-duration: 20s;
-}
-
-.diagram-ring:nth-child(3) {
-  width: 160px; height: 160px;
-  border-color: rgba(255,85,0,0.25);
-  animation-duration: 15s;
-}
-
-@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
-
-.diagram-center {
-  width: 320px;
-  height: 320px;
-  margin: auto;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.module-node {
-  position: absolute;
-  width: 72px;
-  height: 72px;
-  background: var(--ink);
-  border: 3px solid var(--acid);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 4px 4px 0 var(--acid);
-  animation: float 4s ease-in-out infinite;
-  cursor: default;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.module-node:hover {
-  transform: translate(-2px,-2px) scale(1.08) !important;
-  box-shadow: 8px 8px 0 var(--cyan) !important;
-  z-index: 10;
-}
-
-.module-node .node-icon { font-size: 1.4rem; line-height: 1; }
-.module-node .node-label { font-family: var(--ff-mono); font-size: 0.45rem; color: var(--acid); letter-spacing: 1px; margin-top: 2px; text-align: center; }
-
-.module-node:nth-child(1)  { top: 0%;    left: 38%;  animation-delay: 0s; }
-.module-node:nth-child(2)  { top: 12%;   left: 68%;  animation-delay: 0.5s; border-color: var(--cyan); box-shadow: 4px 4px 0 var(--cyan); }
-.module-node:nth-child(3)  { top: 38%;   left: 80%;  animation-delay: 1s; border-color: var(--orange); box-shadow: 4px 4px 0 var(--orange); }
-.module-node:nth-child(4)  { top: 62%;   left: 70%;  animation-delay: 1.5s; }
-.module-node:nth-child(5)  { top: 76%;   left: 38%;  animation-delay: 2s; border-color: var(--cyan); box-shadow: 4px 4px 0 var(--cyan); }
-.module-node:nth-child(6)  { top: 62%;   left: 8%;   animation-delay: 2.5s; border-color: var(--orange); box-shadow: 4px 4px 0 var(--orange); }
-.module-node:nth-child(7)  { top: 38%;   left: 0%;   animation-delay: 3s; }
-.module-node:nth-child(8)  { top: 12%;   left: 10%;  animation-delay: 3.5s; border-color: var(--red); box-shadow: 4px 4px 0 var(--red); }
-
-.module-node .node-label { color: inherit; }
-.module-node:nth-child(2) .node-label { color: var(--cyan); }
-.module-node:nth-child(3) .node-label { color: var(--orange); }
-.module-node:nth-child(5) .node-label { color: var(--cyan); }
-.module-node:nth-child(6) .node-label { color: var(--orange); }
-.module-node:nth-child(8) .node-label { color: var(--red); }
-.module-node:nth-child(1) .node-label,
-.module-node:nth-child(4) .node-label,
-.module-node:nth-child(7) .node-label { color: var(--acid); }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-.center-core {
-  width: 90px;
-  height: 90px;
-  background: var(--acid);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  box-shadow: 6px 6px 0 var(--ink);
-  border: 3px solid var(--ink);
-  z-index: 5;
-}
-
-.center-core .core-label {
-  font-family: var(--ff-display);
-  font-size: 1.1rem;
-  color: var(--ink);
-  letter-spacing: 1px;
-  line-height: 1;
-}
-
-.center-core .core-sub {
-  font-family: var(--ff-mono);
-  font-size: 0.42rem;
-  color: var(--ink);
-  letter-spacing: 1px;
-  margin-top: 2px;
-}
-
-/* ═══════════════════════════════════════════
-   SECTION BASE
-═══════════════════════════════════════════ */
-.section { position: relative; z-index: 1; }
-
-.section-header {
-  padding: 5rem 4rem 3rem;
-  border-bottom: var(--rule-fat);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
-}
-
-.section-number {
-  font-family: var(--ff-display);
-  font-size: 6rem;
-  color: rgba(0,0,0,0.06);
-  line-height: 1;
-  position: absolute;
-  left: 4rem;
-  top: 2rem;
-  pointer-events: none;
-  user-select: none;
-}
-
-.section-title {
-  font-family: var(--ff-display);
-  font-size: clamp(3rem, 6vw, 5rem);
-  line-height: 1;
-  letter-spacing: 2px;
-  position: relative;
-  z-index: 1;
-}
-
-.section-desc {
-  font-size: 0.95rem;
-  color: var(--muted);
-  line-height: 1.65;
-  max-width: 380px;
-  text-align: right;
-}
-
-/* ═══════════════════════════════════════════
-   TICKER / MARQUEE
-═══════════════════════════════════════════ */
-.ticker {
-  background: var(--acid);
-  border-top: var(--rule-fat);
-  border-bottom: var(--rule-fat);
-  overflow: hidden;
-  padding: 0.6rem 0;
-  white-space: nowrap;
-}
-
-.ticker-inner {
-  display: inline-flex;
-  animation: marquee 20s linear infinite;
-  gap: 0;
-}
-
-.ticker-item {
-  font-family: var(--ff-mono);
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--ink);
-  padding: 0 2rem;
-}
-
-.ticker-item::after {
-  content: '◆';
-  margin-left: 2rem;
-  opacity: 0.4;
-}
-
-@keyframes marquee { to { transform: translateX(-50%); } }
-
-/* ═══════════════════════════════════════════
-   MODULES GRID
-═══════════════════════════════════════════ */
-#modules { background: var(--paper); }
-
-.modules-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-left: var(--rule-fat);
-}
-
-.module-card {
-  border-right: var(--rule-fat);
-  border-bottom: var(--rule-fat);
-  padding: 2.5rem 2rem;
-  transition: background 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.module-card::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0;
-  width: 100%; height: 3px;
-  background: var(--card-accent, var(--acid));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s;
-}
-
-.module-card:hover { background: var(--ink); }
-.module-card:hover .card-title { color: var(--paper); }
-.module-card:hover .card-desc { color: rgba(240,237,228,0.55); }
-.module-card:hover .card-num { color: rgba(240,237,228,0.08); }
-.module-card:hover::after { transform: scaleX(1); }
-
-.card-num {
-  font-family: var(--ff-display);
-  font-size: 4rem;
-  color: rgba(0,0,0,0.06);
-  line-height: 1;
-  margin-bottom: 1rem;
-  transition: color 0.2s;
-}
-
-.card-icon-wrap {
-  width: 56px;
-  height: 56px;
-  background: var(--card-accent, var(--acid));
-  border: var(--rule);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-sm, 4px 4px 0 var(--ink));
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-
-.module-card:hover .card-icon-wrap {
-  box-shadow: 6px 6px 0 var(--card-accent, var(--acid));
-  transform: translate(-2px,-2px);
-}
-
-.card-title {
-  font-family: var(--ff-display);
-  font-size: 1.5rem;
-  letter-spacing: 1px;
-  margin-bottom: 0.75rem;
-  transition: color 0.2s;
-}
-
-.card-desc {
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.6;
-  transition: color 0.2s;
-}
-
-.card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 1.25rem;
-}
-
-.tag {
-  font-family: var(--ff-mono);
-  font-size: 0.58rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border: 1px solid rgba(0,0,0,0.15);
-  color: var(--muted);
-}
-
-.module-card:hover .tag { border-color: rgba(240,237,228,0.2); color: rgba(240,237,228,0.5); }
-
-/* color accents per card */
-.mc-1  { --card-accent: #C8FF00; }
-.mc-2  { --card-accent: #00FFCC; }
-.mc-3  { --card-accent: #FF5500; }
-.mc-4  { --card-accent: #0057FF; }
-.mc-5  { --card-accent: #FF1744; }
-.mc-6  { --card-accent: #FFDD00; }
-.mc-7  { --card-accent: #00C853; }
-.mc-8  { --card-accent: #FF5500; }
-.mc-9  { --card-accent: #7C4DFF; }
-.mc-10 { --card-accent: #00FFCC; }
-.mc-11 { --card-accent: #FF6D00; }
-
-/* ═══════════════════════════════════════════
-   PHILOSOPHY / MANIFESTO SECTION
-═══════════════════════════════════════════ */
-#philosophy {
-  background: var(--steel);
-  color: var(--paper);
-}
-
-#philosophy .section-header { border-color: rgba(200,255,0,0.25); }
-#philosophy .section-title { color: var(--paper); }
-#philosophy .section-desc { color: rgba(240,237,228,0.5); }
-#philosophy .section-number { color: rgba(255,255,255,0.04); }
-
-.philosophy-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  border-left: 4px solid rgba(200,255,0,0.2);
-}
-
-.philosophy-card {
-  padding: 3rem 2.5rem;
-  border-right: 2px solid rgba(200,255,0,0.12);
-  border-bottom: 2px solid rgba(200,255,0,0.12);
-  position: relative;
-}
-
-.phil-accent {
-  width: 40px;
-  height: 4px;
-  margin-bottom: 1.5rem;
-}
-
-.phil-num {
-  font-family: var(--ff-mono);
-  font-size: 0.65rem;
-  color: var(--acid);
-  letter-spacing: 3px;
-  margin-bottom: 1rem;
-}
-
-.phil-title {
-  font-family: var(--ff-display);
-  font-size: 2rem;
-  letter-spacing: 1px;
-  color: var(--paper);
-  margin-bottom: 1rem;
-  line-height: 1.1;
-}
-
-.phil-text {
-  font-size: 0.9rem;
-  line-height: 1.7;
-  color: rgba(240,237,228,0.6);
-}
-
-/* ═══════════════════════════════════════════
-   THEMES SHOWCASE
-═══════════════════════════════════════════ */
-#themes { background: var(--paper); }
-
-.themes-row {
-  display: flex;
-  overflow-x: auto;
-  border-top: var(--rule-fat);
-  border-bottom: var(--rule-fat);
-  scrollbar-width: none;
-}
-
-.themes-row::-webkit-scrollbar { display: none; }
-
-.theme-chip {
-  flex: 0 0 180px;
-  height: 200px;
-  border-right: var(--rule-fat);
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  cursor: crosshair;
-  position: relative;
-  overflow: hidden;
-  transition: flex 0.3s;
-}
-
-.theme-chip:hover { flex: 0 0 260px; }
-
-.theme-chip-label {
-  font-family: var(--ff-display);
-  font-size: 1.4rem;
-  letter-spacing: 1px;
-  z-index: 1;
-  position: relative;
-  line-height: 1;
-}
-
-.theme-chip-sub {
-  font-family: var(--ff-mono);
-  font-size: 0.55rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  opacity: 0.6;
-  margin-top: 0.4rem;
-  z-index: 1;
-  position: relative;
-}
-
-.theme-swatches {
-  display: flex;
-  gap: 4px;
-  margin-top: auto;
-  z-index: 1;
-  position: relative;
-}
-
-.swatch {
-  width: 20px; height: 20px;
-  border: 1px solid rgba(0,0,0,0.15);
-}
-
-/* theme colors */
-.th-1  { background: #F4F1E8; color: #0A0A0A; }
-.th-2  { background: #050816; color: #E5E7EB; }
-.th-3  { background: #1A1009; color: #E5D5C5; }
-.th-4  { background: #0D1A0D; color: #D4F0C8; }
-.th-5  { background: #120720; color: #F0D0FF; }
-.th-6  { background: #E8F4F8; color: #0A2030; }
-.th-7  { background: #1A1400; color: #FFF3C0; }
-.th-8  { background: #1A0008; color: #FFD0D8; }
-.th-9  { background: #000A1A; color: #C8E0FF; }
-.th-10 { background: #0A0400; color: #FFE8B0; }
-.th-11 { background: #F0FFF4; color: #003320; }
-.th-12 { background: #000000; color: #FFFFFF; }
-.th-13 { background: #1A0A2E; color: #E8D8FF; }
-.th-14 { background: #282A36; color: #F8F8F2; }
-
-/* ═══════════════════════════════════════════
-   ARCHITECTURE SECTION
-═══════════════════════════════════════════ */
-#architecture { background: var(--ink); color: var(--paper); }
-#architecture .section-header { border-color: rgba(255,85,0,0.3); }
-#architecture .section-title { color: var(--paper); }
-#architecture .section-desc { color: rgba(240,237,228,0.5); }
-#architecture .section-number { color: rgba(255,255,255,0.04); }
-
-.arch-layout {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  border-top: 2px solid rgba(255,255,255,0.07);
-}
-
-.arch-tree {
-  padding: 3rem;
-  border-right: 2px solid rgba(255,255,255,0.07);
-  font-family: var(--ff-mono);
-  font-size: 0.78rem;
-  line-height: 2;
-  color: rgba(240,237,228,0.6);
-}
-
-.arch-tree .tree-title {
-  font-family: var(--ff-display);
-  font-size: 1.2rem;
-  color: var(--orange);
-  letter-spacing: 2px;
-  margin-bottom: 1.5rem;
-}
-
-.arch-tree .t-root { color: var(--acid); }
-.arch-tree .t-core { color: var(--cyan); }
-.arch-tree .t-module { color: var(--orange); }
-.arch-tree .t-ui { color: var(--red); }
-.arch-tree .t-comment { color: rgba(240,237,228,0.3); font-style: italic; }
-
-.arch-features {
-  padding: 3rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-content: start;
-}
-
-.arch-feat {
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 1.5rem;
-  position: relative;
-  transition: border-color 0.2s;
-}
-
-.arch-feat:hover { border-color: var(--orange); }
-
-.arch-feat-icon {
-  font-size: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: block;
-}
-
-.arch-feat-title {
-  font-family: var(--ff-mono);
-  font-size: 0.7rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin-bottom: 0.5rem;
-}
-
-.arch-feat-text {
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: rgba(240,237,228,0.55);
-}
-
-/* ═══════════════════════════════════════════
-   API REFERENCE SECTION
-═══════════════════════════════════════════ */
-#api { background: #0F0F1A; color: var(--paper); }
-#api .section-header { border-color: rgba(0,255,204,0.2); }
-#api .section-title { color: var(--paper); }
-#api .section-desc { color: rgba(240,237,228,0.5); }
-#api .section-number { color: rgba(255,255,255,0.03); }
-
-.api-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-top: 1px solid rgba(0,255,204,0.1);
-}
-
-.api-block {
-  padding: 2.5rem;
-  border-right: 1px solid rgba(0,255,204,0.1);
-  border-bottom: 1px solid rgba(0,255,204,0.1);
-}
-
-.api-block-title {
-  font-family: var(--ff-mono);
-  font-size: 0.65rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.api-block-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(0,255,204,0.2);
-}
-
-.code-block {
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(0,255,204,0.12);
-  padding: 1.25rem 1.5rem;
-  font-family: var(--ff-mono);
-  font-size: 0.75rem;
-  line-height: 1.8;
-  color: rgba(240,237,228,0.7);
-  overflow-x: auto;
-}
-
-.code-block .kw  { color: var(--cyan); }
-.code-block .fn  { color: var(--acid); }
-.code-block .str { color: var(--orange); }
-.code-block .cm  { color: rgba(255,255,255,0.3); font-style: italic; }
-.code-block .tp  { color: #FF79C6; }
-
-.method-list { margin-top: 1.5rem; }
-
-.method-row {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.method-name {
-  font-family: var(--ff-mono);
-  font-size: 0.75rem;
-  color: var(--acid);
-  white-space: nowrap;
-}
-
-.method-desc {
-  font-size: 0.8rem;
-  color: rgba(240,237,228,0.45);
-  line-height: 1.4;
-}
-
-/* ═══════════════════════════════════════════
-   INSTALL SECTION
-═══════════════════════════════════════════ */
-#install {
-  background: var(--acid);
-  border-top: var(--rule-fat);
-  border-bottom: var(--rule-fat);
-}
-
-.install-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-left: var(--rule-fat);
-}
-
-.install-left {
-  padding: 5rem 4rem;
-  border-right: var(--rule-fat);
-}
-
-.install-title {
-  font-family: var(--ff-display);
-  font-size: clamp(3rem, 6vw, 5rem);
-  color: var(--ink);
-  line-height: 1;
-  letter-spacing: 2px;
-  margin-bottom: 1.5rem;
-}
-
-.install-sub {
-  font-size: 1rem;
-  color: rgba(10,10,10,0.6);
-  line-height: 1.65;
-  margin-bottom: 2.5rem;
-  max-width: 400px;
-}
-
-.install-right {
-  padding: 4rem;
-  background: var(--ink);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.install-step {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
-}
-
-.step-num {
-  font-family: var(--ff-display);
-  font-size: 2rem;
-  color: var(--acid);
-  line-height: 1;
-  flex-shrink: 0;
-  width: 36px;
-}
-
-.step-content { flex: 1; }
-
-.step-title {
-  font-family: var(--ff-mono);
-  font-size: 0.65rem;
-  letter-spacing: 2px;
-  color: rgba(240,237,228,0.5);
-  text-transform: uppercase;
-  margin-bottom: 0.4rem;
-}
-
-.step-code {
-  background: rgba(200,255,0,0.08);
-  border: 1px solid rgba(200,255,0,0.2);
-  padding: 0.6rem 1rem;
-  font-family: var(--ff-mono);
-  font-size: 0.75rem;
-  color: var(--acid);
-  overflow-x: auto;
-}
-
-.req-list {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
-.req-tag {
-  font-family: var(--ff-mono);
-  font-size: 0.65rem;
-  background: rgba(200,255,0,0.1);
-  border: 1px solid rgba(200,255,0,0.25);
-  color: var(--acid);
-  padding: 4px 10px;
-  letter-spacing: 1px;
-}
-
-/* ═══════════════════════════════════════════
-   SHORTCUTS TABLE
-═══════════════════════════════════════════ */
-#shortcuts { background: var(--paper); }
-
-.shortcuts-wrap {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-top: var(--rule-fat);
-  border-left: var(--rule-fat);
-}
-
-.shortcut-col {
-  border-right: var(--rule-fat);
-  border-bottom: var(--rule-fat);
-}
-
-.shortcut-col-header {
-  padding: 1.5rem 2rem;
-  border-bottom: var(--rule);
-  background: var(--ink);
-  font-family: var(--ff-display);
-  font-size: 1.2rem;
-  letter-spacing: 2px;
-  color: var(--acid);
-}
-
-.shortcut-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 2rem;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  transition: background 0.15s;
-}
-
-.shortcut-row:hover { background: rgba(200,255,0,0.06); }
-
-.shortcut-action {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.kbd-combo {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-kbd {
-  font-family: var(--ff-mono);
-  font-size: 0.65rem;
-  background: var(--ink);
-  color: var(--paper);
-  padding: 3px 8px;
-  border-bottom: 3px solid rgba(255,255,255,0.1);
-  letter-spacing: 1px;
-}
-
-/* ═══════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════ */
-footer {
-  background: var(--ink);
-  color: var(--paper);
-  border-top: 4px solid var(--acid);
-}
-
-.footer-inner {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  border-left: 4px solid rgba(200,255,0,0.15);
-}
-
-.footer-col {
-  padding: 3rem 2.5rem;
-  border-right: 1px solid rgba(255,255,255,0.07);
-}
-
-.footer-logo {
-  font-family: var(--ff-display);
-  font-size: 3rem;
-  color: var(--acid);
-  letter-spacing: 4px;
-  line-height: 1;
-  margin-bottom: 1rem;
-}
-
-.footer-tagline {
-  font-family: var(--ff-mono);
-  font-size: 0.65rem;
-  letter-spacing: 2px;
-  color: rgba(240,237,228,0.4);
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-}
-
-.footer-desc {
-  font-size: 0.85rem;
-  color: rgba(240,237,228,0.45);
-  line-height: 1.65;
-  max-width: 320px;
-}
-
-.footer-col-title {
-  font-family: var(--ff-mono);
-  font-size: 0.6rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--acid);
-  margin-bottom: 1.5rem;
-}
-
-.footer-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.footer-list a {
-  font-size: 0.85rem;
-  color: rgba(240,237,228,0.5);
-  text-decoration: none;
-  transition: color 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.footer-list a::before {
-  content: '→';
-  color: var(--acid);
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.footer-list a:hover { color: var(--paper); }
-.footer-list a:hover::before { opacity: 1; }
-
-.footer-bottom {
-  border-top: 1px solid rgba(255,255,255,0.07);
-  padding: 1.25rem 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.footer-copy {
-  font-family: var(--ff-mono);
-  font-size: 0.62rem;
-  letter-spacing: 2px;
-  color: rgba(240,237,228,0.3);
-  text-transform: uppercase;
-}
-
-.license-badge {
-  font-family: var(--ff-mono);
-  font-size: 0.6rem;
-  background: rgba(200,255,0,0.1);
-  border: 1px solid rgba(200,255,0,0.25);
-  color: var(--acid);
-  padding: 4px 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-/* ═══════════════════════════════════════════
-   SCROLL ANIMATIONS
-═══════════════════════════════════════════ */
-.reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.reveal.visible {
-  opacity: 1;
-  transform: none;
-}
-
-/* ═══════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════ */
-@media (max-width: 900px) {
-  #hero { grid-template-columns: 1fr; }
-  .hero-right { display: none; }
-  .hero-left { padding: 3rem 2rem; }
-  .modules-grid { grid-template-columns: 1fr 1fr; }
-  .philosophy-grid { grid-template-columns: 1fr; }
-  .arch-layout { grid-template-columns: 1fr; }
-  .api-grid { grid-template-columns: 1fr; }
-  .install-inner { grid-template-columns: 1fr; }
-  .shortcuts-wrap { grid-template-columns: 1fr; }
-  .footer-inner { grid-template-columns: 1fr; }
-  .section-header { padding: 3rem 2rem 2rem; flex-direction: column; align-items: flex-start; }
-  .section-desc { text-align: left; }
-  nav { padding: 0 1rem; }
-  .nav-links { display: none; }
-}
-
-@media (max-width: 600px) {
-  .modules-grid { grid-template-columns: 1fr; }
-  .hero-title { font-size: 4rem; }
-}
-
 </style>
 </head>
 <body>
 
 <!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">PRO<span style="color:var(--orange)">ENG</span></a>
+  <a class="logo" href="#">PRO<em>ENG</em><sup>v2.0</sup></a>
   <ul class="nav-links">
     <li><a href="#modules">Módulos</a></li>
     <li><a href="#philosophy">Filosofia</a></li>
@@ -1182,886 +436,652 @@ footer {
     <li><a href="#architecture">Arquitetura</a></li>
     <li><a href="#api">API</a></li>
     <li><a href="#install">Instalação</a></li>
+    <li><a href="#github">GitHub</a></li>
   </ul>
-  <span class="nav-badge">v2.0 — GPLv3</span>
+  <span class="nav-pill">GNU GPLv3</span>
 </nav>
 
-<!-- ════════════════════════════════
-     HERO
-════════════════════════════════ -->
+
+<!-- ═══ HERO ═══════════════════════════════════════ -->
 <section id="hero">
   <div class="hero-left">
-    <div class="hero-tag">Suite de Engenharia Industrial</div>
-    <h1 class="hero-title">
-      PRO
-      <span>ENG</span>
-    </h1>
-    <div class="hero-subtitle">v2.0 — Industrial Suite</div>
-    <p class="hero-desc">
-      Plataforma desktop de engenharia industrial que unifica planejamento técnico, modelagem de processos e gestão estratégica em um ambiente visual de alta fidelidade. Construída com Python 3 e PyQt5.
+    <div class="eyebrow">Engenharia Industrial &amp; Gestão de Projeto</div>
+
+    <div class="h-title">PRO</div>
+    <span class="h-title-eng">ENG</span>
+    <div class="h-ver">SUITE v2.0 &mdash; INDUSTRIAL</div>
+
+    <p class="h-desc">
+      Plataforma desktop que unifica <strong>modelagem de processos</strong>,
+      planejamento técnico e gestão estratégica em um ambiente visual de alta
+      fidelidade. Construída do zero com <strong>Python 3 + PyQt5</strong>,
+      aceleração por hardware e design neo-brutalista.
     </p>
-    <div class="hero-actions">
-      <a href="#install" class="btn btn-primary">↓ Instalar Agora</a>
-      <a href="#modules" class="btn btn-ghost">Ver Módulos →</a>
+
+    <div class="cta">
+      <a href="https://github.com/sasal0519/proeng" target="_blank" class="btn btn-a">Acessar o GitHub</a>
+      <a href="#modules" class="btn btn-g">Ver os 11 Módulos</a>
     </div>
-    <div class="hero-stats">
-      <div class="stat-item">
-        <span class="stat-num">11</span>
-        <span class="stat-label">Módulos</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">14</span>
-        <span class="stat-label">Temas</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">50+</span>
-        <span class="stat-label">Equipamentos</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">300+</span>
-        <span class="stat-label">Componentes</span>
-      </div>
+
+    <div class="metrics">
+      <div class="metric"><span class="mval">11</span><span class="mlbl">Módulos</span></div>
+      <div class="metric"><span class="mval">14</span><span class="mlbl">Temas</span></div>
+      <div class="metric"><span class="mval">50+</span><span class="mlbl">Equipamentos</span></div>
+      <div class="metric"><span class="mval">300+</span><span class="mlbl">Componentes</span></div>
     </div>
   </div>
 
+  <!-- Animated PFD -->
   <div class="hero-right">
-    <div class="hero-diagram">
-      <div class="diagram-ring"></div>
-      <div class="diagram-ring"></div>
-      <div class="diagram-ring"></div>
-      <div class="diagram-center">
-        <!-- orbit nodes -->
-        <div class="module-node" style="animation-delay:0s">
-          <span class="node-icon">⚗️</span>
-          <span class="node-label">FLOWSHEET</span>
-        </div>
-        <div class="module-node" style="animation-delay:0.5s">
-          <span class="node-icon">🔄</span>
-          <span class="node-label">BPMN</span>
-        </div>
-        <div class="module-node" style="animation-delay:1s">
-          <span class="node-icon">🗂️</span>
-          <span class="node-label">EAP/WBS</span>
-        </div>
-        <div class="module-node" style="animation-delay:1.5s">
-          <span class="node-icon">📊</span>
-          <span class="node-label">GANTT</span>
-        </div>
-        <div class="module-node" style="animation-delay:2s">
-          <span class="node-icon">🃏</span>
-          <span class="node-label">KANBAN</span>
-        </div>
-        <div class="module-node" style="animation-delay:2.5s">
-          <span class="node-icon">🔁</span>
-          <span class="node-label">PDCA</span>
-        </div>
-        <div class="module-node" style="animation-delay:3s">
-          <span class="node-icon">🐟</span>
-          <span class="node-label">ISHIKAWA</span>
-        </div>
-        <div class="module-node" style="animation-delay:3.5s">
-          <span class="node-icon">🏃</span>
-          <span class="node-label">SCRUM</span>
-        </div>
-        <!-- center -->
-        <div class="center-core">
-          <span class="core-label">CORE</span>
-          <span class="core-sub">BaseModule</span>
-        </div>
-      </div>
-    </div>
+    <svg class="hero-svg" viewBox="0 0 460 510" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="a1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#00FFCC" opacity=".6"/></marker>
+        <marker id="a2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#C8FF00" opacity=".6"/></marker>
+        <marker id="a3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#FF5500" opacity=".5"/></marker>
+      </defs>
+
+      <!-- grid -->
+      <line x1="0" y1="128" x2="460" y2="128" stroke="rgba(200,255,0,.04)" stroke-width="1"/>
+      <line x1="0" y1="256" x2="460" y2="256" stroke="rgba(200,255,0,.04)" stroke-width="1"/>
+      <line x1="0" y1="384" x2="460" y2="384" stroke="rgba(200,255,0,.04)" stroke-width="1"/>
+
+      <!-- pipes row 1 -->
+      <line x1="122" y1="76" x2="162" y2="76" stroke="#00FFCC" stroke-width="1.4" opacity=".5" marker-end="url(#a1)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.4s" repeatCount="indefinite"/></line>
+      <line x1="260" y1="76" x2="300" y2="76" stroke="#00FFCC" stroke-width="1.4" opacity=".5" marker-end="url(#a1)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.7s" repeatCount="indefinite"/></line>
+      <!-- down col1 -->
+      <line x1="75" y1="108" x2="75" y2="160" stroke="#C8FF00" stroke-width="1.4" opacity=".4" marker-end="url(#a2)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"/></line>
+      <!-- down col3 -->
+      <line x1="345" y1="108" x2="345" y2="160" stroke="#C8FF00" stroke-width="1.4" opacity=".4" marker-end="url(#a2)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.8s" repeatCount="indefinite"/></line>
+      <!-- pipes row 2 -->
+      <line x1="122" y1="204" x2="162" y2="204" stroke="#00FFCC" stroke-width="1.4" opacity=".5" marker-end="url(#a1)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.5s" repeatCount="indefinite"/></line>
+      <line x1="260" y1="204" x2="300" y2="204" stroke="#00FFCC" stroke-width="1.4" opacity=".5" marker-end="url(#a1)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.9s" repeatCount="indefinite"/></line>
+      <!-- down mid col -->
+      <line x1="210" y1="236" x2="210" y2="290" stroke="#FF5500" stroke-width="1.4" opacity=".4" marker-end="url(#a3)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2.2s" repeatCount="indefinite"/></line>
+      <line x1="345" y1="236" x2="345" y2="290" stroke="#FF5500" stroke-width="1.4" opacity=".4" marker-end="url(#a3)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.7s" repeatCount="indefinite"/></line>
+      <!-- pipes row 3 -->
+      <line x1="122" y1="328" x2="162" y2="328" stroke="#00FFCC" stroke-width="1.4" opacity=".5" marker-end="url(#a1)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.3s" repeatCount="indefinite"/></line>
+      <line x1="260" y1="328" x2="300" y2="328" stroke="#00FFCC" stroke-width="1.4" opacity=".5" marker-end="url(#a1)" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.6s" repeatCount="indefinite"/></line>
+
+      <!-- recycle line -->
+      <path d="M 393 328 L 430 328 L 430 76 L 393 76" stroke="#FF5500" stroke-width="1" fill="none" opacity=".24" stroke-dasharray="6 4"><animate attributeName="stroke-dashoffset" from="0" to="-20" dur="3s" repeatCount="indefinite"/></path>
+      <text x="438" y="207" font-family="'Space Mono'" font-size="7" fill="#FF5500" opacity=".4" writing-mode="tb" letter-spacing="2">RECICLO</text>
+
+      <!-- scan line -->
+      <line x1="0" y1="0" x2="460" y2="0" stroke="rgba(200,255,0,.08)" stroke-width="1.5">
+        <animate attributeName="y1" from="0" to="430" dur="4s" repeatCount="indefinite"/>
+        <animate attributeName="y2" from="0" to="430" dur="4s" repeatCount="indefinite"/>
+      </line>
+
+      <!-- ROW 1 -->
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,-5;0,0" dur="4s" repeatCount="indefinite"/>
+        <rect x="37" y="51" width="85" height="50" fill="none" stroke="#C8FF00" stroke-width="2"/>
+        <line x1="37" y1="61" x2="122" y2="61" stroke="#C8FF00" stroke-width="1" opacity=".35"/>
+        <rect x="37" y="51" width="85" height="50" fill="rgba(200,255,0,.04)"/>
+        <text x="79" y="80" text-anchor="middle" font-family="'Bebas Neue'" font-size="13" fill="#C8FF00" letter-spacing="1">TANQUE</text>
+        <text x="79" y="93" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(200,255,0,.45)">T-101</text>
+      </g>
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,-5;0,0" dur="3.5s" repeatCount="indefinite"/>
+        <circle cx="205" cy="76" r="24" fill="none" stroke="#00FFCC" stroke-width="2"/>
+        <circle cx="205" cy="76" r="24" fill="rgba(0,255,204,.04)"/>
+        <line x1="189" y1="76" x2="221" y2="76" stroke="#00FFCC" stroke-width="1" opacity=".3"/>
+        <line x1="205" y1="60" x2="205" y2="92" stroke="#00FFCC" stroke-width="1" opacity=".3"/>
+        <text x="205" y="73" text-anchor="middle" font-family="'Bebas Neue'" font-size="10" fill="#00FFCC">B</text>
+        <text x="205" y="84" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(0,255,204,.5)">101</text>
+      </g>
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,5;0,0" dur="5s" repeatCount="indefinite"/>
+        <rect x="300" y="51" width="85" height="50" fill="none" stroke="#FF5500" stroke-width="2"/>
+        <ellipse cx="342" cy="61" rx="42" ry="8" fill="none" stroke="#FF5500" stroke-width="1" opacity=".38"/>
+        <rect x="300" y="51" width="85" height="50" fill="rgba(255,85,0,.04)"/>
+        <text x="342" y="80" text-anchor="middle" font-family="'Bebas Neue'" font-size="13" fill="#FF5500" letter-spacing="1">REATOR</text>
+        <text x="342" y="93" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(255,85,0,.45)">R-101</text>
+      </g>
+
+      <!-- ROW 2 -->
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,-4;0,0" dur="4.5s" repeatCount="indefinite"/>
+        <rect x="37" y="179" width="85" height="50" fill="none" stroke="#C8FF00" stroke-width="2"/>
+        <path d="M 52 201 Q 79 193 106 201" fill="none" stroke="#C8FF00" stroke-width="1" opacity=".38"/>
+        <rect x="37" y="179" width="85" height="50" fill="rgba(200,255,0,.04)"/>
+        <text x="79" y="206" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#C8FF00" letter-spacing="1">TROCADOR</text>
+        <text x="79" y="219" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(200,255,0,.45)">E-101</text>
+      </g>
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,-5;0,0" dur="3.8s" repeatCount="indefinite"/>
+        <ellipse cx="205" cy="204" rx="24" ry="18" fill="none" stroke="#00FFCC" stroke-width="2"/>
+        <ellipse cx="205" cy="204" rx="24" ry="18" fill="rgba(0,255,204,.04)"/>
+        <line x1="181" y1="204" x2="229" y2="204" stroke="#00FFCC" stroke-width="1" opacity=".4"/>
+        <text x="205" y="201" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#00FFCC">SEP</text>
+        <text x="205" y="213" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(0,255,204,.45)">V-101</text>
+      </g>
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,4;0,0" dur="4.2s" repeatCount="indefinite"/>
+        <rect x="300" y="179" width="85" height="50" fill="none" stroke="#FF5500" stroke-width="2"/>
+        <line x1="314" y1="197" x2="371" y2="197" stroke="#FF5500" stroke-width="1" opacity=".38" stroke-dasharray="3 2"/>
+        <line x1="314" y1="211" x2="371" y2="211" stroke="#FF5500" stroke-width="1" opacity=".3" stroke-dasharray="3 2"/>
+        <rect x="300" y="179" width="85" height="50" fill="rgba(255,85,0,.04)"/>
+        <text x="342" y="206" text-anchor="middle" font-family="'Bebas Neue'" font-size="13" fill="#FF5500" letter-spacing="1">TORRE</text>
+        <text x="342" y="219" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(255,85,0,.45)">C-101</text>
+      </g>
+
+      <!-- ROW 3 -->
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,-4;0,0" dur="5.5s" repeatCount="indefinite"/>
+        <rect x="37" y="303" width="85" height="50" fill="none" stroke="#C8FF00" stroke-width="2"/>
+        <path d="M 52 316 L 79 309 L 106 316" fill="none" stroke="#C8FF00" stroke-width="1" opacity=".38"/>
+        <rect x="37" y="303" width="85" height="50" fill="rgba(200,255,0,.04)"/>
+        <text x="79" y="328" text-anchor="middle" font-family="'Bebas Neue'" font-size="10" fill="#C8FF00" letter-spacing=".5">COMPRESSOR</text>
+        <text x="79" y="342" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(200,255,0,.45)">K-101</text>
+      </g>
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,4;0,0" dur="4.8s" repeatCount="indefinite"/>
+        <rect x="162" y="303" width="85" height="50" fill="none" stroke="#00FFCC" stroke-width="2"/>
+        <line x1="177" y1="322" x2="232" y2="322" stroke="#00FFCC" stroke-width="1" opacity=".38" stroke-dasharray="2 2"/>
+        <line x1="177" y1="332" x2="232" y2="332" stroke="#00FFCC" stroke-width="1" opacity=".32" stroke-dasharray="2 2"/>
+        <rect x="162" y="303" width="85" height="50" fill="rgba(0,255,204,.04)"/>
+        <text x="204" y="330" text-anchor="middle" font-family="'Bebas Neue'" font-size="13" fill="#00FFCC" letter-spacing="1">FILTRO</text>
+        <text x="204" y="343" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(0,255,204,.45)">F-101</text>
+      </g>
+      <g><animateTransform attributeName="transform" type="translate" values="0,0;0,-3;0,0" dur="3.2s" repeatCount="indefinite"/>
+        <rect x="300" y="303" width="85" height="50" fill="none" stroke="#7C3AED" stroke-width="2"/>
+        <rect x="300" y="303" width="85" height="50" fill="rgba(124,58,237,.05)"/>
+        <text x="342" y="324" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#7C3AED" letter-spacing="1">PRODUTO</text>
+        <line x1="313" y1="330" x2="371" y2="330" stroke="#7C3AED" stroke-width="1" opacity=".22"/>
+        <text x="342" y="344" text-anchor="middle" font-family="'Space Mono'" font-size="6" fill="rgba(124,58,237,.45)">P-FINAL</text>
+      </g>
+
+      <!-- stream labels -->
+      <text x="138" y="70" font-family="'Space Mono'" font-size="6.5" fill="#00FFCC" opacity=".4">P1</text>
+      <text x="276" y="70" font-family="'Space Mono'" font-size="6.5" fill="#00FFCC" opacity=".4">P2</text>
+      <text x="138" y="198" font-family="'Space Mono'" font-size="6.5" fill="#00FFCC" opacity=".4">P3</text>
+      <text x="276" y="198" font-family="'Space Mono'" font-size="6.5" fill="#00FFCC" opacity=".4">P4</text>
+      <text x="138" y="322" font-family="'Space Mono'" font-size="6.5" fill="#00FFCC" opacity=".4">P5</text>
+      <text x="276" y="322" font-family="'Space Mono'" font-size="6.5" fill="#00FFCC" opacity=".4">P6</text>
+
+      <!-- legend -->
+      <g transform="translate(18,452)">
+        <rect width="7" height="7" fill="none" stroke="#C8FF00" stroke-width="1.5"/>
+        <text x="13" y="7" font-family="'Space Mono'" font-size="6.5" fill="rgba(240,237,220,.25)" letter-spacing="1">PROCESSO</text>
+        <line x1="106" y1="4" x2="116" y2="4" stroke="#00FFCC" stroke-width="1.5"/>
+        <text x="122" y="7" font-family="'Space Mono'" font-size="6.5" fill="rgba(240,237,220,.25)" letter-spacing="1">UTILIDADES</text>
+        <line x1="234" y1="4" x2="244" y2="4" stroke="#FF5500" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <text x="250" y="7" font-family="'Space Mono'" font-size="6.5" fill="rgba(240,237,220,.25)" letter-spacing="1">RECICLO</text>
+      </g>
+    </svg>
   </div>
 </section>
+
 
 <!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-inner" id="ticker-inner">
-    <!-- JS will duplicate content -->
-  </div>
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker"></div>
 </div>
 
-<!-- ════════════════════════════════
-     MODULES
-════════════════════════════════ -->
-<section id="modules" class="section">
-  <div class="section-header">
-    <span class="section-number">01</span>
-    <h2 class="section-title">11 Módulos<br>Independentes</h2>
-    <p class="section-desc">Cada módulo implementa a interface BaseModule e pode ser executado isoladamente ou integrado à suíte completa.</p>
+
+<!-- ═══ MODULES ═════════════════════════════════════ -->
+<section id="modules" class="s">
+  <div class="s-head">
+    <span class="s-num">01</span>
+    <h2 class="s-title">11 Módulos<br>Independentes</h2>
+    <div class="s-aside">
+      <span class="s-tag">Arquitetura Plugin</span>
+      <p>Cada módulo implementa BaseModule e pode ser executado isoladamente ou integrado à suíte. Lazy-loading garante startup rápido.</p>
+    </div>
   </div>
 
-  <div class="modules-grid">
+  <div class="mod-grid">
 
-    <div class="module-card mc-1 reveal">
-      <div class="card-num">01</div>
-      <div class="card-icon-wrap">⚗️</div>
-      <h3 class="card-title">FLOWSHEET</h3>
-      <p class="card-desc">Diagrama de fluxo de processo (PFD) com balanço de massa automático via algoritmo de Kahn. Suporte a 50+ equipamentos industriais e ~300 componentes químicos.</p>
-      <div class="card-tags">
-        <span class="tag">PFD</span>
-        <span class="tag">Balanço de Massa</span>
-        <span class="tag">Kahn's Algorithm</span>
-        <span class="tag">QGraphicsScene</span>
-      </div>
+    <div class="mod mc-1 rv">
+      <div class="mc-n">01</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h14v2H3V7zm0 4h18v2H3v-2zm0 4h14v2H3v-2zm0 4h18v2H3v-2z"/></svg></div>
+      <h3 class="mc-t">FLOWSHEET</h3>
+      <p class="mc-d">Diagrama de fluxo de processo (PFD) com balanço de massa automático via algoritmo de Kahn. Suporte a 50+ equipamentos industriais, ~300 componentes químicos e 12 portas de conexão por nó.</p>
+      <div class="mc-tags"><span class="mc-tag">PFD</span><span class="mc-tag">Balanço de Massa</span><span class="mc-tag">Kahn's Alg.</span><span class="mc-tag">QGraphicsScene</span></div>
     </div>
 
-    <div class="module-card mc-2 reveal" style="transition-delay:0.05s">
-      <div class="card-num">02</div>
-      <div class="card-icon-wrap">🔄</div>
-      <h3 class="card-title">BPMN 2.0</h3>
-      <p class="card-desc">Modelador de processos de negócios com swimlanes, eventos, tarefas, gateways e artefatos conforme especificação OMG BPMN 2.0.</p>
-      <div class="card-tags">
-        <span class="tag">OMG BPMN</span>
-        <span class="tag">Swimlanes</span>
-        <span class="tag">Gateways</span>
-        <span class="tag">Auto-layout</span>
-      </div>
+    <div class="mod mc-2 rv" style="transition-delay:.05s">
+      <div class="mc-n">02</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg></div>
+      <h3 class="mc-t">BPMN 2.0</h3>
+      <p class="mc-d">Modelador de processos conforme especificação OMG BPMN 2.0. Swimlanes, eventos, gateways exclusivos, paralelos e inclusivos, tarefas de usuário, serviço e subprocessos com auto-layout.</p>
+      <div class="mc-tags"><span class="mc-tag">OMG BPMN 2.0</span><span class="mc-tag">Swimlanes</span><span class="mc-tag">Gateways</span><span class="mc-tag">Auto-layout</span></div>
     </div>
 
-    <div class="module-card mc-3 reveal" style="transition-delay:0.1s">
-      <div class="card-num">03</div>
-      <div class="card-icon-wrap">🗂️</div>
-      <h3 class="card-title">EAP / WBS</h3>
-      <p class="card-desc">Estrutura Analítica do Projeto com geração automática de código WBS recursivo (1 → 1.1 → 1.1.1). Hierarquia visual até 10 níveis.</p>
-      <div class="card-tags">
-        <span class="tag">WBS</span>
-        <span class="tag">PMBOK</span>
-        <span class="tag">Hierarquico</span>
-        <span class="tag">Auto-WBS</span>
-      </div>
+    <div class="mod mc-3 rv" style="transition-delay:.1s">
+      <div class="mc-n">03</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M3 3h18v4H3V3zm0 7h12v4H3v-4zm0 7h7v4H3v-4zm14-7h4v11h-4V13z"/></svg></div>
+      <h3 class="mc-t">EAP / WBS</h3>
+      <p class="mc-d">Estrutura Analítica do Projeto com código WBS gerado automaticamente de forma recursiva (1.0 &rarr; 1.1 &rarr; 1.1.1). Hierarquia visual interativa até 10 níveis com navegação completa por teclado.</p>
+      <div class="mc-tags"><span class="mc-tag">WBS</span><span class="mc-tag">PMBOK</span><span class="mc-tag">Hierárquico</span><span class="mc-tag">Auto-WBS</span></div>
     </div>
 
-    <div class="module-card mc-4 reveal" style="transition-delay:0.15s">
-      <div class="card-num">04</div>
-      <div class="card-icon-wrap">🗺️</div>
-      <h3 class="card-title">PM CANVAS</h3>
-      <p class="card-desc">Project Model Canvas com 15 blocos: justificativas, objetivos SMART, benefícios, stakeholders, entregas, restrições, riscos e linha do tempo.</p>
-      <div class="card-tags">
-        <span class="tag">PM Canvas</span>
-        <span class="tag">15 Blocos</span>
-        <span class="tag">SMART</span>
-      </div>
+    <div class="mod mc-4 rv" style="transition-delay:.15s">
+      <div class="mc-n">04</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div>
+      <h3 class="mc-t">PM CANVAS</h3>
+      <p class="mc-d">Project Model Canvas visual com 15 blocos: justificativas, objetivos SMART, benefícios, produto, requisitos, stakeholders, equipe, premissas, entregas, restrições, riscos, linha do tempo e custos.</p>
+      <div class="mc-tags"><span class="mc-tag">PM Canvas</span><span class="mc-tag">15 Blocos</span><span class="mc-tag">SMART</span></div>
     </div>
 
-    <div class="module-card mc-5 reveal" style="transition-delay:0.2s">
-      <div class="card-num">05</div>
-      <div class="card-icon-wrap">🐟</div>
-      <h3 class="card-title">ISHIKAWA</h3>
-      <p class="card-desc">Diagrama de espinha de peixe (Causa-Efeito) com as 6 categorias 6M: Método, Máquina, Material, Mão de Obra, Meio Ambiente e Medição.</p>
-      <div class="card-tags">
-        <span class="tag">6M</span>
-        <span class="tag">Causa-Efeito</span>
-        <span class="tag">Qualidade</span>
-      </div>
+    <div class="mod mc-5 rv" style="transition-delay:.2s">
+      <div class="mc-n">05</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <h3 class="mc-t">ISHIKAWA</h3>
+      <p class="mc-d">Diagrama de espinha de peixe (Causa-Efeito) com as 6 categorias 6M: Método, Máquina, Material, Mão de Obra, Meio Ambiente e Medição. Causas e subcausas interativas com zoom e pan ilimitados.</p>
+      <div class="mc-tags"><span class="mc-tag">6M</span><span class="mc-tag">Causa-Efeito</span><span class="mc-tag">Qualidade</span><span class="mc-tag">Kaoru Ishikawa</span></div>
     </div>
 
-    <div class="module-card mc-6 reveal" style="transition-delay:0.25s">
-      <div class="card-num">06</div>
-      <div class="card-icon-wrap">📋</div>
-      <h3 class="card-title">5W2H</h3>
-      <p class="card-desc">Plano de ação estruturado com nós hierárquicos: ROOT → WHAT → WHY / WHO / WHERE / WHEN / HOW / COST. Visualização em árvore interativa.</p>
-      <div class="card-tags">
-        <span class="tag">5W2H</span>
-        <span class="tag">Plano de Ação</span>
-        <span class="tag">Árvore</span>
-      </div>
+    <div class="mod mc-6 rv" style="transition-delay:.25s">
+      <div class="mc-n">06</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/></svg></div>
+      <h3 class="mc-t">5W2H</h3>
+      <p class="mc-d">Plano de ação estruturado em árvore hierárquica: ROOT &rarr; WHAT &rarr; WHY / WHO / WHERE / WHEN / HOW / COST. Cada nó possui cor temática distinta, edição inline e exportação para PDF.</p>
+      <div class="mc-tags"><span class="mc-tag">5W2H</span><span class="mc-tag">Plano de Ação</span><span class="mc-tag">Árvore</span></div>
     </div>
 
-    <div class="module-card mc-7 reveal" style="transition-delay:0.3s">
-      <div class="card-num">07</div>
-      <div class="card-icon-wrap">📊</div>
-      <h3 class="card-title">GANTT / CPM</h3>
-      <p class="card-desc">Cronograma de Gantt com cálculo de Caminho Crítico (CPM). Suporte a predecessores, marcos, percentual de progresso e visualização de folgas.</p>
-      <div class="card-tags">
-        <span class="tag">CPM</span>
-        <span class="tag">Caminho Crítico</span>
-        <span class="tag">Predecessores</span>
-        <span class="tag">Marcos</span>
-      </div>
+    <div class="mod mc-7 rv" style="transition-delay:.3s">
+      <div class="mc-n">07</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h12v2H3V7zm0 4h18v2H3v-2zm0 4h12v2H3v-2zm0 4h18v2H3v-2z"/></svg></div>
+      <h3 class="mc-t">GANTT / CPM</h3>
+      <p class="mc-d">Cronograma de Gantt com cálculo do Caminho Crítico (CPM). Suporte a predecessores, marcos de projeto e percentual de progresso. Caminho crítico destacado visualmente após cálculo automático.</p>
+      <div class="mc-tags"><span class="mc-tag">CPM</span><span class="mc-tag">Caminho Crítico</span><span class="mc-tag">Predecessores</span><span class="mc-tag">Marcos</span></div>
     </div>
 
-    <div class="module-card mc-8 reveal" style="transition-delay:0.35s">
-      <div class="card-num">08</div>
-      <div class="card-icon-wrap">🃏</div>
-      <h3 class="card-title">KANBAN</h3>
-      <p class="card-desc">Quadro Kanban com 4 colunas (A Fazer, Em Andamento, Feito, Cancelado), drag-and-drop de cards e controle de prioridade.</p>
-      <div class="card-tags">
-        <span class="tag">Kanban</span>
-        <span class="tag">Drag-and-Drop</span>
-        <span class="tag">Prioridade</span>
-      </div>
+    <div class="mod mc-8 rv" style="transition-delay:.35s">
+      <div class="mc-n">08</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M4 4h4v16H4V4zm6 0h4v10h-4V4zm6 0h4v13h-4V4z"/></svg></div>
+      <h3 class="mc-t">KANBAN</h3>
+      <p class="mc-d">Quadro Kanban com 4 colunas (A Fazer, Em Andamento, Feito, Cancelado). Drag-and-drop nativo de cards com controle de prioridade alta, média e baixa, e campos de descrição detalhada.</p>
+      <div class="mc-tags"><span class="mc-tag">Kanban</span><span class="mc-tag">Drag-and-Drop</span><span class="mc-tag">Prioridade</span><span class="mc-tag">D. J. Anderson</span></div>
     </div>
 
-    <div class="module-card mc-9 reveal" style="transition-delay:0.4s">
-      <div class="card-num">09</div>
-      <div class="card-icon-wrap">🏃</div>
-      <h3 class="card-title">SCRUM</h3>
-      <p class="card-desc">Sprint Board com Backlog, story points (Fibonacci), colunas TODO→IN PROGRESS→REVIEW→DONE, planejamento e fechamento de sprint.</p>
-      <div class="card-tags">
-        <span class="tag">Scrum</span>
-        <span class="tag">Story Points</span>
-        <span class="tag">Backlog</span>
-        <span class="tag">Sprint</span>
-      </div>
+    <div class="mod mc-9 rv" style="transition-delay:.4s">
+      <div class="mc-n">09</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zm-9 9h7v7H4v-7zm9 2h2v2h2v2h-2v2h-2v-2h-2v-2h2v-2z"/></svg></div>
+      <h3 class="mc-t">SCRUM</h3>
+      <p class="mc-d">Sprint Board com Backlog, story points em escala Fibonacci, colunas TODO &rarr; IN PROGRESS &rarr; REVIEW &rarr; DONE, planejamento de sprint e fechamento com métricas de entrega automáticas.</p>
+      <div class="mc-tags"><span class="mc-tag">Scrum</span><span class="mc-tag">Story Points</span><span class="mc-tag">Backlog</span><span class="mc-tag">Sprint</span></div>
     </div>
 
-    <div class="module-card mc-10 reveal" style="transition-delay:0.45s">
-      <div class="card-num">10</div>
-      <div class="card-icon-wrap">🔁</div>
-      <h3 class="card-title">PDCA</h3>
-      <p class="card-desc">Ciclo de melhoria contínua de Deming em layout circular com 4 quadrantes (Plan → Do → Check → Act), cards interativos por fase.</p>
-      <div class="card-tags">
-        <span class="tag">Deming</span>
-        <span class="tag">Melhoria Contínua</span>
-        <span class="tag">Circular</span>
-      </div>
+    <div class="mod mc-10 rv" style="transition-delay:.45s">
+      <div class="mc-n">10</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 18a8 8 0 110-16 8 8 0 010 16zM11 7h2v5l4.28 2.54-.72 1.21L11 13V7z"/></svg></div>
+      <h3 class="mc-t">PDCA</h3>
+      <p class="mc-d">Ciclo de melhoria contínua de Deming em layout circular com 4 quadrantes coloridos: Plan &rarr; Do &rarr; Check &rarr; Act. Cards interativos por fase com adaptação automática ao tema ativo.</p>
+      <div class="mc-tags"><span class="mc-tag">Deming</span><span class="mc-tag">Melhoria Contínua</span><span class="mc-tag">Circular</span></div>
     </div>
 
-    <div class="module-card mc-11 reveal" style="transition-delay:0.5s">
-      <div class="card-num">11</div>
-      <div class="card-icon-wrap">💻</div>
-      <h3 class="card-title">SCRIPT ENGINE</h3>
-      <p class="card-desc">Interpretador Python embutido para automação de tarefas, cálculos personalizados e extensão da suíte com scripts do usuário.</p>
-      <div class="card-tags">
-        <span class="tag">Python</span>
-        <span class="tag">Automação</span>
-        <span class="tag">Scripts</span>
-      </div>
+    <div class="mod mc-11 rv" style="transition-delay:.5s">
+      <div class="mc-n">11</div>
+      <div class="mc-ico"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
+      <h3 class="mc-t">SCRIPT ENGINE</h3>
+      <p class="mc-d">Interpretador Python embutido para automação de tarefas e cálculos de engenharia personalizados. Acesso direto às APIs internas de todos os módulos sem modificar o core da aplicação.</p>
+      <div class="mc-tags"><span class="mc-tag">Python 3</span><span class="mc-tag">Automação</span><span class="mc-tag">API Interna</span></div>
     </div>
 
-    <!-- empty cell for visual balance -->
-    <div class="module-card" style="background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.02) 8px, rgba(0,0,0,0.02) 9px);">
-      <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:0.2;">
-        <span style="font-family:var(--ff-display);font-size:3rem;letter-spacing:4px;">+∞</span>
-      </div>
-    </div>
+    <div class="mod mod-ghost"><span>EXTENSIVEL</span></div>
 
   </div>
 </section>
 
-<!-- ════════════════════════════════
-     PHILOSOPHY
-════════════════════════════════ -->
-<section id="philosophy" class="section">
-  <div class="section-header">
-    <span class="section-number">02</span>
-    <h2 class="section-title">Filosofia<br>de Design</h2>
-    <p class="section-desc">Engenharia Industrial Criativa — onde o design auxilia na clareza do pensamento e na detecção de falhas.</p>
+
+<!-- ═══ PHILOSOPHY ══════════════════════════════════ -->
+<section id="philosophy" class="s dk">
+  <div class="s-head">
+    <span class="s-num">02</span>
+    <h2 class="s-title">Filosofia<br>de Projeto</h2>
+    <div class="s-aside">
+      <span class="s-tag">Design Industrial Criativo</span>
+      <p>Design que auxilia na clareza do pensamento e na detecção de falhas — não apenas na estética da interface.</p>
+    </div>
   </div>
 
-  <div class="philosophy-grid">
-    <div class="philosophy-card reveal">
-      <div class="phil-num">// 01</div>
-      <div class="phil-accent" style="background:var(--acid)"></div>
-      <h3 class="phil-title">Neo-Brutalismo Industrial</h3>
-      <p class="phil-text">Bordas sólidas de 4px, sombras hard offset de 8×8px, tipografia pesada uppercase. Um estilo que prioriza legibilidade e hierarquia visual, ideal para engenheiros que preferem interfaces diretas sem distrações decorativas.</p>
-    </div>
-    <div class="philosophy-card reveal" style="transition-delay:0.1s">
-      <div class="phil-num">// 02</div>
-      <div class="phil-accent" style="background:var(--cyan)"></div>
-      <h3 class="phil-title">Arquitetura Modular</h3>
-      <p class="phil-text">Plugin architecture onde o core gerencia apenas navegação e estado global. Cada um dos 11 módulos é independente — pode ser executado isoladamente ou integrado à suíte. Lazy-loading para performance máxima.</p>
-    </div>
-    <div class="philosophy-card reveal" style="transition-delay:0.2s">
-      <div class="phil-num">// 03</div>
-      <div class="phil-accent" style="background:var(--orange)"></div>
-      <h3 class="phil-title">Software Livre</h3>
-      <p class="phil-text">Distribuído sob GPLv3. Diferente de licenças permissivas, a GPLv3 garante que o ProEng permaneça livre para sempre — liberdade de usar, estudar, modificar e distribuir, mantendo essas liberdades para outros.</p>
-    </div>
-    <div class="philosophy-card reveal" style="transition-delay:0.05s">
-      <div class="phil-num">// 04</div>
-      <div class="phil-accent" style="background:var(--red)"></div>
-      <h3 class="phil-title">Persistência Total</h3>
-      <p class="phil-text">Estado completo de todos os módulos serializado em JSON no formato .proeng. Salvar, carregar, versionar. Cada diagrama, cada corrente, cada card — tudo preservado com fidelidade absoluta.</p>
-    </div>
-    <div class="philosophy-card reveal" style="transition-delay:0.15s">
-      <div class="phil-num">// 05</div>
-      <div class="phil-accent" style="background:var(--acid)"></div>
-      <h3 class="phil-title">14 Temas Dinâmicos</h3>
-      <p class="phil-text">Troca de tema em tempo real em todos os módulos, diagramas, toolbars e diálogos simultaneamente. Do Neo-Brutal ao Dracula — paridade funcional completa em todos os 14 esquemas visuais.</p>
-    </div>
-    <div class="philosophy-card reveal" style="transition-delay:0.25s">
-      <div class="phil-num">// 06</div>
-      <div class="phil-accent" style="background:var(--cyan)"></div>
-      <h3 class="phil-title">Export de Alta Resolução</h3>
-      <p class="phil-text">Exportação em PNG com 3× supersampling para qualidade de publicação e PDF A3 landscape para relatórios técnicos profissionais. Cada diagrama, pronto para apresentação.</p>
-    </div>
+  <div class="phil-grid">
+    <div class="phil rv"><div class="ph-idx">// 01</div><div class="ph-bar" style="background:var(--acid)"></div><h3 class="ph-t">Neo-Brutalismo Industrial</h3><p class="ph-p">Bordas sólidas 4px, sombras hard offset 8&times;8px, tipografia pesada uppercase. Um vocabulário visual que prioriza hierarquia e legibilidade — ideal para ambientes onde clareza é segurança operacional.</p></div>
+    <div class="phil rv" style="transition-delay:.08s"><div class="ph-idx">// 02</div><div class="ph-bar" style="background:var(--cyan)"></div><h3 class="ph-t">Arquitetura Modular</h3><p class="ph-p">Plugin architecture: o core gerencia apenas navegação e estado global. Cada módulo é completamente independente — pode rodar isolado com <code>python -m proeng.modules.X</code> ou em conjunto via suíte completa.</p></div>
+    <div class="phil rv" style="transition-delay:.16s"><div class="ph-idx">// 03</div><div class="ph-bar" style="background:var(--orange)"></div><h3 class="ph-t">Software Livre GPLv3</h3><p class="ph-p">Distribuído sob GNU GPLv3. A copyleft forte garante que o ProEng permaneça livre para sempre — liberdade de usar, estudar, modificar e redistribuir com as mesmas liberdades preservadas.</p></div>
+    <div class="phil rv" style="transition-delay:.04s"><div class="ph-idx">// 04</div><div class="ph-bar" style="background:var(--red)"></div><h3 class="ph-t">Persistência Total</h3><p class="ph-p">Estado completo de todos os módulos serializado em JSON no formato <code>.proeng</code>. Cada diagrama, corrente e card preservados com fidelidade absoluta via <code>get_state()</code> / <code>set_state()</code>.</p></div>
+    <div class="phil rv" style="transition-delay:.12s"><div class="ph-idx">// 05</div><div class="ph-bar" style="background:var(--acid)"></div><h3 class="ph-t">14 Temas Dinâmicos</h3><p class="ph-p">Troca de tema em tempo real via <code>refresh_theme_recursive()</code> — propaga instantaneamente para todos os módulos, diagramas, toolbars e diálogos. Design neo-brutalista consistente em todos os 14 esquemas.</p></div>
+    <div class="phil rv" style="transition-delay:.2s"><div class="ph-idx">// 06</div><div class="ph-bar" style="background:var(--cyan)"></div><h3 class="ph-t">Export Profissional</h3><p class="ph-p">PNG com 3&times; supersampling para qualidade de publicação científica. PDF A3 landscape para relatórios técnicos formais. Exportação individual via <code>_export_view(view, fmt)</code> em qualquer módulo.</p></div>
   </div>
 </section>
 
-<!-- ════════════════════════════════
-     THEMES
-════════════════════════════════ -->
-<section id="themes" class="section">
-  <div class="section-header">
-    <span class="section-number">03</span>
-    <h2 class="section-title">14 Temas<br>Visuais</h2>
-    <p class="section-desc">Troca em tempo real via dropdown na barra de navegação. Design neo-brutalista consistente em todos.</p>
+
+<!-- ═══ THEMES ═══════════════════════════════════════ -->
+<section id="themes" class="s">
+  <div class="s-head">
+    <span class="s-num">03</span>
+    <h2 class="s-title">14 Temas<br>Visuais</h2>
+    <div class="s-aside">
+      <span class="s-tag">Multi-Theme System</span>
+      <p>Troca instantânea via dropdown. Mesmo vocabulário neo-brutalista em todos os 14 esquemas &mdash; bordas, sombras e tipografia são invariantes.</p>
+    </div>
   </div>
 
-  <div class="themes-row">
-    <div class="theme-chip th-1">
-      <span class="theme-chip-label">NEO-BRUTAL</span>
-      <span class="theme-chip-sub">Amarelo vivo · fundo claro</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#F4F1E8"></div>
-        <div class="swatch" style="background:#F5C800"></div>
-        <div class="swatch" style="background:#0A0A0A"></div>
-        <div class="swatch" style="background:#FF5C00"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-2">
-      <span class="theme-chip-label">MIDNIGHT</span>
-      <span class="theme-chip-sub">Azul profundo · ciano elétrico</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#050816"></div>
-        <div class="swatch" style="background:#2563EB"></div>
-        <div class="swatch" style="background:#38BDF8"></div>
-        <div class="swatch" style="background:#E5E7EB"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-3">
-      <span class="theme-chip-label">EMBERS</span>
-      <span class="theme-chip-sub">Carvão · laranja brasa</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#1A1009"></div>
-        <div class="swatch" style="background:#B45309"></div>
-        <div class="swatch" style="background:#F97316"></div>
-        <div class="swatch" style="background:#E5D5C5"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-4">
-      <span class="theme-chip-label">FOREST</span>
-      <span class="theme-chip-sub">Verde orgânico · escuro</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#0D1A0D"></div>
-        <div class="swatch" style="background:#16A34A"></div>
-        <div class="swatch" style="background:#4ADE80"></div>
-        <div class="swatch" style="background:#D4F0C8"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-5">
-      <span class="theme-chip-label">SYNTHWAVE</span>
-      <span class="theme-chip-sub">Neon roxo · magenta 80s</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#120720"></div>
-        <div class="swatch" style="background:#7C3AED"></div>
-        <div class="swatch" style="background:#EC4899"></div>
-        <div class="swatch" style="background:#F0D0FF"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-6">
-      <span class="theme-chip-label">ARCTIC</span>
-      <span class="theme-chip-sub">Branco gelo · azul glacial</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#E8F4F8"></div>
-        <div class="swatch" style="background:#0EA5E9"></div>
-        <div class="swatch" style="background:#BAE6FD"></div>
-        <div class="swatch" style="background:#0A2030"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-7">
-      <span class="theme-chip-label">SOLAR</span>
-      <span class="theme-chip-sub">Ouro · marrom terra</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#1A1400"></div>
-        <div class="swatch" style="background:#CA8A04"></div>
-        <div class="swatch" style="background:#FDE68A"></div>
-        <div class="swatch" style="background:#FFF3C0"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-8">
-      <span class="theme-chip-label">CRIMSON</span>
-      <span class="theme-chip-sub">Vinho profundo · escarlate</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#1A0008"></div>
-        <div class="swatch" style="background:#9F1239"></div>
-        <div class="swatch" style="background:#F43F5E"></div>
-        <div class="swatch" style="background:#FFD0D8"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-9">
-      <span class="theme-chip-label">OCEAN</span>
-      <span class="theme-chip-sub">Navy · espuma branca</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#000A1A"></div>
-        <div class="swatch" style="background:#1D4ED8"></div>
-        <div class="swatch" style="background:#93C5FD"></div>
-        <div class="swatch" style="background:#C8E0FF"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-10">
-      <span class="theme-chip-label">VOLCANO</span>
-      <span class="theme-chip-sub">Basalto preto · lava amarela</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#0A0400"></div>
-        <div class="swatch" style="background:#B45309"></div>
-        <div class="swatch" style="background:#FCD34D"></div>
-        <div class="swatch" style="background:#FFE8B0"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-11">
-      <span class="theme-chip-label">MINT</span>
-      <span class="theme-chip-sub">Verde menta suave · creme</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#F0FFF4"></div>
-        <div class="swatch" style="background:#10B981"></div>
-        <div class="swatch" style="background:#6EE7B7"></div>
-        <div class="swatch" style="background:#003320"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-12">
-      <span class="theme-chip-label">ONYX</span>
-      <span class="theme-chip-sub">Preto absoluto · branco</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#000000"></div>
-        <div class="swatch" style="background:#444444"></div>
-        <div class="swatch" style="background:#AAAAAA"></div>
-        <div class="swatch" style="background:#FFFFFF"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-13">
-      <span class="theme-chip-label">LILAC</span>
-      <span class="theme-chip-sub">Lavanda · tom delicado</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#1A0A2E"></div>
-        <div class="swatch" style="background:#8B5CF6"></div>
-        <div class="swatch" style="background:#C4B5FD"></div>
-        <div class="swatch" style="background:#E8D8FF"></div>
-      </div>
-    </div>
-    <div class="theme-chip th-14">
-      <span class="theme-chip-label">DRACULA</span>
-      <span class="theme-chip-sub">100% spec compliant</span>
-      <div class="theme-swatches">
-        <div class="swatch" style="background:#282A36"></div>
-        <div class="swatch" style="background:#BD93F9"></div>
-        <div class="swatch" style="background:#FF79C6"></div>
-        <div class="swatch" style="background:#F8F8F2"></div>
-      </div>
-    </div>
+  <div class="theme-strip">
+    <div class="th-tile t1"><span class="th-name">NEO-BRUTAL</span><span class="th-sub">Amarelo vivo &middot; creme</span><div class="th-sw"><div class="sw" style="background:#F4F1E8;border-color:rgba(0,0,0,.2)"></div><div class="sw" style="background:#F5C800"></div><div class="sw" style="background:#0A0A0A"></div><div class="sw" style="background:#FF5C00"></div></div></div>
+    <div class="th-tile t2"><span class="th-name">MIDNIGHT</span><span class="th-sub">Azul profundo &middot; ciano</span><div class="th-sw"><div class="sw" style="background:#050816"></div><div class="sw" style="background:#2563EB"></div><div class="sw" style="background:#38BDF8"></div><div class="sw" style="background:#E5E7EB"></div></div></div>
+    <div class="th-tile t3"><span class="th-name">EMBERS</span><span class="th-sub">Carvão &middot; laranja brasa</span><div class="th-sw"><div class="sw" style="background:#1A1009"></div><div class="sw" style="background:#B45309"></div><div class="sw" style="background:#F97316"></div><div class="sw" style="background:#E5D5C5"></div></div></div>
+    <div class="th-tile t4"><span class="th-name">FOREST</span><span class="th-sub">Verde orgânico &middot; escuro</span><div class="th-sw"><div class="sw" style="background:#0D1A0D"></div><div class="sw" style="background:#16A34A"></div><div class="sw" style="background:#4ADE80"></div><div class="sw" style="background:#D4F0C8"></div></div></div>
+    <div class="th-tile t5"><span class="th-name">SYNTHWAVE</span><span class="th-sub">Roxo neon &middot; magenta</span><div class="th-sw"><div class="sw" style="background:#120720"></div><div class="sw" style="background:#7C3AED"></div><div class="sw" style="background:#EC4899"></div><div class="sw" style="background:#F0D0FF"></div></div></div>
+    <div class="th-tile t6"><span class="th-name">ARCTIC</span><span class="th-sub">Branco gelo &middot; glacial</span><div class="th-sw"><div class="sw" style="background:#E8F4F8;border-color:rgba(0,0,0,.12)"></div><div class="sw" style="background:#0EA5E9"></div><div class="sw" style="background:#BAE6FD"></div><div class="sw" style="background:#0A2030"></div></div></div>
+    <div class="th-tile t7"><span class="th-name">SOLAR</span><span class="th-sub">Ouro &middot; marrom terra</span><div class="th-sw"><div class="sw" style="background:#1A1400"></div><div class="sw" style="background:#CA8A04"></div><div class="sw" style="background:#FDE68A"></div><div class="sw" style="background:#FFF3C0"></div></div></div>
+    <div class="th-tile t8"><span class="th-name">CRIMSON</span><span class="th-sub">Vinho &middot; escarlate</span><div class="th-sw"><div class="sw" style="background:#1A0008"></div><div class="sw" style="background:#9F1239"></div><div class="sw" style="background:#F43F5E"></div><div class="sw" style="background:#FFD0D8"></div></div></div>
+    <div class="th-tile t9"><span class="th-name">OCEAN</span><span class="th-sub">Navy &middot; espuma branca</span><div class="th-sw"><div class="sw" style="background:#000A1A"></div><div class="sw" style="background:#1D4ED8"></div><div class="sw" style="background:#93C5FD"></div><div class="sw" style="background:#C8E0FF"></div></div></div>
+    <div class="th-tile t10"><span class="th-name">VOLCANO</span><span class="th-sub">Basalto &middot; lava amarela</span><div class="th-sw"><div class="sw" style="background:#0A0400"></div><div class="sw" style="background:#B45309"></div><div class="sw" style="background:#FCD34D"></div><div class="sw" style="background:#FFE8B0"></div></div></div>
+    <div class="th-tile t11"><span class="th-name">MINT</span><span class="th-sub">Menta suave &middot; creme</span><div class="th-sw"><div class="sw" style="background:#F0FFF4;border-color:rgba(0,0,0,.1)"></div><div class="sw" style="background:#10B981"></div><div class="sw" style="background:#6EE7B7"></div><div class="sw" style="background:#003320"></div></div></div>
+    <div class="th-tile t12"><span class="th-name">ONYX</span><span class="th-sub">Preto absoluto &middot; branco</span><div class="th-sw"><div class="sw" style="background:#000000"></div><div class="sw" style="background:#444444"></div><div class="sw" style="background:#AAAAAA"></div><div class="sw" style="background:#FFFFFF"></div></div></div>
+    <div class="th-tile t13"><span class="th-name">LILAC</span><span class="th-sub">Lavanda &middot; delicado</span><div class="th-sw"><div class="sw" style="background:#1A0A2E"></div><div class="sw" style="background:#8B5CF6"></div><div class="sw" style="background:#C4B5FD"></div><div class="sw" style="background:#E8D8FF"></div></div></div>
+    <div class="th-tile t14"><span class="th-name">DRACULA</span><span class="th-sub">100% spec compliant</span><div class="th-sw"><div class="sw" style="background:#282A36"></div><div class="sw" style="background:#BD93F9"></div><div class="sw" style="background:#FF79C6"></div><div class="sw" style="background:#F8F8F2"></div></div></div>
   </div>
 </section>
 
-<!-- ════════════════════════════════
-     ARCHITECTURE
-════════════════════════════════ -->
-<section id="architecture" class="section">
-  <div class="section-header">
-    <span class="section-number">04</span>
-    <h2 class="section-title">Arquitetura<br>do Sistema</h2>
-    <p class="section-desc">Plugin architecture com lazy-loading. O core gerencia estado global; módulos são completamente independentes.</p>
+
+<!-- ═══ ARCHITECTURE ════════════════════════════════ -->
+<section id="architecture" class="s">
+  <div class="s-head">
+    <span class="s-num">04</span>
+    <h2 class="s-title">Arquitetura<br>do Sistema</h2>
+    <div class="s-aside">
+      <span class="s-tag">Plugin Architecture</span>
+      <p>Core gerencia navegação e estado global. Módulos são independentes &mdash; lazy-loaded, intercambiáveis e extensíveis sem tocar o núcleo.</p>
+    </div>
   </div>
 
-  <div class="arch-layout">
-    <div class="arch-tree reveal">
-      <div class="tree-title">// ESTRUTURA DE ARQUIVOS</div>
-<pre><span class="t-root">main.py</span>
-└── <span class="t-root">proeng/</span>
-    ├── <span class="t-core">core/</span>
-    │   ├── <span class="t-core">themes.py</span>       <span class="t-comment">← 14 temas + T() singleton</span>
-    │   ├── <span class="t-core">project.py</span>      <span class="t-comment">← Persistência JSON .proeng</span>
-    │   ├── <span class="t-core">toolbar.py</span>      <span class="t-comment">← Toolbar unificada</span>
-    │   ├── <span class="t-core">base_module.py</span>  <span class="t-comment">← Interface abstrata</span>
-    │   └── <span class="t-core">utils.py</span>        <span class="t-comment">← Export PNG/PDF</span>
+  <div class="arch-wrap">
+    <div class="arch-tree rv">
+      <div class="arch-h">Estrutura de Arquivos</div>
+<pre>
+<span class="cr">main.py</span>
+└── <span class="cr">proeng/</span>
+    ├── <span class="cc">core/</span>
+    │   ├── <span class="cc">themes.py</span>        <span class="cn">← 14 temas + T() singleton + cycle_theme()</span>
+    │   ├── <span class="cc">project.py</span>       <span class="cn">← Persistência JSON .proeng</span>
+    │   ├── <span class="cc">toolbar.py</span>       <span class="cn">← Toolbar unificada para todos os módulos</span>
+    │   ├── <span class="cc">base_module.py</span>   <span class="cn">← Interface abstrata (get_state, set_state...)</span>
+    │   └── <span class="cc">utils.py</span>         <span class="cn">← Export PNG/PDF e constantes</span>
     │
-    ├── <span class="t-module">modules/</span>        <span class="t-comment">← 11 módulos independentes</span>
-    │   ├── <span class="t-module">flowsheet.py</span>    <span class="t-comment">← PFD + Balanço de Massa</span>
-    │   ├── <span class="t-module">bpmn.py</span>         <span class="t-comment">← BPMN 2.0 com swimlanes</span>
-    │   ├── <span class="t-module">eap.py</span>          <span class="t-comment">← WBS hierárquico</span>
-    │   ├── <span class="t-module">canvas.py</span>       <span class="t-comment">← PM Canvas 15 blocos</span>
-    │   ├── <span class="t-module">ishikawa.py</span>     <span class="t-comment">← Espinha de peixe 6M</span>
-    │   ├── <span class="t-module">w5h2.py</span>         <span class="t-comment">← Plano de ação 5W2H</span>
-    │   ├── <span class="t-module">gantt.py</span>        <span class="t-comment">← Cronograma + CPM</span>
-    │   ├── <span class="t-module">kanban.py</span>       <span class="t-comment">← Quadro drag-and-drop</span>
-    │   ├── <span class="t-module">scrum.py</span>        <span class="t-comment">← Sprint Board + Backlog</span>
-    │   ├── <span class="t-module">pdca.py</span>         <span class="t-comment">← Ciclo PDCA circular</span>
-    │   └── <span class="t-module">script_module.py</span> <span class="t-comment">← Python interpreter</span>
+    ├── <span class="cm">modules/</span>             <span class="cn">← 11 módulos independentes</span>
+    │   ├── <span class="cm">flowsheet.py</span>     <span class="cn">← PFD + Balanço de Massa (Kahn)</span>
+    │   ├── <span class="cm">bpmn.py</span>          <span class="cn">← BPMN 2.0 com swimlanes</span>
+    │   ├── <span class="cm">eap.py</span>           <span class="cn">← WBS hierárquico auto-numerado</span>
+    │   ├── <span class="cm">canvas.py</span>        <span class="cn">← PM Canvas 15 blocos</span>
+    │   ├── <span class="cm">ishikawa.py</span>      <span class="cn">← Espinha de peixe 6M</span>
+    │   ├── <span class="cm">w5h2.py</span>          <span class="cn">← Plano de ação 5W2H em árvore</span>
+    │   ├── <span class="cm">gantt.py</span>         <span class="cn">← Cronograma + CPM</span>
+    │   ├── <span class="cm">kanban.py</span>        <span class="cn">← Quadro drag-and-drop</span>
+    │   ├── <span class="cm">scrum.py</span>         <span class="cn">← Sprint Board + Backlog</span>
+    │   ├── <span class="cm">pdca.py</span>          <span class="cn">← Ciclo PDCA circular</span>
+    │   └── <span class="cm">script_module.py</span> <span class="cn">← Python interpreter embutido</span>
     │
-    └── <span class="t-ui">ui/</span>
-        ├── <span class="t-ui">main_app.py</span>     <span class="t-comment">← Orquestração + lazy-load</span>
-        ├── <span class="t-ui">nav_bar.py</span>      <span class="t-comment">← Barra + seletor temas</span>
-        └── <span class="t-ui">welcome.py</span>      <span class="t-comment">← Tela inicial + grid</span></pre>
+    └── <span class="cu">ui/</span>
+        ├── <span class="cu">main_app.py</span>      <span class="cn">← Janela principal + lazy-loading</span>
+        ├── <span class="cu">nav_bar.py</span>       <span class="cn">← Barra nav + seletor de temas</span>
+        └── <span class="cu">welcome.py</span>       <span class="cn">← Tela inicial com grid de módulos</span>
+</pre>
     </div>
 
-    <div class="arch-features">
-      <div class="arch-feat reveal">
-        <span class="arch-feat-icon">⚡</span>
-        <div class="arch-feat-title">Lazy Loading</div>
-        <p class="arch-feat-text">Módulos instanciados somente quando acessados. Startup rápido mesmo com 11 módulos pesados.</p>
-      </div>
-      <div class="arch-feat reveal" style="transition-delay:0.1s">
-        <span class="arch-feat-icon">🎨</span>
-        <div class="arch-feat-title">T() Singleton</div>
-        <p class="arch-feat-text">Acesso ao tema ativo via <code style="color:var(--acid);font-family:var(--ff-mono);font-size:0.8rem">T()["accent"]</code>. refresh_theme_recursive() propagado para todos os widgets.</p>
-      </div>
-      <div class="arch-feat reveal" style="transition-delay:0.05s">
-        <span class="arch-feat-icon">💾</span>
-        <div class="arch-feat-title">Persistência JSON</div>
-        <p class="arch-feat-text">Formato .proeng: snapshot completo de todos os módulos. get_state() / set_state() em cada módulo.</p>
-      </div>
-      <div class="arch-feat reveal" style="transition-delay:0.15s">
-        <span class="arch-feat-icon">📐</span>
-        <div class="arch-feat-title">Vector Rendering</div>
-        <p class="arch-feat-text">QGraphicsScene com aceleração de hardware. Gradientes dinâmicos, sombras e geração de polígonos em tempo real.</p>
-      </div>
-      <div class="arch-feat reveal" style="transition-delay:0.1s">
-        <span class="arch-feat-icon">🔌</span>
-        <div class="arch-feat-title">BaseModule</div>
-        <p class="arch-feat-text">Interface abstrata: get_state, set_state, refresh_theme, get_view. Contrato que garante integração perfeita.</p>
-      </div>
-      <div class="arch-feat reveal" style="transition-delay:0.2s">
-        <span class="arch-feat-icon">📤</span>
-        <div class="arch-feat-title">Export Engine</div>
-        <p class="arch-feat-text">PNG 3× supersampling para publicação. PDF A3 landscape para relatórios técnicos profissionais.</p>
-      </div>
+    <div class="arch-feats">
+      <div class="af rv"><div class="af-l">Lazy Loading</div><p class="af-t">Módulos instanciados somente no primeiro acesso. Startup rápido mesmo com 11 módulos pesados — sem custo de memória antecipado.</p></div>
+      <div class="af rv" style="transition-delay:.07s"><div class="af-l">T() Singleton</div><p class="af-t">Acesso ao tema ativo via <code>T()["accent"]</code>. <code>refresh_theme_recursive(w)</code> propaga para todos os widgets filhos automaticamente.</p></div>
+      <div class="af rv" style="transition-delay:.035s"><div class="af-l">Persistência JSON</div><p class="af-t">Formato <code>.proeng</code>: snapshot completo. Cada módulo implementa <code>get_state()</code> e <code>set_state()</code> conforme a interface BaseModule.</p></div>
+      <div class="af rv" style="transition-delay:.105s"><div class="af-l">Vector Rendering</div><p class="af-t">QGraphicsScene com aceleração por hardware. Polígonos, gradientes dinâmicos e sombras renderizados em tempo real com pixel-perfect precision.</p></div>
+      <div class="af rv" style="transition-delay:.07s"><div class="af-l">BaseModule</div><p class="af-t">Contrato único: <code>get_state</code>, <code>set_state</code>, <code>refresh_theme</code>, <code>get_view</code>. Garante integração perfeita de qualquer módulo externo.</p></div>
+      <div class="af rv" style="transition-delay:.14s"><div class="af-l">Export Engine</div><p class="af-t">PNG 3&times; supersampling via <code>_export_view(view,"png")</code>. PDF A3 landscape via <code>_export_view(view,"pdf")</code>. Qualidade de publicação técnica.</p></div>
     </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════
-     API REFERENCE
-════════════════════════════════ -->
-<section id="api" class="section">
-  <div class="section-header">
-    <span class="section-number">05</span>
-    <h2 class="section-title">Referência<br>de API</h2>
-    <p class="section-desc">Classes e interfaces dos módulos principais. Toda a API usa Python 3 com PyQt5.</p>
+
+<!-- ═══ API ══════════════════════════════════════════ -->
+<section id="api" class="s">
+  <div class="s-head">
+    <span class="s-num">05</span>
+    <h2 class="s-title" style="color:var(--paper)">Referência<br>de API</h2>
+    <div class="s-aside">
+      <span class="s-tag" style="color:rgba(0,255,204,.4)">Python 3 + PyQt5</span>
+      <p>Classes, sinais e interfaces dos módulos principais. API autodocumentada com type hints em todo o codebase.</p>
+    </div>
   </div>
 
   <div class="api-grid">
+    <div class="api-block rv">
+      <div class="api-lbl">Sistema de Temas &mdash; themes.py</div>
+      <div class="code-box"><span class="kw">from</span> proeng.core.themes <span class="kw">import</span> <span class="fn">T</span>, set_theme, cycle_theme
 
-    <div class="api-block reveal">
-      <div class="api-block-title">Sistema de Temas</div>
-      <div class="code-block"><span class="kw">from</span> proeng.core.themes <span class="kw">import</span> <span class="fn">T</span>, set_theme
+<span class="co"># Acessar propriedade do tema ativo</span>
+bg    = <span class="fn">T</span>()[<span class="st">"bg_app"</span>]      <span class="co"># "#050816" (dark)</span>
+color = <span class="fn">T</span>()[<span class="st">"accent"</span>]     <span class="co"># "#2563EB"</span>
+line  = <span class="fn">T</span>()[<span class="st">"line"</span>]       <span class="co"># "#38BDF8"</span>
 
-<span class="cm"># Acessar cor do tema ativo</span>
-color = <span class="fn">T</span>()[<span class="str">"accent"</span>]      <span class="cm"># #2563EB</span>
-bg    = <span class="fn">T</span>()[<span class="str">"bg_app"</span>]     <span class="cm"># #050816</span>
-line  = <span class="fn">T</span>()[<span class="str">"line"</span>]       <span class="cm"># #38BDF8</span>
-
-<span class="cm"># Trocar tema</span>
-<span class="fn">set_theme</span>(<span class="str">"synthwave"</span>)
-<span class="fn">set_theme</span>(<span class="str">"dracula"</span>)</div>
-      <div class="method-list">
-        <div class="method-row">
-          <span class="method-name">T()</span>
-          <span class="method-desc">Retorna dicionário de cores do tema ativo</span>
-        </div>
-        <div class="method-row">
-          <span class="method-name">set_theme(name)</span>
-          <span class="method-desc">Altera tema ativo. Aceita qualquer dos 14 slugs</span>
-        </div>
-        <div class="method-row">
-          <span class="method-name">cycle_theme()</span>
-          <span class="method-desc">Avança para o próximo tema na sequência</span>
-        </div>
-        <div class="method-row">
-          <span class="method-name">refresh_theme_recursive(w)</span>
-          <span class="method-desc">Propaga atualização para todos os widgets filhos</span>
-        </div>
+<span class="fn">set_theme</span>(<span class="st">"synthwave"</span>)    <span class="co"># trocar tema</span>
+<span class="fn">cycle_theme</span>()             <span class="co"># próximo na sequência</span></div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">T()</span><span class="md">Retorna dicionário completo de cores do tema ativo</span></div>
+        <div class="mrow"><span class="mn">set_theme(name)</span><span class="md">Define tema pelo slug — aceita qualquer dos 14 nomes</span></div>
+        <div class="mrow"><span class="mn">cycle_theme()</span><span class="md">Avança para o próximo tema na sequência circular</span></div>
+        <div class="mrow"><span class="mn">refresh_theme_recursive(w)</span><span class="md">Propaga atualização de tema para todos os widgets filhos</span></div>
       </div>
     </div>
 
-    <div class="api-block reveal" style="transition-delay:0.1s">
-      <div class="api-block-title">Flowsheet — PFD</div>
-      <div class="code-block"><span class="kw">from</span> proeng.modules.flowsheet <span class="kw">import</span> <span class="tp">FlowsheetWidget</span>
+    <div class="api-block rv" style="transition-delay:.07s">
+      <div class="api-lbl">Flowsheet &mdash; FlowsheetWidget</div>
+      <div class="code-box"><span class="kw">from</span> proeng.modules.flowsheet <span class="kw">import</span> <span class="tp">FlowsheetWidget</span>
 
 widget = <span class="tp">FlowsheetWidget</span>()
 
-<span class="cm"># Executar balanço de massa (Kahn)</span>
+<span class="co"># Calcular balanço de massa (Kahn)</span>
 widget.<span class="fn">solve_mass_balance</span>()
 
-<span class="cm"># Persistência</span>
-state = widget.<span class="fn">get_state</span>()   <span class="cm"># {nodes, edges, streams}</span>
+state = widget.<span class="fn">get_state</span>()    <span class="co"># {nodes, edges, streams}</span>
 widget.<span class="fn">set_state</span>(state)
 
-<span class="cm"># Exemplo industrial</span>
-widget.<span class="fn">load_example</span>()</div>
-      <div class="method-list">
-        <div class="method-row">
-          <span class="method-name">solve_mass_balance()</span>
-          <span class="method-desc">Algoritmo de Kahn para cálculo topológico de vazões</span>
-        </div>
-        <div class="method-row">
-          <span class="method-name">node_added (sinal)</span>
-          <span class="method-desc">Emitido com node_id ao adicionar equipamento</span>
-        </div>
-        <div class="method-row">
-          <span class="method-name">connection_made (sinal)</span>
-          <span class="method-desc">Emitido com (source, target) ao criar conexão</span>
-        </div>
+<span class="co"># Sinais Qt</span>
+widget.node_added.<span class="fn">connect</span>(h)  <span class="co"># node_id</span>
+widget.connection_made.<span class="fn">connect</span>(h) <span class="co"># (src, tgt)</span></div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">solve_mass_balance()</span><span class="md">Kahn's algorithm — ordenação topológica de vazões</span></div>
+        <div class="mrow"><span class="mn">Stream.flow_data</span><span class="md">dict {componente: vazão_kg_h} por corrente</span></div>
+        <div class="mrow"><span class="mn">ProcessNode.split_config</span><span class="md">Configuração de fração por porta e componente</span></div>
       </div>
     </div>
 
-    <div class="api-block reveal" style="transition-delay:0.05s">
-      <div class="api-block-title">BPMN 2.0</div>
-      <div class="code-block"><span class="kw">from</span> proeng.modules.bpmn <span class="kw">import</span> <span class="tp">BPMNAutoWidget</span>
-
-widget = <span class="tp">BPMNAutoWidget</span>()
-widget.<span class="fn">zoom_in</span>()        <span class="cm"># +15%</span>
-widget.<span class="fn">update_zoom</span>(<span class="str">1.5</span>) <span class="cm"># zoom direto</span>
-widget.<span class="fn">draw_diagram</span>()   <span class="cm"># redesenha</span>
-
-<span class="cm"># shapes: "Tarefa", "Gateway Exclusivo (X)",</span>
-<span class="cm">#         "Evento Início", "Subprocesso" ...</span></div>
-      <div class="method-list">
-        <div class="method-row">
-          <span class="method-name">nodes dict</span>
-          <span class="method-desc">{id: {text, shape, level, lane, children, parent}}</span>
-        </div>
-        <div class="method-row">
-          <span class="method-name">zoom range</span>
-          <span class="method-desc">0.3 a 3.0 — controle preciso de visualização</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="api-block reveal" style="transition-delay:0.15s">
-      <div class="api-block-title">Gantt — CPM</div>
-      <div class="code-block"><span class="kw">from</span> proeng.modules.gantt <span class="kw">import</span> <span class="tp">GanttWidget</span>
+    <div class="api-block rv" style="transition-delay:.035s">
+      <div class="api-lbl">Gantt &mdash; GanttWidget + CPM</div>
+      <div class="code-box"><span class="kw">from</span> proeng.modules.gantt <span class="kw">import</span> <span class="tp">GanttWidget</span>
 
 widget = <span class="tp">GanttWidget</span>()
 widget.<span class="fn">add_task</span>(
-    name=<span class="str">"Análise de Requisitos"</span>,
-    start=<span class="str">"2026-04-01"</span>,
-    end=<span class="str">"2026-04-15"</span>,
-    progress=<span class="str">80</span>,
-    predecessor=<span class="str">None</span>
+    name=<span class="st">"Análise de Requisitos"</span>,
+    start=<span class="st">"2026-04-01"</span>,
+    end=<span class="st">"2026-04-15"</span>,
+    progress=<span class="nb">80</span>,
+    predecessor=<span class="nb">None</span>,
+    milestone=<span class="nb">False</span>
 )
-widget.<span class="fn">calculate_cpm</span>()  <span class="cm"># Critical Path</span></div>
-      <div class="method-list">
-        <div class="method-row">
-          <span class="method-name">task.critical</span>
-          <span class="method-desc">Preenchido pelo CPM — True se no caminho crítico</span>
-        </div>
-        <div class="method-row">
-          <span class="method-name">task.milestone</span>
-          <span class="method-desc">Marca tarefa como marco do projeto</span>
-        </div>
+widget.<span class="fn">calculate_cpm</span>() <span class="co"># task.critical = True</span></div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">calculate_cpm()</span><span class="md">Preenche task.critical e calcula folgas totais</span></div>
+        <div class="mrow"><span class="mn">task.milestone</span><span class="md">Boolean — marca tarefa como marco do projeto</span></div>
       </div>
     </div>
 
-    <div class="api-block reveal">
-      <div class="api-block-title">BaseModule — Interface</div>
-      <div class="code-block"><span class="kw">from</span> proeng.core.base_module <span class="kw">import</span> <span class="tp">BaseModule</span>
+    <div class="api-block rv" style="transition-delay:.105s">
+      <div class="api-lbl">BaseModule &mdash; Interface Abstrata</div>
+      <div class="code-box"><span class="kw">from</span> proeng.core.base_module <span class="kw">import</span> <span class="tp">BaseModule</span>
 
 <span class="kw">class</span> <span class="tp">MeuModulo</span>(<span class="tp">BaseModule</span>):
 
-    <span class="kw">def</span> <span class="fn">get_state</span>(self) -> <span class="tp">dict</span>:
-        <span class="cm">"""Estado serializável para .proeng"""</span>
-        <span class="kw">return</span> {<span class="str">"schema"</span>: <span class="str">"v2"</span>, ...}
+    <span class="kw">def</span> <span class="fn">get_state</span>(self) -> <span class="tp">Dict</span>[<span class="tp">str</span>, <span class="tp">Any</span>]:
+        <span class="co">"""Estado serializável para .proeng"""</span>
+        <span class="kw">return</span> {<span class="st">"schema"</span>: <span class="st">"v2"</span>, ...}
 
-    <span class="kw">def</span> <span class="fn">set_state</span>(self, state: <span class="tp">dict</span>):
-        <span class="cm">"""Restaura estado do arquivo"""</span>
+    <span class="kw">def</span> <span class="fn">set_state</span>(self, state: <span class="tp">Dict</span>) -> <span class="nb">None</span>: ...
 
-    <span class="kw">def</span> <span class="fn">refresh_theme</span>(self):
-        <span class="cm">"""Reaplica T() após mudança de tema"""</span></div>
+    <span class="kw">def</span> <span class="fn">refresh_theme</span>(self) -> <span class="nb">None</span>: ...
+
+    <span class="kw">def</span> <span class="fn">get_view</span>(self) -> <span class="tp">Optional</span>[<span class="tp">QGraphicsView</span>]: ...</div>
     </div>
 
-    <div class="api-block reveal" style="transition-delay:0.1s">
-      <div class="api-block-title">5W2H — Estrutura de Nós</div>
-      <div class="code-block"><span class="cm"># W5H2_TYPES — cores e títulos</span>
+    <div class="api-block rv" style="transition-delay:.07s">
+      <div class="api-lbl">5W2H &mdash; Tipos e Estrutura</div>
+      <div class="code-box"><span class="co"># Cores e títulos por tipo de nó</span>
 W5H2_TYPES = {
-    <span class="str">"ROOT"</span>:  {<span class="str">"t"</span>: <span class="str">"PLANO DE AÇÃO"</span>, <span class="str">"c"</span>: <span class="str">"#E03535"</span>},
-    <span class="str">"WHAT"</span>:  {<span class="str">"t"</span>: <span class="str">"O QUÊ?"</span>,        <span class="str">"c"</span>: <span class="str">"#3498DB"</span>},
-    <span class="str">"WHY"</span>:   {<span class="str">"t"</span>: <span class="str">"POR QUÊ?"</span>,      <span class="str">"c"</span>: <span class="str">"#F1C40F"</span>},
-    <span class="str">"WHO"</span>:   {<span class="str">"t"</span>: <span class="str">"QUEM?"</span>,         <span class="str">"c"</span>: <span class="str">"#9B59B6"</span>},
-    <span class="str">"WHERE"</span>: {<span class="str">"t"</span>: <span class="str">"ONDE?"</span>,         <span class="str">"c"</span>: <span class="str">"#2ECC71"</span>},
-    <span class="str">"WHEN"</span>:  {<span class="str">"t"</span>: <span class="str">"QUANDO?"</span>,       <span class="str">"c"</span>: <span class="str">"#E67E22"</span>},
-    <span class="str">"HOW"</span>:   {<span class="str">"t"</span>: <span class="str">"COMO?"</span>,         <span class="str">"c"</span>: <span class="str">"#1ABC9C"</span>},
-    <span class="str">"COST"</span>:  {<span class="str">"t"</span>: <span class="str">"QUANTO?"</span>,       <span class="str">"c"</span>: <span class="str">"#E74C3C"</span>},
+    <span class="st">"ROOT"</span>:  {<span class="st">"t"</span>: <span class="st">"PLANO DE AÇÃO"</span>, <span class="st">"c"</span>: <span class="st">"#E03535"</span>},
+    <span class="st">"WHAT"</span>:  {<span class="st">"t"</span>: <span class="st">"O QUÊ? (Ação)"</span>,  <span class="st">"c"</span>: <span class="st">"#3498DB"</span>},
+    <span class="st">"WHY"</span>:   {<span class="st">"t"</span>: <span class="st">"POR QUÊ?"</span>,       <span class="st">"c"</span>: <span class="st">"#F1C40F"</span>},
+    <span class="st">"WHO"</span>:   {<span class="st">"t"</span>: <span class="st">"QUEM?"</span>,          <span class="st">"c"</span>: <span class="st">"#9B59B6"</span>},
+    <span class="st">"WHERE"</span>: {<span class="st">"t"</span>: <span class="st">"ONDE?"</span>,          <span class="st">"c"</span>: <span class="st">"#2ECC71"</span>},
+    <span class="st">"WHEN"</span>:  {<span class="st">"t"</span>: <span class="st">"QUANDO?"</span>,        <span class="st">"c"</span>: <span class="st">"#E67E22"</span>},
+    <span class="st">"HOW"</span>:   {<span class="st">"t"</span>: <span class="st">"COMO?"</span>,          <span class="st">"c"</span>: <span class="st">"#1ABC9C"</span>},
+    <span class="st">"COST"</span>:  {<span class="st">"t"</span>: <span class="st">"QUANTO?"</span>,        <span class="st">"c"</span>: <span class="st">"#E74C3C"</span>},
 }</div>
     </div>
 
+    <div class="api-block rv" style="transition-delay:.14s">
+      <div class="api-lbl">Kanban + Scrum &mdash; Estrutura de Cards</div>
+      <div class="code-box"><span class="co"># Kanban — 4 colunas fixas</span>
+cards = {
+    <span class="st">"afazer"</span>: [{<span class="st">"id"</span>:<span class="nb">1</span>,<span class="st">"titulo"</span>:<span class="st">"..."</span>,<span class="st">"prioridade"</span>:<span class="st">"alta"</span>}],
+    <span class="st">"emandamento"</span>: [...], <span class="st">"feito"</span>: [...], <span class="st">"cancelado"</span>: [...]
+}
+<span class="co"># Scrum — sprint + backlog separados</span>
+sprint_cols = {
+    <span class="st">"todo"</span>: [{<span class="st">"id"</span>:<span class="nb">1</span>,<span class="st">"titulo"</span>:<span class="st">"..."</span>,<span class="st">"points"</span>:<span class="nb">5</span>}],
+    <span class="st">"in_progress"</span>:[...], <span class="st">"review"</span>:[...], <span class="st">"done"</span>:[...]
+}
+<span class="co"># Sinal de movimentação</span>
+widget.mover_item.<span class="fn">connect</span>(<span class="kw">lambda</span> f,t,id: ...)</div>
+    </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════
-     INSTALL
-════════════════════════════════ -->
-<section id="install" class="section">
-  <div class="install-inner">
-    <div class="install-left">
-      <h2 class="install-title">INSTALE<br>EM 4 PASSOS</h2>
-      <p class="install-sub">Requisitos mínimos: Python 3.8+ e PyQt5. Funciona em Windows 10/11, Linux e macOS. Resolução mínima 1366×768.</p>
-      <div class="req-list">
-        <span class="req-tag">Python 3.8+</span>
-        <span class="req-tag">PyQt5</span>
-        <span class="req-tag">Windows / Linux / macOS</span>
-        <span class="req-tag">1366×768 mín.</span>
+
+<!-- ═══ INSTALL ══════════════════════════════════════ -->
+<section id="install" class="s">
+  <div class="inst-grid">
+    <div class="inst-l">
+      <p class="inst-pre">Instalação</p>
+      <h2 class="inst-t">RODE<br>EM 4<br>PASSOS</h2>
+      <p class="inst-d">Apenas uma dependência externa. Funciona em Windows 10/11, Linux (Ubuntu/Debian) e macOS. Resolução mínima 1366&times;768px.</p>
+      <div class="req-pills">
+        <span class="req">Python 3.8+</span>
+        <span class="req">PyQt5</span>
+        <span class="req">Windows &middot; Linux &middot; macOS</span>
+        <span class="req">1366&times;768 min.</span>
       </div>
-      <br><br>
-      <a href="https://github.com/sasal0519/proeng" class="btn btn-primary" style="background:var(--ink);border-color:var(--ink);color:var(--acid);box-shadow:6px 6px 0 var(--ink);">
-        ↗ GitHub — proeng-systems
-      </a>
+      <a href="https://github.com/sasal0519/proeng" target="_blank" class="btn btn-a" style="background:var(--ink);border-color:var(--ink);color:var(--acid);box-shadow:6px 6px 0 rgba(0,0,0,.3)">Acessar github.com/sasal0519/proeng</a>
     </div>
 
-    <div class="install-right">
-      <div class="install-step reveal">
-        <span class="step-num">01</span>
-        <div class="step-content">
-          <div class="step-title">Clone o repositório</div>
-          <div class="step-code">git clone https://github.com/sasal0519/proeng.git
-cd proeng-suite</div>
-        </div>
+    <div class="inst-r">
+      <div class="step rv">
+        <span class="step-n">01</span>
+        <div class="step-b"><div class="step-l">Clonar repositório</div>
+        <div class="step-c">git clone https://github.com/sasal0519/proeng.git
+cd proeng</div></div>
       </div>
-      <div class="install-step reveal" style="transition-delay:0.1s">
-        <span class="step-num">02</span>
-        <div class="step-content">
-          <div class="step-title">Crie o ambiente virtual</div>
-          <div class="step-code">python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/Mac: source .venv/bin/activate</div>
-        </div>
+      <div class="step rv" style="transition-delay:.1s">
+        <span class="step-n">02</span>
+        <div class="step-b"><div class="step-l">Criar ambiente virtual</div>
+        <div class="step-c">python -m venv .venv
+# Windows:   .venv\Scripts\activate
+# Linux/Mac: source .venv/bin/activate</div></div>
       </div>
-      <div class="install-step reveal" style="transition-delay:0.2s">
-        <span class="step-num">03</span>
-        <div class="step-content">
-          <div class="step-title">Instale a dependência</div>
-          <div class="step-code">pip install pyqt5</div>
-        </div>
+      <div class="step rv" style="transition-delay:.2s">
+        <span class="step-n">03</span>
+        <div class="step-b"><div class="step-l">Instalar dependência</div>
+        <div class="step-c">pip install pyqt5</div></div>
       </div>
-      <div class="install-step reveal" style="transition-delay:0.3s">
-        <span class="step-num">04</span>
-        <div class="step-content">
-          <div class="step-title">Execute a suíte</div>
-          <div class="step-code">python main.py
+      <div class="step rv" style="transition-delay:.3s">
+        <span class="step-n">04</span>
+        <div class="step-b"><div class="step-l">Executar a suíte</div>
+        <div class="step-c">python main.py
 
 # Ou módulo individual:
-python -m proeng.modules.flowsheet</div>
-        </div>
+python -m proeng.modules.flowsheet</div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════
-     SHORTCUTS
-════════════════════════════════ -->
-<section id="shortcuts" class="section">
-  <div class="section-header">
-    <span class="section-number">06</span>
-    <h2 class="section-title">Atalhos<br>de Teclado</h2>
-    <p class="section-desc">Power user shortcuts para máxima produtividade. Todos os módulos compartilham os atalhos universais.</p>
+
+<!-- ═══ SHORTCUTS ════════════════════════════════════ -->
+<section id="shortcuts" class="s">
+  <div class="s-head">
+    <span class="s-num">06</span>
+    <h2 class="s-title">Atalhos<br>de Teclado</h2>
+    <div class="s-aside">
+      <span class="s-tag">Power User</span>
+      <p>Atalhos universais compartilhados por todos os módulos, mais atalhos específicos por contexto de uso.</p>
+    </div>
   </div>
 
-  <div class="shortcuts-wrap">
-    <div class="shortcut-col">
-      <div class="shortcut-col-header">UNIVERSAIS</div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Novo Projeto</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>N</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Salvar Projeto</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>S</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Toggle Dark/Light</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>L</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Toggle Sidebar</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>B</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Exportar PNG</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>E</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Zoom +</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>+</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Zoom −</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>-</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Reset Zoom</span>
-        <div class="kbd-combo"><kbd>Ctrl</kbd><kbd>0</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Excluir seleção</span>
-        <div class="kbd-combo"><kbd>Delete</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Pan Canvas</span>
-        <div class="kbd-combo"><kbd>Space</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Cancelar Ferramenta</span>
-        <div class="kbd-combo"><kbd>Esc</kbd></div>
-      </div>
+  <div class="kbd-wrap">
+    <div class="kbd-col">
+      <div class="kbd-h">UNIVERSAIS</div>
+      <div class="krow"><span class="kact">Novo Projeto</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>N</kbd></div></div>
+      <div class="krow"><span class="kact">Salvar Projeto (.proeng)</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>S</kbd></div></div>
+      <div class="krow"><span class="kact">Toggle Dark / Light</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>L</kbd></div></div>
+      <div class="krow"><span class="kact">Toggle Sidebar</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>B</kbd></div></div>
+      <div class="krow"><span class="kact">Exportar diagrama PNG</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>E</kbd></div></div>
+      <div class="krow"><span class="kact">Zoom aumentar</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>+</kbd></div></div>
+      <div class="krow"><span class="kact">Zoom diminuir</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>&minus;</kbd></div></div>
+      <div class="krow"><span class="kact">Reset zoom</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>0</kbd></div></div>
+      <div class="krow"><span class="kact">Desfazer</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>Z</kbd></div></div>
+      <div class="krow"><span class="kact">Refazer</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>Y</kbd></div></div>
+      <div class="krow"><span class="kact">Selecionar tudo</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>A</kbd></div></div>
+      <div class="krow"><span class="kact">Remover objeto selecionado</span><div class="kcomb"><kbd>Delete</kbd></div></div>
+      <div class="krow"><span class="kact">Pan do canvas</span><div class="kcomb"><kbd>Space</kbd></div></div>
+      <div class="krow"><span class="kact">Cancelar ferramenta ativa</span><div class="kcomb"><kbd>Esc</kbd></div></div>
     </div>
 
-    <div class="shortcut-col">
-      <div class="shortcut-col-header">POR MÓDULO</div>
-      <div class="shortcut-row" style="background:rgba(200,255,0,0.04)">
-        <span class="shortcut-action" style="font-weight:600;font-size:0.75rem;letter-spacing:1px;font-family:var(--ff-mono)">FLOWSHEET</span>
-        <span></span>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Adicionar equipamento</span>
-        <div class="kbd-combo"><kbd>E</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Editar corrente</span>
-        <div class="kbd-combo"><kbd>2×click</kbd></div>
-      </div>
-      <div class="shortcut-row" style="background:rgba(0,255,204,0.04)">
-        <span class="shortcut-action" style="font-weight:600;font-size:0.75rem;letter-spacing:1px;font-family:var(--ff-mono)">BPMN</span>
-        <span></span>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Adicionar Tarefa</span>
-        <div class="kbd-combo"><kbd>T</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Adicionar Gateway</span>
-        <div class="kbd-combo"><kbd>G</kbd></div>
-      </div>
-      <div class="shortcut-row" style="background:rgba(255,85,0,0.04)">
-        <span class="shortcut-action" style="font-weight:600;font-size:0.75rem;letter-spacing:1px;font-family:var(--ff-mono)">EAP / WBS</span>
-        <span></span>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Adicionar filho</span>
-        <div class="kbd-combo"><kbd>Tab</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Adicionar irmão</span>
-        <div class="kbd-combo"><kbd>Enter</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Renomear nó</span>
-        <div class="kbd-combo"><kbd>F2</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Expandir tudo</span>
-        <div class="kbd-combo"><kbd>*</kbd></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Recolher tudo</span>
-        <div class="kbd-combo"><kbd>-</kbd></div>
-      </div>
+    <div class="kbd-col">
+      <div class="kbd-h">POR MÓDULO</div>
+      <div class="krow grp"><span class="grp-l">Flowsheet</span></div>
+      <div class="krow"><span class="kact">Adicionar equipamento</span><div class="kcomb"><kbd>E</kbd></div></div>
+      <div class="krow"><span class="kact">Criar conexão</span><div class="kcomb"><kbd>C</kbd></div></div>
+      <div class="krow"><span class="kact">Editar corrente</span><div class="kcomb"><kbd>2&times;click</kbd></div></div>
+      <div class="krow"><span class="kact">Duplicar equipamento</span><div class="kcomb"><kbd>Ctrl</kbd><kbd>D</kbd></div></div>
+      <div class="krow grp"><span class="grp-l">BPMN</span></div>
+      <div class="krow"><span class="kact">Adicionar Tarefa</span><div class="kcomb"><kbd>T</kbd></div></div>
+      <div class="krow"><span class="kact">Adicionar Gateway</span><div class="kcomb"><kbd>G</kbd></div></div>
+      <div class="krow"><span class="kact">Adicionar Evento</span><div class="kcomb"><kbd>N</kbd></div></div>
+      <div class="krow"><span class="kact">Renomear elemento</span><div class="kcomb"><kbd>F2</kbd></div></div>
+      <div class="krow grp"><span class="grp-l">EAP / WBS</span></div>
+      <div class="krow"><span class="kact">Adicionar nó filho</span><div class="kcomb"><kbd>Tab</kbd></div></div>
+      <div class="krow"><span class="kact">Adicionar nó irmão</span><div class="kcomb"><kbd>Enter</kbd></div></div>
+      <div class="krow"><span class="kact">Renomear nó</span><div class="kcomb"><kbd>F2</kbd></div></div>
+      <div class="krow"><span class="kact">Expandir tudo</span><div class="kcomb"><kbd>*</kbd></div></div>
+      <div class="krow"><span class="kact">Recolher tudo</span><div class="kcomb"><kbd>&minus;</kbd></div></div>
     </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════
-     FOOTER
-════════════════════════════════ -->
+
+<!-- ═══ GITHUB CTA ═══════════════════════════════════ -->
+<section id="github" class="s">
+  <div class="gh-inner">
+    <div class="gh-left">
+      <p class="gh-eyebrow">Código aberto &mdash; Software Livre</p>
+      <h2 class="gh-title">CONTRIBUA COM<br>O <em>PROENG</em></h2>
+    </div>
+    <div class="gh-right">
+      <div class="gh-url-box">
+        <svg class="gh-url-icon" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <a class="gh-url-txt" href="https://github.com/sasal0519/proeng" target="_blank">github.com/sasal0519/proeng</a>
+      </div>
+      <div class="gh-meta">Fork &middot; Pull Request &middot; Issues &middot; GNU GPLv3</div>
+      <a href="https://github.com/sasal0519/proeng" target="_blank" class="btn btn-a">Abrir no GitHub</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ FOOTER ═══════════════════════════════════════ -->
 <footer>
-  <div class="footer-inner">
-    <div class="footer-col">
-      <div class="footer-logo">PROENG</div>
-      <div class="footer-tagline">Industrial Engineering Suite v2.0</div>
-      <p class="footer-desc">Suite desktop de ferramentas de engenharia construída com Python 3 + PyQt5. 11 módulos independentes, 14 temas neo-brutalistas, persistência JSON e export profissional.</p>
+  <div class="ft-cols">
+    <div class="ft-col">
+      <div class="ft-wm">PROENG</div>
+      <div class="ft-tl">Industrial Engineering Suite v2.0</div>
+      <p class="ft-bl">Suite desktop de ferramentas de engenharia construída com Python 3 e PyQt5. 11 módulos independentes, 14 temas neo-brutalistas, persistência JSON e export de alta resolução. Software Livre sob GNU GPLv3.</p>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">// Módulos</div>
-      <ul class="footer-list">
+    <div class="ft-col">
+      <div class="ft-ct">Módulos</div>
+      <ul class="ft-links">
         <li><a href="#modules">Flowsheet PFD</a></li>
         <li><a href="#modules">BPMN 2.0</a></li>
         <li><a href="#modules">EAP / WBS</a></li>
@@ -2075,73 +1095,66 @@ python -m proeng.modules.flowsheet</div>
         <li><a href="#modules">Script Engine</a></li>
       </ul>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">// Links</div>
-      <ul class="footer-list">
+    <div class="ft-col">
+      <div class="ft-ct">Links</div>
+      <ul class="ft-links">
+        <li><a href="https://github.com/sasal0519/proeng" target="_blank">GitHub</a></li>
         <li><a href="#architecture">Arquitetura</a></li>
         <li><a href="#api">Referência API</a></li>
         <li><a href="#install">Instalação</a></li>
         <li><a href="#themes">14 Temas</a></li>
-        <li><a href="https://github.com/proeng-systems/proeng-suite">GitHub</a></li>
-      </ul>
-      <br>
-      <div class="footer-col-title">// Tecnologia</div>
-      <ul class="footer-list">
-        <li><a href="#">Python 3.8+</a></li>
-        <li><a href="#">PyQt5 Framework</a></li>
-        <li><a href="#">QGraphicsScene</a></li>
-        <li><a href="#">GNU GPLv3</a></li>
+        <li><a href="#shortcuts">Atalhos</a></li>
       </ul>
     </div>
+    <div class="ft-col">
+      <div class="ft-ct">Stack</div>
+      <div class="ft-tech">
+        <div class="ft-ti">Python<span>3.8+</span></div>
+        <div class="ft-ti">PyQt5<span>Framework</span></div>
+        <div class="ft-ti">QGraphicsScene<span>Rendering</span></div>
+        <div class="ft-ti">JSON<span>Persistência</span></div>
+        <div class="ft-ti">GNU GPLv3<span>Licença</span></div>
+        <div class="ft-ti">Neo-Brutalism<span>Design</span></div>
+      </div>
+    </div>
   </div>
-  <div class="footer-bottom">
-    <span class="footer-copy">© 2026 ProEng Systems — O conhecimento deve permanecer livre.</span>
-    <span class="license-badge">GNU GPLv3</span>
+  <div class="ft-bot">
+    <span class="ft-copy">&copy; 2026 ProEng Systems &mdash; O conhecimento deve permanecer livre.</span>
+    <span class="gpl">GNU GPLv3</span>
   </div>
 </footer>
 
+
 <script>
-// ─── TICKER ───────────────────────────
-const items = [
-  "Flowsheet PFD", "BPMN 2.0", "EAP / WBS", "PM Canvas",
-  "Ishikawa 6M", "5W2H", "Gantt CPM", "Kanban", "Scrum Sprint",
-  "PDCA Circular", "Script Engine", "14 Temas", "GPLv3", "PyQt5",
-  "Balanço de Massa", "Caminho Crítico", "Drag & Drop", "Story Points"
+const WORDS = [
+  "Flowsheet PFD","BPMN 2.0","EAP / WBS","PM Canvas","Ishikawa 6M","5W2H",
+  "Gantt CPM","Kanban","Scrum Sprint","PDCA Circular","Script Engine",
+  "14 Temas","GNU GPLv3","PyQt5","Balanço de Massa","Caminho Crítico",
+  "Story Points","QGraphicsScene","Neo-Brutalism","Python 3.8+"
 ];
 
-const ticker = document.getElementById('ticker-inner');
-const full = [...items, ...items].map(t =>
-  `<span class="ticker-item">${t}</span>`
-).join('');
-ticker.innerHTML = full + full; // duplicate for seamless loop
+const track = document.getElementById('ticker');
+const seg = [...WORDS,...WORDS].map(w=>`<span class="t-item">${w}<span class="t-dot"></span></span>`).join('');
+track.innerHTML = seg+seg;
 
-// ─── SCROLL REVEAL ────────────────────
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      observer.unobserve(e.target);
+/* reveal */
+const ro = new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target)}})
+},{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>ro.observe(el));
+
+/* nav active */
+const links = document.querySelectorAll('.nav-links a');
+const so = new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(a=>a.classList.remove('on'));
+      const m = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+      if(m) m.classList.add('on');
     }
-  });
-}, { threshold: 0.12 });
-
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// ─── NAV active highlight ─────────────
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.nav-links a');
-
-const sectionObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      navLinks.forEach(a => a.style.background = '');
-      const active = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
-      if (active) active.style.background = 'rgba(200,255,0,0.12)';
-    }
-  });
-}, { threshold: 0.4 });
-
-sections.forEach(s => sectionObserver.observe(s));
+  })
+},{threshold:.3});
+document.querySelectorAll('section[id]').forEach(s=>so.observe(s));
 </script>
 </body>
 </html>
