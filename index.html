@@ -143,8 +143,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
 #showcase .s-num{color:rgba(255,255,255,.025)}
 #showcase .s-aside p{color:rgba(240,237,220,.36)}
 #showcase .s-tag{color:rgba(0,255,204,.45)}
-.shot-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:var(--fat);border-left:var(--fat)}
-.shot{position:relative;display:block;min-height:320px;background:var(--ink);border-right:var(--fat);border-bottom:var(--fat);overflow:hidden;text-decoration:none}
+.shot-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:var(--fat);border-left:var(--fat)}
+.shot{position:relative;display:block;min-height:300px;background:var(--ink);border-right:var(--fat);border-bottom:var(--fat);overflow:hidden;text-decoration:none}
 .shot img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.94) contrast(1.03);transition:transform .32s var(--ease),filter .32s var(--ease)}
 .shot:hover img{transform:scale(1.04);filter:saturate(1.05) contrast(1.08)}
 .shot::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,8,.88),rgba(8,8,8,.08) 45%,rgba(8,8,8,0) 70%)}
@@ -433,7 +433,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media(max-width:1100px){
-  .shot-grid{grid-template-columns:repeat(2,1fr)}
+  .shot-grid{grid-template-columns:repeat(3,1fr)}
   .mod-grid{grid-template-columns:repeat(3,1fr)}
   .ft-cols{grid-template-columns:1fr 1fr}
 }
@@ -441,6 +441,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   #hero{grid-template-columns:1fr}
   .hero-right{display:none}
   .hero-left{padding:3.5rem 2.5rem}
+  .shot-grid{grid-template-columns:repeat(2,1fr)}
   .mod-grid{grid-template-columns:1fr 1fr}
   .phil-grid,.arch-wrap,.api-grid,.inst-grid,.kbd-wrap{grid-template-columns:1fr}
   .ft-cols{grid-template-columns:1fr}
@@ -664,15 +665,15 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 
   <div class="shot-grid">
     <a class="shot rv" href="#modules">
-      <img src="proeng/resources/screenshots/welcome_dark.png" alt="Tela inicial do ProEng no tema escuro com galeria de módulos">
+      <img src="docs/screenshots/welcome_solar.png" alt="Tela inicial do ProEng no tema solar com galeria de módulos">
       <div class="shot-meta">
         <span class="shot-k">Hub Inicial</span>
-        <div class="shot-t">WELCOME<br>DARK</div>
-        <p class="shot-p">Entrada da suite com seleção visual dos módulos e linguagem neo-brutalista consistente.</p>
+        <div class="shot-t">WELCOME<br>SOLAR</div>
+        <p class="shot-p">Tela inicial da suite com navegação visual dos módulos e a identidade neo-brutalista aplicada ao tema Solar.</p>
       </div>
     </a>
     <a class="shot rv" href="#modules" style="transition-delay:.04s">
-      <img src="proeng/resources/screenshots/flowsheet_dark.png" alt="Módulo Flowsheet do ProEng com diagrama de processo em tema escuro">
+      <img src="docs/screenshots/flowsheet_solar.png" alt="Módulo Flowsheet do ProEng no tema solar">
       <div class="shot-meta">
         <span class="shot-k">Processos</span>
         <div class="shot-t">FLOWSHEET<br>PFD</div>
@@ -680,7 +681,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
       </div>
     </a>
     <a class="shot rv" href="#modules" style="transition-delay:.08s">
-      <img src="proeng/resources/screenshots/bpmn_dark.png" alt="Módulo BPMN do ProEng em tema escuro com swimlanes e conectores">
+      <img src="docs/screenshots/bpmn_solar.png" alt="Módulo BPMN do ProEng no tema solar">
       <div class="shot-meta">
         <span class="shot-k">Operações</span>
         <div class="shot-t">BPMN<br>MODELER</div>
@@ -688,27 +689,75 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
       </div>
     </a>
     <a class="shot rv" href="#themes" style="transition-delay:.12s">
-      <img src="proeng/resources/screenshots/canvas_light.png" alt="Módulo PM Canvas do ProEng em tema claro">
-      <div class="shot-meta">
-        <span class="shot-k">Planejamento</span>
-        <div class="shot-t">PM<br>CANVAS</div>
-        <p class="shot-p">Quadro visual para organizar entregas, riscos, recursos e estratégia em uma única vista.</p>
-      </div>
-    </a>
-    <a class="shot rv" href="#modules" style="transition-delay:.16s">
-      <img src="proeng/resources/screenshots/eap_light.png" alt="Módulo EAP do ProEng em tema claro com estrutura analítica do projeto">
+      <img src="docs/screenshots/eap_solar.png" alt="Módulo EAP do ProEng no tema solar">
       <div class="shot-meta">
         <span class="shot-k">Estrutura</span>
         <div class="shot-t">EAP<br>WBS</div>
-        <p class="shot-p">Decomposição hierárquica do trabalho para planejar escopo com clareza operacional.</p>
+        <p class="shot-p">Estrutura analítica do projeto com decomposição hierárquica do trabalho e visual forte.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.16s">
+      <img src="docs/screenshots/canvas_solar.png" alt="Módulo PM Canvas do ProEng no tema solar">
+      <div class="shot-meta">
+        <span class="shot-k">Planejamento</span>
+        <div class="shot-t">PM<br>CANVAS</div>
+        <p class="shot-p">Quadro visual para organizar objetivos, riscos, stakeholders, entregas e custos em uma única vista.</p>
       </div>
     </a>
     <a class="shot rv" href="#modules" style="transition-delay:.2s">
-      <img src="proeng/resources/screenshots/ishikawa_dark.png" alt="Módulo Ishikawa do ProEng em tema escuro com diagrama de causa e efeito">
+      <img src="docs/screenshots/ishikawa_solar.png" alt="Módulo Ishikawa do ProEng no tema solar">
       <div class="shot-meta">
         <span class="shot-k">Qualidade</span>
         <div class="shot-t">ISHIKAWA<br>6M</div>
         <p class="shot-p">Análise visual de causas para investigação técnica e melhoria contínua.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.24s">
+      <img src="docs/screenshots/w5h2_solar.png" alt="Módulo 5W2H do ProEng no tema solar">
+      <div class="shot-meta">
+        <span class="shot-k">Ação</span>
+        <div class="shot-t">5W2H<br>PLAN</div>
+        <p class="shot-p">Plano de ação estruturado com responsáveis, prazos, custos e contexto operacional.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.28s">
+      <img src="docs/screenshots/gantt_solar.png" alt="Módulo Gantt do ProEng no tema solar">
+      <div class="shot-meta">
+        <span class="shot-k">Cronograma</span>
+        <div class="shot-t">GANTT<br>CPM</div>
+        <p class="shot-p">Cronograma visual com marcos, progresso e cálculo de caminho crítico.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.32s">
+      <img src="docs/screenshots/kanban_solar.png" alt="Módulo Kanban do ProEng no tema solar">
+      <div class="shot-meta">
+        <span class="shot-k">Fluxo</span>
+        <div class="shot-t">KANBAN<br>BOARD</div>
+        <p class="shot-p">Gestão visual de tarefas com colunas, cards e priorização direta pelo quadro.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.36s">
+      <img src="docs/screenshots/scrum_solar.png" alt="Módulo Scrum do ProEng no tema solar">
+      <div class="shot-meta">
+        <span class="shot-k">Agile</span>
+        <div class="shot-t">SCRUM<br>SPRINT</div>
+        <p class="shot-p">Sprint board com backlog, story points e acompanhamento visual da execução.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.4s">
+      <img src="docs/screenshots/pdca_solar.png" alt="Módulo PDCA do ProEng no tema solar">
+      <div class="shot-meta">
+        <span class="shot-k">Melhoria</span>
+        <div class="shot-t">PDCA<br>CYCLE</div>
+        <p class="shot-p">Ciclo de melhoria contínua em layout circular com quadrantes interativos.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#api" style="transition-delay:.44s">
+      <img src="docs/screenshots/script_solar.png" alt="Módulo Script Engineer do ProEng no tema solar">
+      <div class="shot-meta">
+        <span class="shot-k">Simulação</span>
+        <div class="shot-t">SCRIPT<br>ENGINEER</div>
+        <p class="shot-p">Editor Python embutido para cálculos, automações e gráficos de engenharia.</p>
       </div>
     </a>
   </div>

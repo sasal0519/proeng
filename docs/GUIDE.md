@@ -4,6 +4,60 @@ Este documento fornece guias passo a passo para utilizar cada módulo do ProEng,
 
 ---
 
+## Galeria Visual
+
+Capturas geradas no tema Solar, preservando a linguagem neo-brutalista do ProEng.
+
+### Página Inicial
+
+![Página inicial do ProEng](screenshots/welcome_solar.png)
+
+### Flowsheet
+
+![Módulo Flowsheet](screenshots/flowsheet_solar.png)
+
+### BPMN
+
+![Módulo BPMN](screenshots/bpmn_solar.png)
+
+### EAP / WBS
+
+![Módulo EAP / WBS](screenshots/eap_solar.png)
+
+### PM Canvas
+
+![Módulo PM Canvas](screenshots/canvas_solar.png)
+
+### Ishikawa
+
+![Módulo Ishikawa](screenshots/ishikawa_solar.png)
+
+### 5W2H
+
+![Módulo 5W2H](screenshots/w5h2_solar.png)
+
+### Gantt / CPM
+
+![Módulo Gantt / CPM](screenshots/gantt_solar.png)
+
+### Kanban
+
+![Módulo Kanban](screenshots/kanban_solar.png)
+
+### Scrum
+
+![Módulo Scrum](screenshots/scrum_solar.png)
+
+### PDCA
+
+![Módulo PDCA](screenshots/pdca_solar.png)
+
+### Script Engineer
+
+![Módulo Script Engineer](screenshots/script_solar.png)
+
+---
+
 ## 1. Flowsheet —” Diagrama de Processo (PFD)
 
 O módulo Flowsheet permite criar diagramas de processos industriais com balanço de massa automático. É ideal paraengenheiros de processo que precisam modelar e simular plantas industriais, desde unidades simples até processos complexos com múltiplas correntes e equipamentos.
