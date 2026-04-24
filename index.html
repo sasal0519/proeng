@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ProEng e uma suite desktop de engenharia industrial e gestao de projetos com 11 modulos independentes, 14 temas, diagramas de alta fidelidade e arquitetura modular em Python + PyQt5.">
+<meta name="theme-color" content="#080808">
+<meta property="og:title" content="ProEng v2.0 - Suite de Engenharia Industrial">
+<meta property="og:description" content="Modelagem de processos, planejamento tecnico e gestao estrategica em uma unica suite visual com Python + PyQt5.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:image" content="proeng/resources/screenshots/welcome_dark.png">
 <title>ProEng v2.0 — Suite de Engenharia Industrial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
@@ -33,6 +40,9 @@
 html{scroll-behavior:smooth}
 body{font-family:var(--ff-b);background:var(--paper);color:var(--ink);overflow-x:hidden;cursor:crosshair}
 ::selection{background:var(--acid);color:var(--ink)}
+a{color:inherit}
+a:focus-visible,button:focus-visible{outline:3px solid var(--cyan);outline-offset:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* grid texture */
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -125,6 +135,23 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
         color:var(--ink);padding:0 2rem;display:inline-flex;align-items:center;gap:2rem}
 .t-dot{display:inline-block;width:4px;height:4px;background:rgba(0,0,0,.3)}
 @keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ── SHOWCASE ─────────────────────────────────────── */
+#showcase{background:var(--steel2)}
+#showcase .s-head{border-color:rgba(0,255,204,.1)}
+#showcase .s-title{color:var(--paper)}
+#showcase .s-num{color:rgba(255,255,255,.025)}
+#showcase .s-aside p{color:rgba(240,237,220,.36)}
+#showcase .s-tag{color:rgba(0,255,204,.45)}
+.shot-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:var(--fat);border-left:var(--fat)}
+.shot{position:relative;display:block;min-height:320px;background:var(--ink);border-right:var(--fat);border-bottom:var(--fat);overflow:hidden;text-decoration:none}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.94) contrast(1.03);transition:transform .32s var(--ease),filter .32s var(--ease)}
+.shot:hover img{transform:scale(1.04);filter:saturate(1.05) contrast(1.08)}
+.shot::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,8,.88),rgba(8,8,8,.08) 45%,rgba(8,8,8,0) 70%)}
+.shot-meta{position:absolute;left:1.4rem;right:1.4rem;bottom:1.3rem;z-index:1}
+.shot-k{font-family:var(--ff-m);font-size:.56rem;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);display:block;margin-bottom:.5rem}
+.shot-t{font-family:var(--ff-h);font-size:2rem;line-height:.92;letter-spacing:1px;color:var(--paper)}
+.shot-p{font-size:.78rem;line-height:1.55;color:rgba(240,237,220,.66);margin-top:.55rem;max-width:28ch}
 
 /* ── SECTION SCAFFOLD ─────────────────────────────── */
 .s{position:relative;z-index:1}
@@ -399,8 +426,14 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
     transition:opacity .55s var(--ease),transform .55s var(--ease)}
 .rv.in{opacity:1;transform:none}
 
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media(max-width:1100px){
+  .shot-grid{grid-template-columns:repeat(2,1fr)}
   .mod-grid{grid-template-columns:repeat(3,1fr)}
   .ft-cols{grid-template-columns:1fr 1fr}
 }
@@ -418,6 +451,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   .gh-inner{flex-direction:column}
 }
 @media(max-width:600px){
+  .shot-grid{grid-template-columns:1fr}
   .mod-grid{grid-template-columns:1fr}
   .metrics{flex-wrap:wrap;gap:1.5rem}
   .metric{border:none;margin:0;padding:0}
@@ -425,11 +459,13 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 </style>
 </head>
 <body>
+<a href="#content" class="sr-only">Pular para o conteudo</a>
 
 <!-- NAV -->
-<nav>
+<nav aria-label="Principal">
   <a class="logo" href="#">PRO<em>ENG</em><sup>v2.0</sup></a>
   <ul class="nav-links">
+    <li><a href="#showcase">Interface</a></li>
     <li><a href="#modules">Módulos</a></li>
     <li><a href="#philosophy">Filosofia</a></li>
     <li><a href="#themes">Temas</a></li>
@@ -440,6 +476,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   </ul>
   <span class="nav-pill">GNU GPLv3</span>
 </nav>
+<main id="content">
 
 
 <!-- ═══ HERO ═══════════════════════════════════════ -->
@@ -447,8 +484,9 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   <div class="hero-left">
     <div class="eyebrow">Engenharia Industrial &amp; Gestão de Projeto</div>
 
-    <div class="h-title">PRO</div>
-    <span class="h-title-eng">ENG</span>
+    <h1 class="sr-only">ProEng v2.0 - Suite de Engenharia Industrial</h1>
+    <div class="h-title" aria-hidden="true">PRO</div>
+    <span class="h-title-eng" aria-hidden="true">ENG</span>
     <div class="h-ver">SUITE v2.0 &mdash; INDUSTRIAL</div>
 
     <p class="h-desc">
@@ -459,8 +497,8 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
     </p>
 
     <div class="cta">
-      <a href="https://github.com/sasal0519/proeng" target="_blank" class="btn btn-a">Acessar o GitHub</a>
-      <a href="#modules" class="btn btn-g">Ver os 11 Módulos</a>
+      <a href="https://github.com/sasal0519/proeng" target="_blank" rel="noopener noreferrer" class="btn btn-a">Acessar o GitHub</a>
+      <a href="#showcase" class="btn btn-g">Ver a Interface</a>
     </div>
 
     <div class="metrics">
@@ -608,14 +646,77 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 
 <!-- TICKER -->
 <div class="ticker-wrap">
-  <div class="ticker-track" id="ticker"></div>
+  <div class="ticker-track" id="ticker" aria-hidden="true"></div>
 </div>
 
 
 <!-- ═══ MODULES ═════════════════════════════════════ -->
-<section id="modules" class="s">
+<!-- ═══ SHOWCASE ════════════════════════════════════ -->
+<section id="showcase" class="s">
   <div class="s-head">
     <span class="s-num">01</span>
+    <h2 class="s-title">Interface<br>em Uso</h2>
+    <div class="s-aside">
+      <span class="s-tag">Screenshots Reais</span>
+      <p>Telas reais do produto para mostrar o que o ProEng entrega na prática: navegação, modelagem, planejamento e diagramas com a identidade visual original do projeto.</p>
+    </div>
+  </div>
+
+  <div class="shot-grid">
+    <a class="shot rv" href="#modules">
+      <img src="proeng/resources/screenshots/welcome_dark.png" alt="Tela inicial do ProEng no tema escuro com galeria de módulos">
+      <div class="shot-meta">
+        <span class="shot-k">Hub Inicial</span>
+        <div class="shot-t">WELCOME<br>DARK</div>
+        <p class="shot-p">Entrada da suite com seleção visual dos módulos e linguagem neo-brutalista consistente.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.04s">
+      <img src="proeng/resources/screenshots/flowsheet_dark.png" alt="Módulo Flowsheet do ProEng com diagrama de processo em tema escuro">
+      <div class="shot-meta">
+        <span class="shot-k">Processos</span>
+        <div class="shot-t">FLOWSHEET<br>PFD</div>
+        <p class="shot-p">Modelagem de fluxo com equipamentos, correntes e base para balanço de massa.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.08s">
+      <img src="proeng/resources/screenshots/bpmn_dark.png" alt="Módulo BPMN do ProEng em tema escuro com swimlanes e conectores">
+      <div class="shot-meta">
+        <span class="shot-k">Operações</span>
+        <div class="shot-t">BPMN<br>MODELER</div>
+        <p class="shot-p">Fluxos operacionais com swimlanes, gateways e conexões orientadas por processo.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#themes" style="transition-delay:.12s">
+      <img src="proeng/resources/screenshots/canvas_light.png" alt="Módulo PM Canvas do ProEng em tema claro">
+      <div class="shot-meta">
+        <span class="shot-k">Planejamento</span>
+        <div class="shot-t">PM<br>CANVAS</div>
+        <p class="shot-p">Quadro visual para organizar entregas, riscos, recursos e estratégia em uma única vista.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.16s">
+      <img src="proeng/resources/screenshots/eap_light.png" alt="Módulo EAP do ProEng em tema claro com estrutura analítica do projeto">
+      <div class="shot-meta">
+        <span class="shot-k">Estrutura</span>
+        <div class="shot-t">EAP<br>WBS</div>
+        <p class="shot-p">Decomposição hierárquica do trabalho para planejar escopo com clareza operacional.</p>
+      </div>
+    </a>
+    <a class="shot rv" href="#modules" style="transition-delay:.2s">
+      <img src="proeng/resources/screenshots/ishikawa_dark.png" alt="Módulo Ishikawa do ProEng em tema escuro com diagrama de causa e efeito">
+      <div class="shot-meta">
+        <span class="shot-k">Qualidade</span>
+        <div class="shot-t">ISHIKAWA<br>6M</div>
+        <p class="shot-p">Análise visual de causas para investigação técnica e melhoria contínua.</p>
+      </div>
+    </a>
+  </div>
+</section>
+
+<section id="modules" class="s">
+  <div class="s-head">
+    <span class="s-num">02</span>
     <h2 class="s-title">11 Módulos<br>Independentes</h2>
     <div class="s-aside">
       <span class="s-tag">Arquitetura Plugin</span>
@@ -722,7 +823,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 <!-- ═══ PHILOSOPHY ══════════════════════════════════ -->
 <section id="philosophy" class="s dk">
   <div class="s-head">
-    <span class="s-num">02</span>
+    <span class="s-num">03</span>
     <h2 class="s-title">Filosofia<br>de Projeto</h2>
     <div class="s-aside">
       <span class="s-tag">Design Industrial Criativo</span>
@@ -744,7 +845,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 <!-- ═══ THEMES ═══════════════════════════════════════ -->
 <section id="themes" class="s">
   <div class="s-head">
-    <span class="s-num">03</span>
+    <span class="s-num">04</span>
     <h2 class="s-title">14 Temas<br>Visuais</h2>
     <div class="s-aside">
       <span class="s-tag">Multi-Theme System</span>
@@ -774,7 +875,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 <!-- ═══ ARCHITECTURE ════════════════════════════════ -->
 <section id="architecture" class="s">
   <div class="s-head">
-    <span class="s-num">04</span>
+    <span class="s-num">05</span>
     <h2 class="s-title">Arquitetura<br>do Sistema</h2>
     <div class="s-aside">
       <span class="s-tag">Plugin Architecture</span>
@@ -830,7 +931,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
 <!-- ═══ API ══════════════════════════════════════════ -->
 <section id="api" class="s">
   <div class="s-head">
-    <span class="s-num">05</span>
+    <span class="s-num">06</span>
     <h2 class="s-title" style="color:var(--paper)">Referência<br>de API</h2>
     <div class="s-aside">
       <span class="s-tag" style="color:rgba(0,255,204,.4)">Python 3 + PyQt5</span>
@@ -957,14 +1058,15 @@ widget.mover_item.<span class="fn">connect</span>(<span class="kw">lambda</span>
     <div class="inst-l">
       <p class="inst-pre">Instalação</p>
       <h2 class="inst-t">RODE<br>EM 4<br>PASSOS</h2>
-      <p class="inst-d">Apenas uma dependência externa. Funciona em Windows 10/11, Linux (Ubuntu/Debian) e macOS. Resolução mínima 1366&times;768px.</p>
+      <p class="inst-d">Instalação direta via <code>requirements.txt</code>, cobrindo interface, exportação Excel e stack numérica do projeto. Funciona em Windows 10/11, Linux (Ubuntu/Debian) e macOS.</p>
       <div class="req-pills">
         <span class="req">Python 3.8+</span>
-        <span class="req">PyQt5</span>
+        <span class="req">requirements.txt</span>
+        <span class="req">PyQt5 + openpyxl</span>
         <span class="req">Windows &middot; Linux &middot; macOS</span>
         <span class="req">1366&times;768 min.</span>
       </div>
-      <a href="https://github.com/sasal0519/proeng" target="_blank" class="btn btn-a" style="background:var(--ink);border-color:var(--ink);color:var(--acid);box-shadow:6px 6px 0 rgba(0,0,0,.3)">Acessar github.com/sasal0519/proeng</a>
+      <a href="https://github.com/sasal0519/proeng" target="_blank" rel="noopener noreferrer" class="btn btn-a" style="background:var(--ink);border-color:var(--ink);color:var(--acid);box-shadow:6px 6px 0 rgba(0,0,0,.3)">Acessar github.com/sasal0519/proeng</a>
     </div>
 
     <div class="inst-r">
@@ -983,8 +1085,8 @@ cd proeng</div></div>
       </div>
       <div class="step rv" style="transition-delay:.2s">
         <span class="step-n">03</span>
-        <div class="step-b"><div class="step-l">Instalar dependência</div>
-        <div class="step-c">pip install pyqt5</div></div>
+        <div class="step-b"><div class="step-l">Instalar dependências</div>
+        <div class="step-c">pip install -r requirements.txt</div></div>
       </div>
       <div class="step rv" style="transition-delay:.3s">
         <span class="step-n">04</span>
@@ -1002,7 +1104,7 @@ python -m proeng.modules.flowsheet</div></div>
 <!-- ═══ SHORTCUTS ════════════════════════════════════ -->
 <section id="shortcuts" class="s">
   <div class="s-head">
-    <span class="s-num">06</span>
+    <span class="s-num">07</span>
     <h2 class="s-title">Atalhos<br>de Teclado</h2>
     <div class="s-aside">
       <span class="s-tag">Power User</span>
@@ -1062,16 +1164,17 @@ python -m proeng.modules.flowsheet</div></div>
     <div class="gh-right">
       <div class="gh-url-box">
         <svg class="gh-url-icon" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        <a class="gh-url-txt" href="https://github.com/sasal0519/proeng" target="_blank">github.com/sasal0519/proeng</a>
+        <a class="gh-url-txt" href="https://github.com/sasal0519/proeng" target="_blank" rel="noopener noreferrer">github.com/sasal0519/proeng</a>
       </div>
       <div class="gh-meta">Fork &middot; Pull Request &middot; Issues &middot; GNU GPLv3</div>
-      <a href="https://github.com/sasal0519/proeng" target="_blank" class="btn btn-a">Abrir no GitHub</a>
+      <a href="https://github.com/sasal0519/proeng" target="_blank" rel="noopener noreferrer" class="btn btn-a">Abrir no GitHub</a>
     </div>
   </div>
 </section>
 
 
 <!-- ═══ FOOTER ═══════════════════════════════════════ -->
+</main>
 <footer>
   <div class="ft-cols">
     <div class="ft-col">
@@ -1098,7 +1201,7 @@ python -m proeng.modules.flowsheet</div></div>
     <div class="ft-col">
       <div class="ft-ct">Links</div>
       <ul class="ft-links">
-        <li><a href="https://github.com/sasal0519/proeng" target="_blank">GitHub</a></li>
+        <li><a href="https://github.com/sasal0519/proeng" target="_blank" rel="noopener noreferrer">GitHub</a></li>
         <li><a href="#architecture">Arquitetura</a></li>
         <li><a href="#api">Referência API</a></li>
         <li><a href="#install">Instalação</a></li>
