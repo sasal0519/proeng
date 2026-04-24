@@ -1,99 +1,201 @@
-graph TB
+flowchart TB
 
+    %% ============================================================
+    %% PROENG ARCHITECTURE
+    %% Shell -> Core -> Module Wrappers -> Inner Widgets
+    %% ============================================================
 
-    %% ──────────────────────────────────────────────
-    %%  UI LAYER
-    %% ──────────────────────────────────────────────
-    subgraph UI["  UI LAYER  "]
-        MA["**MainApp**<br/>Ponto de entrada"]
-        NB["**NavBar**<br/>Navegação global"]
-        WS["**WelcomeScreen**<br/>Tela inicial"]
+    subgraph APP["APPLICATION SHELL"]
+        MA["MainApp<br/>QMainWindow facade"]
+        ST["QStackedWidget<br/>lazy navigation host"]
     end
 
-    %% ──────────────────────────────────────────────
-    %%  CORE LAYER
-    %% ──────────────────────────────────────────────
-    subgraph CORE["  CORE LAYER  "]
-        TH["**Themes**<br/>14 temas — Estilo global"]
-        PR["**Project**<br/>Persistência — Estado do app"]
-        UT["**Utils**<br/>Export — Ferramentas"]
-        BM["**BaseModule**<br/>Interface base — Contrato dos módulos"]
+    subgraph UI["UI ENTRYPOINTS"]
+        NB["NavBar<br/>navigation + theme + help"]
+        WS["WelcomeScreen<br/>home + launcher"]
     end
 
-    %% ──────────────────────────────────────────────
-    %%  11 MÓDULOS
-    %% ──────────────────────────────────────────────
-    subgraph MOD["  11 MÓDULOS  "]
-        G["**Gantt**<br/>Cronograma"]
-        F["**Flowsheet**<br/>Fluxogramas"]
-        B["**BPMN**<br/>Processos"]
-        E["**EAP**<br/>Estrutura"]
-        C["**Canvas**<br/>Modelo de negócio"]
-        W["**W5H2**<br/>Análise"]
-        I["**Ishikawa**<br/>Causa e efeito"]
-        K["**Kanban**<br/>Tarefas visuais"]
-        SC["**Scrum**<br/>Sprint board"]
-        P["**PDCA**<br/>Melhoria contínua"]
-        S["**Script**<br/>Roteiros"]
+    subgraph CORE["CORE SERVICES"]
+        TH["themes.py<br/>T() + set_theme() + cycle_theme()"]
+        AP["AppProject<br/>JSON .proeng persistence"]
+        BM["BaseModule<br/>get_state / set_state / refresh_theme / get_view"]
+        UT["utils.py<br/>export + helpers"]
     end
 
-    %% ──────────────────────────────────────────────
-    %%  RELAÇÕES
-    %% ──────────────────────────────────────────────
-    MA  -->|"controla"| NB
-    MA  -->|"contém"| WS
-    MA  -->|"usa"| TH
-    MA  -->|"usa"| PR
-    MA  -->|"usa"| UT
-    TH  -->|"propaga para"| NB
-    TH  -->|"propaga para"| WS
-    NB  -->|"toggle tema"| TH
-    WS  -->|"carrega módulo"| MA
-    G  -.->|"implementa"| BM
-    F  -.->|"implementa"| BM
-    B  -.->|"implementa"| BM
-    E  -.->|"implementa"| BM
-    C  -.->|"implementa"| BM
-    W  -.->|"implementa"| BM
-    I  -.->|"implementa"| BM
-    K  -.->|"implementa"| BM
-    SC -.->|"implementa"| BM
-    P  -.->|"implementa"| BM
-    S  -.->|"implementa"| BM
-    G  -->|"persiste"| PR
-    F  -->|"persiste"| PR
-    B  -->|"persiste"| PR
-    E  -->|"persiste"| PR
-    C  -->|"persiste"| PR
-    W  -->|"persiste"| PR
-    I  -->|"persiste"| PR
-    K  -->|"persiste"| PR
-    SC -->|"persiste"| PR
-    P  -->|"persiste"| PR
-    S  -->|"persiste"| PR
-    G  -->|"tema"| TH
-    F  -->|"tema"| TH
-    B  -->|"tema"| TH
-    E  -->|"tema"| TH
-    C  -->|"tema"| TH
-    W  -->|"tema"| TH
-    I  -->|"tema"| TH
-    K  -->|"tema"| TH
-    SC -->|"tema"| TH
-    P  -->|"tema"| TH
-    S  -->|"tema"| TH
+    subgraph WRAPPERS["MODULE WRAPPERS (BaseModule)"]
+        FM["_FlowsheetModule"]
+        GM["_GanttModule"]
+        EM["_EAPModule"]
+        BPM["_BPMNModule"]
+        CM["_CanvasModule"]
+        IM["_IshikawaModule"]
+        WM["_W5H2Module"]
+        KM["_ModuloKanban"]
+        SM["_ScrumModule"]
+        PM["_PDCAModule"]
+        SYM["_ScriptModule"]
+    end
 
-    %% ──────────────────────────────────────────────
-    %%  ESTILOS — NEO BRUTALISM
-    %% ──────────────────────────────────────────────
-    classDef ui    fill:#FFE500,stroke:#000000,stroke-width:8px,color:#000000,font-size:20px
-    classDef core  fill:#0057FF,stroke:#000000,stroke-width:8px,color:#ffffff,font-size:20px
-    classDef mod   fill:#FF006E,stroke:#000000,stroke-width:7px,color:#ffffff,font-size:18px
+    subgraph WIDGETS["INNER VISUAL WIDGETS"]
+        FW["FlowsheetWidget"]
+        GW["GanttWidget"]
+        EW["EAPWidget"]
+        BW["BPMNAutoWidget"]
+        CW["PMCanvasWidget"]
+        IW["IshikawaWidget"]
+        WW["W5H2Widget"]
+        KW["WidgetKanban"]
+        SW["ScrumWidget"]
+        PW["WidgetPDCAView"]
+        YW["EditorInterpretadorWidget"]
+    end
 
-    class MA,NB,WS ui
-    class TH,PR,UT,BM core
-    class G,F,B,E,C,W,I,K,SC,P,S mod
+    subgraph CROSSCUT["CROSS-CUTTING FLOWS"]
+        PERSIST["Project lifecycle<br/>save / load / restore module state"]
+        THEMEFLOW["Theme propagation<br/>NavBar -> MainApp -> widgets + scenes"]
+        LAZY["Lazy loading<br/>_get_or_create_module() on first access"]
+    end
 
-    style UI   fill:#FFE500,stroke:#000000,stroke-width:10px,color:#000000,font-size:26px
+    %% ============================================================
+    %% APP / UI RELATIONSHIPS
+    %% ============================================================
+    MA -->|"owns"| NB
+    MA -->|"owns"| WS
+    MA -->|"hosts"| ST
+
+    NB -->|"navigate / request example / toggle theme"| MA
+    WS -->|"open_module / new_project / open_project"| MA
+
+    MA -->|"creates on demand"| LAZY
+    LAZY --> FM
+    LAZY --> GM
+    LAZY --> EM
+    LAZY --> BPM
+    LAZY --> CM
+    LAZY --> IM
+    LAZY --> WM
+    LAZY --> KM
+    LAZY --> SM
+    LAZY --> PM
+    LAZY --> SYM
+
+    ST -->|"shows"| WS
+    ST -->|"shows"| FM
+    ST -->|"shows"| GM
+    ST -->|"shows"| EM
+    ST -->|"shows"| BPM
+    ST -->|"shows"| CM
+    ST -->|"shows"| IM
+    ST -->|"shows"| WM
+    ST -->|"shows"| KM
+    ST -->|"shows"| SM
+    ST -->|"shows"| PM
+    ST -->|"shows"| SYM
+
+    %% ============================================================
+    %% CORE RELATIONSHIPS
+    %% ============================================================
+    MA -->|"uses"| TH
+    MA -->|"uses"| AP
+    MA -->|"uses"| UT
+
+    NB -->|"requests theme refresh"| TH
+    WS -->|"reads previews + opens modules"| MA
+
+    PERSIST --> AP
+    MA -->|"coordinates"| PERSIST
+
+    THEMEFLOW --> TH
+    MA -->|"propagates"| THEMEFLOW
+    NB -->|"starts"| THEMEFLOW
+
+    %% ============================================================
+    %% BASEMODULE CONTRACT
+    %% ============================================================
+    FM -.->|"implements"| BM
+    GM -.->|"implements"| BM
+    EM -.->|"implements"| BM
+    BPM -.->|"implements"| BM
+    CM -.->|"implements"| BM
+    IM -.->|"implements"| BM
+    WM -.->|"implements"| BM
+    KM -.->|"implements"| BM
+    SM -.->|"implements"| BM
+    PM -.->|"implements"| BM
+    SYM -.->|"implements"| BM
+
+    %% ============================================================
+    %% WRAPPER -> INNER WIDGET
+    %% ============================================================
+    FM -->|"wraps _inner"| FW
+    GM -->|"wraps _inner"| GW
+    EM -->|"wraps _inner"| EW
+    BPM -->|"wraps _inner"| BW
+    CM -->|"wraps _inner"| CW
+    IM -->|"wraps _inner"| IW
+    WM -->|"wraps _inner"| WW
+    KM -->|"wraps _inner"| KW
+    SM -->|"wraps _inner"| SW
+    PM -->|"wraps _inner"| PW
+    SYM -->|"wraps _inner"| YW
+
+    %% ============================================================
+    %% CROSS-CUTTING DEPENDENCIES
+    %% ============================================================
+    FM -->|"get_state / set_state"| AP
+    GM -->|"get_state / set_state"| AP
+    EM -->|"get_state / set_state"| AP
+    BPM -->|"get_state / set_state"| AP
+    CM -->|"get_state / set_state"| AP
+    IM -->|"get_state / set_state"| AP
+    WM -->|"get_state / set_state"| AP
+    KM -->|"get_state / set_state"| AP
+    SM -->|"get_state / set_state"| AP
+    PM -->|"get_state / set_state"| AP
+    SYM -->|"get_state / set_state"| AP
+
+    TH -->|"refresh_theme"| NB
+    TH -->|"refresh_theme"| WS
+    TH -->|"refresh_theme"| FM
+    TH -->|"refresh_theme"| GM
+    TH -->|"refresh_theme"| EM
+    TH -->|"refresh_theme"| BPM
+    TH -->|"refresh_theme"| CM
+    TH -->|"refresh_theme"| IM
+    TH -->|"refresh_theme"| WM
+    TH -->|"refresh_theme"| KM
+    TH -->|"refresh_theme"| SM
+    TH -->|"refresh_theme"| PM
+    TH -->|"refresh_theme"| SYM
+
+    UT -->|"export helpers"| FM
+    UT -->|"export helpers"| GM
+    UT -->|"export helpers"| BPM
+    UT -->|"export helpers"| EM
+    UT -->|"export helpers"| IM
+    UT -->|"export helpers"| WM
+    UT -->|"export helpers"| PM
+
+    %% ============================================================
+    %% STYLES - NEO BRUTALIST
+    %% ============================================================
+    classDef app fill:#FFE500,stroke:#000000,stroke-width:8px,color:#000000,font-size:20px
+    classDef ui fill:#C8FF00,stroke:#000000,stroke-width:7px,color:#000000,font-size:18px
+    classDef core fill:#0057FF,stroke:#000000,stroke-width:8px,color:#ffffff,font-size:18px
+    classDef wrap fill:#FF5500,stroke:#000000,stroke-width:7px,color:#ffffff,font-size:17px
+    classDef widget fill:#FF006E,stroke:#000000,stroke-width:7px,color:#ffffff,font-size:17px
+    classDef cross fill:#00D5FF,stroke:#000000,stroke-width:7px,color:#000000,font-size:17px
+
+    class MA,ST app
+    class NB,WS ui
+    class TH,AP,BM,UT core
+    class FM,GM,EM,BPM,CM,IM,WM,KM,SM,PM,SYM wrap
+    class FW,GW,EW,BW,CW,IW,WW,KW,SW,PW,YW widget
+    class PERSIST,THEMEFLOW,LAZY cross
+
+    style APP fill:#FFE500,stroke:#000000,stroke-width:10px,color:#000000,font-size:26px
+    style UI fill:#C8FF00,stroke:#000000,stroke-width:10px,color:#000000,font-size:26px
     style CORE fill:#0057FF,stroke:#000000,stroke-width:10px,color:#ffffff,font-size:26px
-    style MOD  fill:#FF006E,stroke:#000000,stroke-width:10px,color:#ffffff,font-size:26px
+    style WRAPPERS fill:#FF5500,stroke:#000000,stroke-width:10px,color:#ffffff,font-size:26px
+    style WIDGETS fill:#FF006E,stroke:#000000,stroke-width:10px,color:#ffffff,font-size:26px
+    style CROSSCUT fill:#00D5FF,stroke:#000000,stroke-width:10px,color:#000000,font-size:26px
