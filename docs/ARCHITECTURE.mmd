@@ -1,17 +1,15 @@
 %%{init: {
-  "theme": "base",
+  "theme": "dark",
   "flowchart": { "curve": "basis", "nodeSpacing": 40, "rankSpacing": 56 },
   "themeVariables": {
-    "primaryColor":       "#FFE500",
-    "primaryTextColor":   "#000000",
-    "primaryBorderColor": "#000000",
-    "secondaryColor":     "#C8FF00",
-    "tertiaryColor":      "#D6E8FF",
-    "lineColor":          "#000000",
-    "edgeLabelBackground":"#ffffff",
-    "clusterBkg":         "#f7f7f5",
-    "clusterBorder":      "#000000",
-    "titleColor":         "#000000",
+    "background":         "#000000",
+    "mainBkg":            "#000000",
+    "edgeLabelBackground":"#000000",
+    "clusterBkg":         "#111111",
+    "clusterBorder":      "#ffffff",
+    "lineColor":          "#ffffff",
+    "titleColor":         "#ffffff",
+    "nodeTextColor":      "#ffffff",
     "fontFamily":         "monospace",
     "fontSize":           "13px"
   }
@@ -31,7 +29,7 @@ flowchart TB
   subgraph CORE["CORE SERVICES"]
     TH{{"themes.py\nT() · set_theme() · cycle_theme()"}}
     AP[("AppProject\nJSON .proeng persistence")]
-    BM[/"BaseModule\nget_state · set_state · refresh_theme · get_view"/]
+    BM[/"BaseModule\nget_state · set_state · refresh_theme"/]
     UT>"utils.py · export helpers"]
   end
 
@@ -71,26 +69,26 @@ flowchart TB
     THEMEFLOW[/"Theme propagation\nrefresh_theme()"/]
   end
 
-  %% ── App / UI ──────────────────────────────────────────────────
+  %% App / UI
   NB -->|"navigate / toggle theme"| MA
   WS -->|"open / new / load project"| MA
   MA -->|hosts| ST
   ST -->|shows| WS
   ST -->|shows| MODS
 
-  %% ── Core wiring ───────────────────────────────────────────────
+  %% Core wiring
   MA -->|uses| TH
   MA -->|uses| AP
   MA -->|uses| UT
   MA -->|orchestrates| LAZY
 
-  %% ── Lazy → wrappers ───────────────────────────────────────────
+  %% Lazy → wrappers
   LAZY -->|"instantiates on demand"| MODS
 
-  %% ── BaseModule contract ───────────────────────────────────────
+  %% BaseModule contract
   MODS -.->|implements| BM
 
-  %% ── Wrapper → inner widget ────────────────────────────────────
+  %% Wrapper → inner widget
   FM --- FW
   GM --- GW
   EM --- EW
@@ -103,26 +101,29 @@ flowchart TB
   PM --- PW
   SYM --- YW
 
-  %% ── Persistence ───────────────────────────────────────────────
-  AP <-->|save · restore| PERSIST
-  PERSIST -->|state snapshots| MODS
+  %% Persistence
+  AP <-->|"save · restore"| PERSIST
+  PERSIST -->|"state snapshots"| MODS
 
-  %% ── Theme propagation ─────────────────────────────────────────
+  %% Theme propagation
   TH -->|refresh| THEMEFLOW
-  THEMEFLOW -->|applies to| NB
-  THEMEFLOW -->|applies to| WS
-  THEMEFLOW -->|applies to| MODS
+  THEMEFLOW -->|"applies to"| NB
+  THEMEFLOW -->|"applies to"| WS
+  THEMEFLOW -->|"applies to"| MODS
 
-  %% ── Export helpers ────────────────────────────────────────────
+  %% Export helpers
   UT -->|export| FW & GW & EW & IW & WW & PW
 
-  %% ── Styles ────────────────────────────────────────────────────
-  classDef shell  fill:#FFE500,stroke:#000,stroke-width:4px,color:#000,font-weight:600
-  classDef entry  fill:#C8FF00,stroke:#000,stroke-width:3px,color:#000
-  classDef core   fill:#0057FF,stroke:#000,stroke-width:3px,color:#fff,font-weight:600
-  classDef wrap   fill:#FF5500,stroke:#000,stroke-width:2px,color:#fff
-  classDef widget fill:#FF006E,stroke:#000,stroke-width:2px,color:#fff
-  classDef cross  fill:#00D5FF,stroke:#000,stroke-width:2px,color:#000
+  %% Force all edges white
+  linkStyle default stroke:#ffffff,stroke-width:1.8px,fill:none
+
+  %% Node styles — fills escuros com bordas brancas
+  classDef shell  fill:#2a2200,stroke:#ffffff,stroke-width:3px,color:#FFE500,font-weight:600
+  classDef entry  fill:#1a2b00,stroke:#ffffff,stroke-width:2px,color:#C8FF00
+  classDef core   fill:#001a4d,stroke:#ffffff,stroke-width:3px,color:#7ab3ff,font-weight:600
+  classDef wrap   fill:#3a1200,stroke:#ffffff,stroke-width:2px,color:#ff9066
+  classDef widget fill:#3a0020,stroke:#ffffff,stroke-width:2px,color:#ff66b0
+  classDef cross  fill:#003a40,stroke:#ffffff,stroke-width:2px,color:#00D5FF
 
   class MA,ST shell
   class NB,WS entry
