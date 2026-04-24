@@ -318,6 +318,19 @@ pre{font-family:var(--ff-m);font-size:.72rem;line-height:2.05;
 
 /* ── API ─────────────────────────────────────────── */
 #api{background:#0A0A18}
+.api-lead{display:grid;grid-template-columns:1.15fr .85fr;border-top:1px solid rgba(0,255,204,.06);border-bottom:1px solid rgba(0,255,204,.06)}
+.api-lead-main,.api-lead-side{padding:2.5rem 3rem}
+.api-lead-main{border-right:1px solid rgba(0,255,204,.06)}
+.api-over{font-family:var(--ff-m);font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:rgba(0,255,204,.55);margin-bottom:1rem;display:block}
+.api-copy{font-size:.95rem;line-height:1.78;color:rgba(240,237,220,.56);max-width:62ch}
+.api-copy strong{color:var(--paper);font-weight:600}
+.api-pills{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1.4rem}
+.api-pill{font-family:var(--ff-m);font-size:.58rem;letter-spacing:1.2px;padding:6px 10px;background:rgba(0,255,204,.06);border:1px solid rgba(0,255,204,.14);color:rgba(240,237,220,.72)}
+.api-mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(0,255,204,.06)}
+.api-mini-item{background:#070713;padding:1.2rem}
+.api-mini-k{font-family:var(--ff-m);font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:.45rem}
+.api-mini-v{font-family:var(--ff-h);font-size:1.65rem;line-height:.95;color:var(--paper)}
+.api-mini-p{font-size:.76rem;line-height:1.55;color:rgba(240,237,220,.4);margin-top:.45rem}
 .api-grid{display:grid;grid-template-columns:1fr 1fr;
           border-top:1px solid rgba(0,255,204,.06)}
 .api-block{padding:3rem;border-right:1px solid rgba(0,255,204,.06);
@@ -459,7 +472,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   .hero-left{padding:3.5rem 2.5rem}
   .shot-grid{grid-template-columns:repeat(2,1fr)}
   .mod-grid{grid-template-columns:1fr 1fr}
-  .phil-grid,.arch-wrap,.api-grid,.inst-grid,.kbd-wrap{grid-template-columns:1fr}
+  .phil-grid,.arch-wrap,.api-grid,.inst-grid,.kbd-wrap,.api-lead{grid-template-columns:1fr}
   .ft-cols{grid-template-columns:1fr}
   .s-head{padding:3.5rem 2.5rem 2.5rem;flex-direction:column;align-items:flex-start}
   .s-aside{text-align:left}
@@ -472,9 +485,11 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   nav{padding:0 .9rem}
   .logo{font-size:1.45rem;letter-spacing:3px}
   .logo sup{display:none}
-  .hero-left,.s-head,.inst-l,.inst-r,.arch-tree,.api-block,.gh-inner,.ft-col{padding-left:1.1rem;padding-right:1.1rem}
+  .hero-left,.s-head,.inst-l,.inst-r,.arch-tree,.api-block,.gh-inner,.ft-col,.api-lead-main,.api-lead-side{padding-left:1.1rem;padding-right:1.1rem}
   .hero-left{padding-top:3rem;padding-bottom:3rem}
   .s-num{left:1rem;font-size:5rem}
+  .api-mini{grid-template-columns:1fr}
+  .api-lead-main{border-right:none;border-bottom:1px solid rgba(0,255,204,.06)}
   .shot-grid{grid-template-columns:1fr}
   .shot-grid{border-left:none}
   .shot{min-height:260px;aspect-ratio:16/11;border-left:var(--fat)}
@@ -1023,7 +1038,46 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
     <h2 class="s-title" style="color:var(--paper)">Referência<br>de API</h2>
     <div class="s-aside">
       <span class="s-tag" style="color:rgba(0,255,204,.4)">Python 3 + PyQt5</span>
-      <p>Classes, sinais e interfaces dos módulos principais. API autodocumentada com type hints em todo o codebase.</p>
+      <p>Classes, sinais e interfaces dos módulos principais. Persistência, temas, lazy loading, exportação e contratos de integração descritos a partir do código real do projeto.</p>
+    </div>
+  </div>
+
+  <div class="api-lead">
+    <div class="api-lead-main rv">
+      <span class="api-over">Superfícies Públicas</span>
+      <p class="api-copy">A API do ProEng gira em torno de um núcleo simples e consistente: <strong>cada módulo implementa um contrato serializável</strong>, a aplicação principal faz <strong>orquestração e lazy loading</strong>, e o projeto inteiro pode ser salvo em um único arquivo <code>.proeng</code>. Na prática, isso facilita extensão, documentação interna, carregamento de exemplos, exportação e futuras integrações com automações externas.</p>
+      <div class="api-pills">
+        <span class="api-pill">BaseModule</span>
+        <span class="api-pill">AppProject</span>
+        <span class="api-pill">MainApp</span>
+        <span class="api-pill">QGraphicsView</span>
+        <span class="api-pill">JSON .proeng</span>
+        <span class="api-pill">Signals + Slots</span>
+      </div>
+    </div>
+    <div class="api-lead-side rv" style="transition-delay:.05s">
+      <div class="api-mini">
+        <div class="api-mini-item">
+          <div class="api-mini-k">Módulos</div>
+          <div class="api-mini-v">11</div>
+          <p class="api-mini-p">Todos seguem o mesmo ciclo de estado, tema e renderização.</p>
+        </div>
+        <div class="api-mini-item">
+          <div class="api-mini-k">Schema</div>
+          <div class="api-mini-v">1.1</div>
+          <p class="api-mini-p">Versionamento do arquivo de projeto com upgrade automático.</p>
+        </div>
+        <div class="api-mini-item">
+          <div class="api-mini-k">Tema</div>
+          <div class="api-mini-v">14x</div>
+          <p class="api-mini-p">Troca global com refresh recursivo da interface e das cenas.</p>
+        </div>
+        <div class="api-mini-item">
+          <div class="api-mini-k">Export</div>
+          <div class="api-mini-v">PNG/PDF/XLSX</div>
+          <p class="api-mini-p">Saída visual e tabular para documentação e operação técnica.</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1064,6 +1118,7 @@ widget.node_added.<span class="fn">connect</span>(h)  <span class="co"># node_id
 widget.connection_made.<span class="fn">connect</span>(h) <span class="co"># (src, tgt)</span></div>
       <div class="mlist">
         <div class="mrow"><span class="mn">solve_mass_balance()</span><span class="md">Kahn's algorithm — ordenação topológica de vazões</span></div>
+        <div class="mrow"><span class="mn">export_to_excel()</span><span class="md">Gera planilha XLSX com correntes, componentes, totais e balanço por nó</span></div>
         <div class="mrow"><span class="mn">Stream.flow_data</span><span class="md">dict {componente: vazão_kg_h} por corrente</span></div>
         <div class="mrow"><span class="mn">ProcessNode.split_config</span><span class="md">Configuração de fração por porta e componente</span></div>
       </div>
@@ -1085,6 +1140,7 @@ widget.<span class="fn">add_task</span>(
 widget.<span class="fn">calculate_cpm</span>() <span class="co"># task.critical = True</span></div>
       <div class="mlist">
         <div class="mrow"><span class="mn">calculate_cpm()</span><span class="md">Preenche task.critical e calcula folgas totais</span></div>
+        <div class="mrow"><span class="mn">signals.calculate_cpm</span><span class="md">Sinal Qt usado para disparar o forward/backward pass do cronograma</span></div>
         <div class="mrow"><span class="mn">task.milestone</span><span class="md">Boolean — marca tarefa como marco do projeto</span></div>
       </div>
     </div>
@@ -1104,6 +1160,49 @@ widget.<span class="fn">calculate_cpm</span>() <span class="co"># task.critical 
     <span class="kw">def</span> <span class="fn">refresh_theme</span>(self) -> <span class="nb">None</span>: ...
 
     <span class="kw">def</span> <span class="fn">get_view</span>(self) -> <span class="tp">Optional</span>[<span class="tp">QGraphicsView</span>]: ...</div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">get_state()</span><span class="md">Retorna apenas dados serializáveis, prontos para o arquivo <code>.proeng</code></span></div>
+        <div class="mrow"><span class="mn">set_state(state)</span><span class="md">Reconstrói a interface a partir do snapshot persistido do módulo</span></div>
+        <div class="mrow"><span class="mn">refresh_theme()</span><span class="md">Reaplica paleta e estilo local sem reinstanciar o widget</span></div>
+        <div class="mrow"><span class="mn">get_view()</span><span class="md">Expõe a <code>QGraphicsView</code> quando o módulo oferece canvas exportável</span></div>
+      </div>
+    </div>
+
+    <div class="api-block rv" style="transition-delay:.07s">
+      <div class="api-lbl">Persistência de Projeto &mdash; AppProject</div>
+      <div class="code-box"><span class="kw">from</span> proeng.core.project <span class="kw">import</span> <span class="tp">AppProject</span>
+
+project = <span class="tp">AppProject</span>()
+project.<span class="fn">update_module_state</span>(<span class="st">"flowsheet"</span>, flowsheet.<span class="fn">get_state</span>())
+project.<span class="fn">update_module_state</span>(<span class="st">"gantt"</span>, gantt.<span class="fn">get_state</span>())
+
+project.<span class="fn">save</span>(<span class="st">"planta-alpha.proeng"</span>)
+project.<span class="fn">load</span>(<span class="st">"planta-alpha.proeng"</span>)
+state = project.<span class="fn">get_module_state</span>(<span class="st">"flowsheet"</span>)</div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">update_module_state()</span><span class="md">Sincroniza o snapshot de um módulo antes do save global</span></div>
+        <div class="mrow"><span class="mn">get_module_state()</span><span class="md">Recupera estado por chave para restaurar módulos lazy-loaded</span></div>
+        <div class="mrow"><span class="mn">_upgrade_state_if_needed()</span><span class="md">Normaliza versões antigas e protege a retrocompatibilidade do schema</span></div>
+        <div class="mrow"><span class="mn">has_file</span><span class="md">Informa se o projeto já está associado a um arquivo no disco</span></div>
+      </div>
+    </div>
+
+    <div class="api-block rv" style="transition-delay:.14s">
+      <div class="api-lbl">MainApp &mdash; Orquestração e Lazy Loading</div>
+      <div class="code-box">widget = self.<span class="fn">_get_or_create_module</span>(<span class="st">"canvas"</span>)
+
+<span class="kw">if</span> <span class="fn">hasattr</span>(widget, <span class="st">"set_state"</span>):
+    widget.<span class="fn">set_state</span>(self.project.<span class="fn">get_module_state</span>(<span class="st">"canvas"</span>))
+
+self.<span class="fn">_on_load_example</span>(<span class="st">"mistura_tanque"</span>)
+self.<span class="fn">_navigate_to_module</span>(<span class="st">"flowsheet"</span>)
+fw = self._modules.<span class="fn">get</span>(<span class="st">"flowsheet"</span>)
+fw._inner.<span class="fn">load_example</span>(<span class="st">"mistura_tanque"</span>)</div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">_get_or_create_module()</span><span class="md">Cria wrappers sob demanda e reduz custo inicial da suíte</span></div>
+        <div class="mrow"><span class="mn">_navigate_to_module()</span><span class="md">Troca o contexto visual mantendo o estado ativo no stack interno</span></div>
+        <div class="mrow"><span class="mn">_on_load_example()</span><span class="md">Confirma, navega e injeta exemplos de referência no Flowsheet</span></div>
+      </div>
     </div>
 
     <div class="api-block rv" style="transition-delay:.07s">
@@ -1119,6 +1218,10 @@ W5H2_TYPES = {
     <span class="st">"HOW"</span>:   {<span class="st">"t"</span>: <span class="st">"COMO?"</span>,          <span class="st">"c"</span>: <span class="st">"#1ABC9C"</span>},
     <span class="st">"COST"</span>:  {<span class="st">"t"</span>: <span class="st">"QUANTO?"</span>,        <span class="st">"c"</span>: <span class="st">"#E74C3C"</span>},
 }</div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">W5H2_TYPES</span><span class="md">Mapa declarativo que controla semântica, título e cor de cada ramo</span></div>
+        <div class="mrow"><span class="mn">get_state()/set_state()</span><span class="md">Preserva a árvore de ação dentro do fluxo de projeto persistido</span></div>
+      </div>
     </div>
 
     <div class="api-block rv" style="transition-delay:.14s">
@@ -1135,6 +1238,47 @@ sprint_cols = {
 }
 <span class="co"># Sinal de movimentação</span>
 widget.mover_item.<span class="fn">connect</span>(<span class="kw">lambda</span> f,t,id: ...)</div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">cards / sprint_cols</span><span class="md">Estruturas leves em dict/list, fáceis de serializar, medir e exportar</span></div>
+        <div class="mrow"><span class="mn">mover_item</span><span class="md">Permite observar mudanças de coluna e acoplar automações ou métricas</span></div>
+      </div>
+    </div>
+
+    <div class="api-block rv" style="transition-delay:.035s">
+      <div class="api-lbl">Theme Refresh &mdash; Propagação Global</div>
+      <div class="code-box"><span class="kw">def</span> <span class="fn">_on_theme_toggle_refresh</span>(self):
+    self.<span class="fn">_setup_palette</span>()
+
+    <span class="kw">if</span> <span class="fn">hasattr</span>(self._welcome, <span class="st">"refresh_theme"</span>):
+        self._welcome.<span class="fn">refresh_theme</span>()
+
+    <span class="kw">for</span> mod <span class="kw">in</span> self._modules.<span class="fn">values</span>():
+        mod.<span class="fn">refresh_theme</span>()
+
+        <span class="kw">for</span> gv <span class="kw">in</span> mod.<span class="fn">findChildren</span>(<span class="tp">QGraphicsView</span>):
+            gv.<span class="fn">setBackgroundBrush</span>(...)
+            gv.<span class="fn">scene</span>().<span class="fn">update</span>()</div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">refresh_theme()</span><span class="md">Ponto de entrada local de cada módulo para reaplicar paleta e detalhes gráficos</span></div>
+        <div class="mrow"><span class="mn">findChildren(QGraphicsView)</span><span class="md">Atualiza cenas sem recriar widgets e sem perder estado de edição</span></div>
+        <div class="mrow"><span class="mn">T()["bg_app"]</span><span class="md">Cor base reutilizada em fundos de canvas e áreas de trabalho</span></div>
+      </div>
+    </div>
+
+    <div class="api-block rv" style="transition-delay:.105s">
+      <div class="api-lbl">Script Engineer &mdash; Wrapper de Execução</div>
+      <div class="code-box"><span class="kw">from</span> proeng.modules.script_module <span class="kw">import</span> <span class="tp">_ScriptModule</span>
+
+mod = <span class="tp">_ScriptModule</span>()
+editor = mod._inner
+
+mod.<span class="fn">refresh_theme</span>()
+layout.<span class="fn">addWidget</span>(editor)</div>
+      <div class="mlist">
+        <div class="mrow"><span class="mn">_ScriptModule</span><span class="md">Adaptador fino para encaixar o interpretador no contrato BaseModule</span></div>
+        <div class="mrow"><span class="mn">_inner</span><span class="md">Componente real de edição e interpretação mantido encapsulado no wrapper</span></div>
+        <div class="mrow"><span class="mn">refresh_theme()</span><span class="md">Delegação direta para manter coerência visual com o tema global</span></div>
+      </div>
     </div>
   </div>
 </section>
