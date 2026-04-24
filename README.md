@@ -1,8 +1,6 @@
-╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║                                                                                                            ║
-║                            🌐 ENGLISH VERSION / VERSÃO EM INGLÊS 🌐                                        ║
-║                                                                                                            ║
-╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+                                                                                                         
+                            🌐 ENGLISH VERSION / VERSÃO EM INGLÊS 🌐                                      
 
 ---
 
@@ -471,10 +469,9 @@ Built with Python, Qt Framework, and Precision Engineering
 
 ---
 
-╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║                                                                                                            ║
-║                         🌐 VERSÃO EM PORTUGUÊS / PORTUGUESE VERSION 🌐                                    ║ 
-║                                                                                                            ║
+
+                          🌐 VERSÃO EM PORTUGUÊS / PORTUGUESE VERSION 🌐                                     
+                                                                                                            
 
 ---
 
@@ -561,33 +558,6 @@ Todos os 11 módulos do ProEng (Flowsheet, BPMN, EAP, Canvas, Ishikawa, 5W2H, Ga
 - `set_state(state)`: Reconstitui o ambiente de trabalho a partir de um arquivo salvo.
 - `refresh_theme()`: Informa ao módulo que as cores globais mudaram e ele deve se redesenhar.
 
-### Estrutura do Projeto
-
-```
-PROENG CORE ARCHITECTURE
-┌─────────────────────────────────────────────────────────────────┐
-│  APPLICATION LAYER                                              │
-│  ┌──────────────┐  ┌──────────────┐                             │
-│  │  main_app.py │  │  welcome.py  │                             │
-│  └──────────────┘  └──────────────┘                             │
-├─────────────────────────────────────────────────────────────────┤
-│  CORE ENGINE                                                    │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │
-│  │ themes   │ │  utils   │ │ toolbar  │ │  base_module   │      │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘      │
-├─────────────────────────────────────────────────────────────────┤
-│  MODULE LAYER (10 módulos)                                      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │
-│  │flowsheet │ │   bpmn   │ │   eap    │ │    canvas      │      │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐      │
-│  │ishikawa  │ │  w5h2    │ │  gantt   │ │    kanban      │      │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘      │
-│  ┌──────────┐ ┌──────────┐                                      │
-│  │ scrum    │ │  pdca    │                                      │
-│  └──────────┘ └──────────┘                                      │
-└─────────────────────────────────────────────────────────────────┘
-```
 
 ### Estrutura de Diretórios Detalhada
 
