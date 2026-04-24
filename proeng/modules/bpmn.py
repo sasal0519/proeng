@@ -41,6 +41,7 @@ from PyQt5.QtGui import (
     QIcon,
     QPixmap,
     QPainterPath,
+    QPainterPathStroker,
     QDrag,
 )
 from PyQt5.QtCore import (
@@ -305,6 +306,187 @@ def _nb_paint_geometric_shape(painter, shape_type, rect, border_color, bg_color,
         painter.drawPolygon(poly)
 
 
+class BPMNConnectionLine(QGraphicsItem):
+    """
+    Linha de conexão entre dois nós com supporte a texto no meio.
+    Renderiza a linha (reta ou com curvas) e permite exibir um rótulo (label) no ponto médio.
+    """
+    def __init__(self, p1, p2, label="", zoom=1.0, line_type="solid", color=None, path=None):
+        super().__init__()
+        self.p1 = p1  # QPointF início (usado se path for None)
+        self.p2 = p2  # QPointF fim
+        self.path = path  # QPainterPath opcional (para linhas com curvas)
+        self.label = label  # Texto a exibir no meio
+        self.zoom = zoom
+        self.line_type = line_type  # "solid" ou "dash"
+        self.color = color or QColor("#7367F0")
+        self._hovered = False
+        self.setAcceptHoverEvents(True)
+        self.setAcceptedMouseButtons(Qt.LeftButton | Qt.RightButton)  # Aceitar cliques
+        self.setCursor(Qt.PointingHandCursor)
+        self.connection_key = None
+        self.parent_widget = None
+    
+    @staticmethod
+    def _is_light_theme(theme_dict: dict) -> bool:
+        """
+        Detecta se o tema é claro ou escuro baseado na luminância do bg_app.
+        
+        Args:
+            theme_dict: Dicionário do tema contendo "bg_app"
+            
+        Returns:
+            True se é tema claro, False se é escuro
+        """
+        try:
+            bg_app = theme_dict.get("bg_app", "#FFFFFF")
+            # Converter hex para RGB
+            bg_app = bg_app.lstrip('#')
+            r = int(bg_app[0:2], 16)
+            g = int(bg_app[2:4], 16)
+            b = int(bg_app[4:6], 16)
+            
+            # Calcular luminância relativa (fórmula de luminância)
+            # L = 0.299*R + 0.587*G + 0.114*B
+            luminance = 0.299 * r + 0.587 * g + 0.114 * b
+            
+            # Se luminância > 127.5 (~50%), é claro
+            return luminance > 127.5
+        except Exception:
+            # Default: assumir escuro
+            return False
+        
+    def boundingRect(self):
+        if self.path:
+            return self.path.boundingRect().adjusted(-50, -50, 50, 50)
+        rect = QRectF(self.p1, self.p2)
+        return rect.adjusted(-50, -50, 50, 50)
+    
+    def shape(self):
+        """Aumentar área clicável da linha"""
+        path = QPainterPath()
+        if self.path:
+            # Para paths complexos, usar stroke path para aumentar área
+            stroker = QPainterPathStroker()
+            stroker.setWidth(10)  # Área clicável de 10px
+            return stroker.createStroke(self.path)
+        else:
+            # Para linhas retas, criar área ao redor
+            stroker = QPainterPathStroker()
+            stroker.setWidth(10)  # 10px de área clicável
+            path.moveTo(self.p1)
+            path.lineTo(self.p2)
+            return stroker.createStroke(path)
+    
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Desenhar linha
+        pen_width = max(1, int(2 * self.zoom))
+        pen = QPen(self.color, pen_width)
+        pen.setCapStyle(Qt.RoundCap)
+        pen.setJoinStyle(Qt.RoundJoin)
+        
+        if self.line_type == "dash":
+            pen.setDashPattern([5, 5])
+        
+        painter.setPen(pen)
+        
+        # Desenhar path se existir, senão desenhar reta
+        if self.path:
+            painter.drawPath(self.path)
+        else:
+            painter.drawLine(self.p1, self.p2)
+        
+        # Desenhar rótulo (label) acima da linha
+        if self.label:
+            # Calcular ponto médio (simplificado)
+            if self.path:
+                # Para paths complexos, usar aproximação
+                mid_point = self.path.pointAtPercent(0.5)
+            else:
+                mid_point = (self.p1 + self.p2) * 0.5
+            
+            # Posicionar texto acima da seta (com pequeno offset)
+            offset_y = -25 * self.zoom  # Acima da seta
+            label_pos = QPointF(mid_point.x(), mid_point.y() + offset_y)
+            
+            # Fonte e métrica
+            t = T()
+            font = QFont(t.get("font_family", "Segoe UI"), max(8, int(10 * self.zoom)), QFont.Bold)
+            fm = QFontMetrics(font)
+            text_width = fm.width(self.label)
+            text_height = fm.height()
+            
+            # Rect do texto
+            text_rect = QRectF(
+                label_pos.x() - text_width / 2,
+                label_pos.y() - text_height / 2,
+                text_width,
+                text_height
+            )
+            
+            # Cor do texto: preto em temas claros, branco em temas escuros
+            is_light = self._is_light_theme(t)
+            text_color = QColor(0, 0, 0) if is_light else QColor(255, 255, 255)
+            
+            # Desenhar texto SEM background
+            painter.setPen(text_color)
+            painter.setFont(font)
+            painter.drawText(text_rect, Qt.AlignCenter, self.label)
+    
+    def hoverEnterEvent(self, event):
+        self._hovered = True
+        self.update()
+    
+    def hoverLeaveEvent(self, event):
+        self._hovered = False
+        self.update()
+    
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._edit_label()
+            event.accept()
+    
+    def contextMenuEvent(self, event):
+        menu = QMenu()
+        t_m = T()
+        menu.setStyleSheet(f"""
+            QMenu {{ background-color: {t_m["bg_card"]}; color: {t_m["text"]}; border: 3px solid #000000;
+                    border-radius: 0px; font-family: 'Segoe UI'; font-size: 13px;
+                    font-weight: bold; padding: 5px; }}
+            QMenu::item {{ padding: 8px 30px; border-radius: 0px; }}
+            QMenu::item:selected {{ background-color: {t_m["accent"]}; color: #FFFFFF; }}
+        """)
+        
+        menu.addAction("✏️ Editar Rótulo").triggered.connect(self._edit_label)
+        menu.addAction("🗑 Remover Rótulo").triggered.connect(self._remove_label)
+        
+        menu.exec_(event.screenPos())
+    
+    def _edit_label(self):
+        """Abre diálogo para editar o rótulo da seta"""
+        new_label, ok = QInputDialog.getText(
+            None,
+            "Editar Rótulo da Seta",
+            "Digite o texto para a seta:",
+            text=self.label
+        )
+        if ok:
+            self.label = new_label.strip()
+            if self.connection_key and self.parent_widget:
+                self.parent_widget._connection_labels[self.connection_key] = self.label
+            self.update()
+    
+    def _remove_label(self):
+        """Remove o rótulo da seta"""
+        self.label = ""
+        if self.connection_key and self.parent_widget:
+            if self.connection_key in self.parent_widget._connection_labels:
+                del self.parent_widget._connection_labels[self.connection_key]
+        self.update()
+
+
 class BPMNRecallArrow(QGraphicsItem):
     """
     Seta de recall que sai de um ponto origem, vai para baixo, depois para esquerda, 
@@ -388,7 +570,7 @@ class BPMNRecallArrow(QGraphicsItem):
 
 
 class BPMNAutoNode(QGraphicsItem):
-    def __init__(self, node_id, text, shape, lane, signals, zoom):
+    def __init__(self, node_id, text, shape, lane, signals, zoom, saved_texts=None):
         super().__init__()
         self.node_id = node_id
         self.text = text.strip()
@@ -400,13 +582,18 @@ class BPMNAutoNode(QGraphicsItem):
         
         # Dicionário para armazenar textos em múltiplas posições
         # Chaves: "inside", "below", "right", "left", "above"
-        self._texts = {
-            "inside": "",
-            "below": text.strip(),  # Text principal fica em "below" por padrão
-            "right": "",
-            "left": "",
-            "above": ""
-        }
+        if saved_texts:
+            # ← RESTAURAR Estado anterior (quando usuário moveu texto entre posições)
+            self._texts = dict(saved_texts)
+        else:
+            # ← Inicializar normalmente (nó novo ou recém-criado)
+            self._texts = {
+                "inside": "",
+                "below": text.strip(),  # Text principal fica em "below" por padrão
+                "right": "",
+                "left": "",
+                "above": ""
+            }
 
         t = T()
         ff = t.get("font_family_content", "Segoe UI")
@@ -450,14 +637,26 @@ class BPMNAutoNode(QGraphicsItem):
 
     def boundingRect(self):
         m = 24 * self.zoom
+        # Adicionar espaço extra para textos em todas as posições
+        text_space = 70 * self.zoom  # espaço para textos acima, abaixo, esquerda, direita
         if (
             "Evento" in self.shape
             or "Gateway" in self.shape
             or "Objeto" in self.shape
             or "Base" in self.shape
         ):
-            return QRectF(-m, -m, self._w + m * 2, self._h + m * 2 + 30 * self.zoom)
-        return QRectF(-m, -m, self._w + m * 2, self._h + m * 2)
+            return QRectF(
+                -m - text_space, 
+                -m - text_space, 
+                self._w + m * 2 + text_space * 2, 
+                self._h + m * 2 + text_space * 2 + 30 * self.zoom
+            )
+        return QRectF(
+            -m - text_space, 
+            -m - text_space, 
+            self._w + m * 2 + text_space * 2, 
+            self._h + m * 2 + text_space * 2
+        )
 
     def paint(self, painter, option, widget=None):
         painter.setRenderHint(QPainter.Antialiasing)
@@ -629,8 +828,16 @@ class BPMNAutoNode(QGraphicsItem):
                     QPointF(self._w / 2 + 4 * self.zoom, self._h - 6 * self.zoom),
                 )
 
-        painter.setFont(self._font_text if self.text else self._font_ph)
-        painter.setPen(QColor(T()["text"] if self.text else T()["text_dim"]))
+        # ───────────────────────────────────────────────────────────────────
+        # RENDERIZAR TEXTOS - Desativar clipping e salvar estado
+        # ───────────────────────────────────────────────────────────────────
+        painter.save()
+        painter.setClipping(False)  # ← Desativa QUALQUER clipping anterior
+        
+        # Verificar se há algum texto para renderizar
+        has_text = any(self._texts.values())
+        painter.setFont(self._font_text if has_text else self._font_ph)
+        painter.setPen(QColor(T()["text"] if has_text else T()["text_dim"]))
         
         # Renderizar textos de TODAS as 5 posições
         for position, text_content in self._texts.items():
@@ -642,8 +849,8 @@ class BPMNAutoNode(QGraphicsItem):
             if position == "inside":
                 # Dentro da forma
                 if self._w > 0 and self._h > 0:
-                    text_rect = QRectF(r.left() - self._w * 0.2, r.top() - self._h * 0.2, 
-                                       self._w * 1.4, self._h * 1.4)
+                    text_rect = QRectF(r.left() + 4 * self.zoom, r.top() + 4 * self.zoom, 
+                                       self._w - 8 * self.zoom, self._h - 8 * self.zoom)
                     painter.drawText(text_rect, Qt.AlignCenter | Qt.TextWordWrap, display_text)
             elif position == "right":
                 # À direita da forma
@@ -663,6 +870,8 @@ class BPMNAutoNode(QGraphicsItem):
                 # Abaixo da forma (padrão)
                 text_rect = QRectF(-self._w, self._h + 4 * self.zoom, self._w * 3, 60 * self.zoom)
                 painter.drawText(text_rect, Qt.AlignTop | Qt.AlignHCenter | Qt.TextWordWrap, display_text)
+        
+        painter.restore()  # ← Restaurar estado completo
 
     def _draw_btn(self, painter, rect, label, color):
         t = T()
@@ -741,6 +950,10 @@ class BPMNAutoNode(QGraphicsItem):
         m_shape = menu.addAction("🔄 Mudar Formato")
         menu.addSeparator()
         
+        m_edit_arrows = menu.addAction("🏷️ Editar Rótulos das Setas")
+        
+        menu.addSeparator()
+        
         # Opção para ADICIONAR/EDITAR TEXTO em qualquer posição
         m_add_text = menu.addMenu("➕ Adicionar/Editar Texto")
         a_inside = m_add_text.addAction("📍 Dentro")
@@ -780,6 +993,12 @@ class BPMNAutoNode(QGraphicsItem):
             self.signals.recall_create.emit(self.node_id)
         elif action == m_shape:
             self.signals.change_shape.emit(self.node_id)
+        elif action == m_edit_arrows:
+            # Buscar parent widget para editar rótulos
+            scene = self.scene()
+            parent = scene.parent() if scene else None
+            if parent and hasattr(parent, '_show_connection_labels_dialog'):
+                parent._show_connection_labels_dialog(self.node_id)
         elif action == m_del:
             self.signals.delete_node.emit(self.node_id)
 
@@ -844,6 +1063,16 @@ class BPMNAutoWidget(QWidget):
         self.pool_name = "Organização / Empresa"
         self.lanes = ["Setor Inicial"]
         self.node_dimensions, self.node_positions, self._scene_items = {}, {}, []
+        self._is_editing = False  # ← Flag para proteger contra redraws durante edição
+        
+        # Dicionário para armazenar rótulos/textos das conexões
+        # Chave: (source_id, target_id), Valor: texto do rótulo
+        self._connection_labels = {}
+        
+        # Dicionário para armazenar textos em múltiplas posições (persistente entre redraws)
+        # Chave: node_id, Valor: {"inside": "", "below": "", ...}
+        self._node_text_positions = {}
+        
         self.nodes = {
             1: {
                 "text": "Início",
@@ -1135,6 +1364,7 @@ class BPMNAutoWidget(QWidget):
             "lane": lane_idx,
             "children": [],
             "parent": parent_id,
+            "recall_links": [],
         }
 
         if parent_id is not None:
@@ -1194,11 +1424,15 @@ class BPMNAutoWidget(QWidget):
         elif isinstance(target_id, str) and target_id.startswith("lane_"):
             idx = int(target_id.split("_")[1])
             self.lanes[idx] = new_text
+        
+        self._is_editing = False  # ← Flag de edição desligada
         self.draw_diagram()
 
     def _on_edit_start(self, target_id):
+        self._is_editing = True  # ← Flag de edição ligada
         if isinstance(target_id, int):
             if target_id not in self.node_positions:
+                self._is_editing = False
                 return
             nw, nh = self.node_dimensions[target_id]
             x, y = self.node_positions[target_id]
@@ -1303,6 +1537,7 @@ class BPMNAutoWidget(QWidget):
                 self.nodes[nid]["lane"],
                 self.signals,
                 self.zoom,
+                saved_texts=None,  # ← Não restaurar em cálculo de tamanho
             )
             self.node_dimensions[nid] = (tmp.width(), tmp.height())
 
@@ -1437,7 +1672,73 @@ class BPMNAutoWidget(QWidget):
         self.scene.addItem(btn_add)
         self._scene_items.append(btn_add)
 
+    def _edit_connection_label_dialog(self, source_id, target_id):
+        """Abre diálogo para editar rótulo de uma conexão"""
+        conn_key = (source_id, target_id)
+        current_label = self._connection_labels.get(conn_key, "")
+        
+        new_label, ok = QInputDialog.getText(
+            self,
+            "Editar Rótulo da Seta",
+            f"Digite o rótulo para a seta do elemento {source_id} → {target_id}:",
+            text=current_label
+        )
+        
+        if ok:
+            if new_label.strip():
+                self._connection_labels[conn_key] = new_label.strip()
+            else:
+                # Remover se vazio
+                if conn_key in self._connection_labels:
+                    del self._connection_labels[conn_key]
+            
+            # Redesenhar o diagrama
+            self.draw_diagram()
+    
+    def _show_connection_labels_dialog(self, node_id):
+        """Mostra diálogo para editar rótulos das setas que saem do nó"""
+        if node_id not in self.nodes:
+            return
+        
+        node = self.nodes[node_id]
+        children = node.get("children", [])
+        
+        if not children:
+            QMessageBox.information(self, "Sem Setas", f"O elemento {node_id} não tem conexões de saída.")
+            return
+        
+        # Criar lista de opções
+        choices = []
+        for child_id in children:
+            if child_id in self.nodes:
+                choice_text = f"→ {child_id}: {self.nodes[child_id]['text'] or self.nodes[child_id]['shape']}"
+                choices.append((choice_text, node_id, child_id))
+        
+        if not choices:
+            return
+        
+        # Dialog para selecionar qual seta editar
+        choice_texts = [c[0] for c in choices]
+        choice_text, ok = QInputDialog.getItem(
+            self,
+            "Editar Rótulo de Seta",
+            "Selecione a seta para editar:",
+            choice_texts,
+            0,
+            False
+        )
+        
+        if ok:
+            _, source_id, target_id = next((c for c in choices if c[0] == choice_text), (None, None, None))
+            if source_id is not None:
+                self._edit_connection_label_dialog(source_id, target_id)
+
     def draw_diagram(self):
+        # ← SALVAR estado de _texts de TODOS os nós ANTES de limpar a cena
+        for item in self.scene.items():
+            if isinstance(item, BPMNAutoNode):
+                self._node_text_positions[item.node_id] = dict(item._texts)
+        
         self._scene_items = []
         self.scene.clear()
         if not self.nodes:
@@ -1467,13 +1768,6 @@ class BPMNAutoWidget(QWidget):
         t = T()
 
         # Conexões hierárquicas (filhos)
-        pen = QPen(
-            QColor(t["line"]),
-            max(1, int(2 * self.zoom)),
-            Qt.SolidLine,
-            Qt.RoundCap,
-            Qt.RoundJoin,
-        )
         for cid in self.nodes[node_id]["children"]:
             if cid not in self.node_positions:
                 continue
@@ -1483,22 +1777,18 @@ class BPMNAutoWidget(QWidget):
             p1 = QPointF(px + pw / 2, py)
             p2 = QPointF(cx - cw / 2, cy)
 
-            path = QPainterPath()
-            path.moveTo(p1)
+            # Obter rótulo desta conexão (se existir)
+            conn_key = (node_id, cid)
+            label = self._connection_labels.get(conn_key, "")
 
-            # Se estão em raias diferentes, faz o roteamento em "S"
-            if self.nodes[node_id]["lane"] != self.nodes[cid]["lane"]:
-                mid_x = px + pw / 2 + 40 * self.zoom
-                path.lineTo(mid_x, py)
-                path.lineTo(mid_x, cy)
-            else:
-                mid_x = (p1.x() + p2.x()) / 2
-                path.lineTo(mid_x, py)
-                path.lineTo(mid_x, cy)
+            # SEMPRE usar BPMNConnectionLine para permitir clique e edição
+            conn_line = BPMNConnectionLine(p1, p2, label, self.zoom, "solid", QColor(t["line"]))
+            conn_line.connection_key = conn_key
+            conn_line.parent_widget = self
+            self._scene_items.append(conn_line)
+            self.scene.addItem(conn_line)
 
-            path.lineTo(p2)
-            self._scene_items.append(self.scene.addPath(path, pen))
-
+            # Desenhar seta
             arrow_size = 10 * self.zoom
             poly = QPolygonF(
                 [
@@ -1538,13 +1828,16 @@ class BPMNAutoWidget(QWidget):
                     else QPointF(cx, cy + self.node_dimensions[cid][1] / 2)
                 )
 
-                path = QPainterPath()
-                path.moveTo(p1_c)
-                mid_y = (p1_c.y() + p2_c.y()) / 2
-                path.lineTo(p1_c.x(), mid_y)
-                path.lineTo(p2_c.x(), mid_y)
-                path.lineTo(p2_c)
-                self._scene_items.append(self.scene.addPath(path, pen_cross))
+                # Obter rótulo desta conexão cruzada (se existir)
+                conn_key = (node_id, cid)
+                label = self._connection_labels.get(conn_key, "")
+
+                # SEMPRE usar BPMNConnectionLine para permitir clique e edição
+                conn_line = BPMNConnectionLine(p1_c, p2_c, label, self.zoom, "dash", QColor(t["accent_bright"]))
+                conn_line.connection_key = conn_key
+                conn_line.parent_widget = self
+                self._scene_items.append(conn_line)
+                self.scene.addItem(conn_line)
 
                 arrow_size = 8 * self.zoom
                 dir_y = -1 if cy < py else 1
@@ -1588,6 +1881,8 @@ class BPMNAutoWidget(QWidget):
     def _draw_nodes(self):
         for nid, (x, y) in self.node_positions.items():
             nw, nh = self.node_dimensions[nid]
+            # ← Restaurar textos salvos (quando usuário moveu texto entre posições)
+            saved_texts = self._node_text_positions.get(nid, None)
             item = BPMNAutoNode(
                 nid,
                 self.nodes[nid]["text"],
@@ -1595,6 +1890,7 @@ class BPMNAutoWidget(QWidget):
                 self.nodes[nid]["lane"],
                 self.signals,
                 self.zoom,
+                saved_texts=saved_texts,
             )
             item.setPos(x - nw / 2, y - nh / 2)
             self.scene.addItem(item)
