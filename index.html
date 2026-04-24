@@ -148,13 +148,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
 .shot:hover{transform:scale(1.035) translateY(-8px);box-shadow:12px 12px 0 rgba(0,0,0,.45);z-index:3}
 .shot img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.94) contrast(1.03) brightness(.8);transform-origin:center center;transition:transform .42s var(--ease),filter .42s var(--ease)}
 .shot:hover img{transform:scale(1.12);filter:saturate(1.08) contrast(1.1) brightness(1)}
-.shot::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,8,.94),rgba(8,8,8,.28) 45%,rgba(8,8,8,.05) 72%);transition:opacity .28s var(--ease)}
-.shot:hover::after{opacity:.06}
+.shot::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(5,5,5,.98),rgba(5,5,5,.58) 42%,rgba(5,5,5,.16) 74%);transition:opacity .28s var(--ease)}
+.shot:hover::after{opacity:.14}
 .shot-meta{position:absolute;left:1.4rem;right:1.4rem;bottom:1.3rem;z-index:1;transition:opacity .22s var(--ease),transform .22s var(--ease)}
 .shot:hover .shot-meta{opacity:0;transform:translateY(10px)}
-.shot-k{font-family:var(--ff-m);font-size:.56rem;letter-spacing:3px;text-transform:uppercase;color:#F8F4DE;text-shadow:2px 2px 0 rgba(0,0,0,.55);display:block;margin-bottom:.5rem}
-.shot-t{font-family:var(--ff-h);font-size:2rem;line-height:.92;letter-spacing:1px;color:#FFFDF2;text-shadow:3px 3px 0 rgba(0,0,0,.62)}
-.shot-p{font-size:.8rem;line-height:1.6;color:rgba(255,251,232,.96);text-shadow:2px 2px 0 rgba(0,0,0,.55);margin-top:.6rem;max-width:30ch}
+.shot-k{font-family:var(--ff-m);font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FFF8D9;text-shadow:2px 2px 0 rgba(0,0,0,.8),0 0 14px rgba(0,0,0,.4);display:block;margin-bottom:.55rem}
+.shot-t{font-family:var(--ff-h);font-size:2.25rem;line-height:.92;letter-spacing:1px;color:#FFFFFF;text-shadow:4px 4px 0 rgba(0,0,0,.82),0 0 18px rgba(0,0,0,.42)}
+.shot-p{font-size:.9rem;font-weight:500;line-height:1.62;color:#FFFDF0;text-shadow:2px 2px 0 rgba(0,0,0,.8),0 0 12px rgba(0,0,0,.35);margin-top:.7rem;max-width:31ch}
 
 @media(min-width:1101px){
   .shot-grid:has(.shot:hover) .shot{
