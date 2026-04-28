@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -12,7 +12,8 @@
 <meta property="og:image" content="proeng/resources/screenshots/welcome_dark.png">
 <title>ProEng v2.0 — Suite de Engenharia Industrial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink:       #080808;
@@ -22,10 +23,10 @@
   --steel2:    #181828;
   --acid:      #C8FF00;
   --acid2:     #A8D800;
-  --cyan:      #00FFCC;
-  --orange:    #FF5500;
-  --red:       #FF1744;
-  --violet:    #7C3AED;
+  --cyan:      #C8FF00;
+  --orange:    #C8FF00;
+  --red:       #A8D800;
+  --violet:    #D7FF58;
   --muted:     #5A5A5A;
   --lite:      #8A8A8A;
   --fat:       4px solid var(--ink);
@@ -138,11 +139,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
 
 /* ── SHOWCASE ─────────────────────────────────────── */
 #showcase{background:var(--steel2)}
-#showcase .s-head{border-color:rgba(0,255,204,.1)}
+#showcase .s-head{border-color:rgba(200,255,0,.1)}
 #showcase .s-title{color:var(--paper)}
 #showcase .s-num{color:rgba(255,255,255,.025)}
 #showcase .s-aside p{color:rgba(240,237,220,.36)}
-#showcase .s-tag{color:rgba(0,255,204,.45)}
+#showcase .s-tag{color:rgba(200,255,0,.45)}
 .shot-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:var(--fat);border-left:var(--fat)}
 .shot{position:relative;display:block;min-height:300px;aspect-ratio:16/10;background:var(--ink);border-right:var(--fat);border-bottom:var(--fat);overflow:hidden;text-decoration:none;transform-origin:center center;transition:transform .26s var(--ease),box-shadow .26s var(--ease),z-index .26s var(--ease)}
 .shot:hover{transform:scale(1.035) translateY(-8px);box-shadow:12px 12px 0 rgba(0,0,0,.45);z-index:3}
@@ -197,11 +198,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
 .dk .s-tag{color:rgba(200,255,0,.4)}
 
 .dk2{background:var(--steel2)}
-.dk2 .s-head{border-color:rgba(0,255,204,.1)}
+.dk2 .s-head{border-color:rgba(200,255,0,.1)}
 .dk2 .s-title{color:var(--paper)}
 .dk2 .s-num{color:rgba(255,255,255,.025)}
 .dk2 .s-aside p{color:rgba(240,237,220,.36)}
-.dk2 .s-tag{color:rgba(0,255,204,.4)}
+.dk2 .s-tag{color:rgba(200,255,0,.4)}
 
 /* ── MODULES GRID ─────────────────────────────────── */
 #modules{background:var(--paper)}
@@ -241,10 +242,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
            display:flex;align-items:center;justify-content:center}
 .mod-ghost span{font-family:var(--ff-h);font-size:2.8rem;color:rgba(0,0,0,.08);letter-spacing:4px}
 
-.mc-1{--mc:#C8FF00}.mc-2{--mc:#00FFCC}.mc-3{--mc:#FF5500}
-.mc-4{--mc:#0057FF}.mc-5{--mc:#FF1744}.mc-6{--mc:#FFD600}
-.mc-7{--mc:#00C853}.mc-8{--mc:#FF6D00}.mc-9{--mc:#7C4DFF}
-.mc-10{--mc:#00B0FF}.mc-11{--mc:#F50057}
+.mc-1{--mc:#C8FF00}.mc-2{--mc:#C8FF00}.mc-3{--mc:#C8FF00}
+.mc-4{--mc:#BFEF00}.mc-5{--mc:#B7E500}.mc-6{--mc:#D7FF58}
+.mc-7{--mc:#C8FF00}.mc-8{--mc:#BFEF00}.mc-9{--mc:#D7FF58}
+.mc-10{--mc:#B7E500}.mc-11{--mc:#C8FF00}
 
 /* ── PHILOSOPHY ───────────────────────────────────── */
 .phil-grid{display:grid;grid-template-columns:1fr 1fr 1fr;
@@ -288,23 +289,23 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
 
 /* ── ARCHITECTURE ─────────────────────────────────── */
 #architecture{background:#060610}
-#architecture .s-head{border-color:rgba(255,85,0,.16)}
+#architecture .s-head{border-color:rgba(200,255,0,.16)}
 #architecture .s-title{color:var(--paper)}
 #architecture .s-num{color:rgba(255,255,255,.025)}
 #architecture .s-aside p{color:rgba(240,237,220,.36)}
-#architecture .s-tag{color:rgba(255,85,0,.5)}
+#architecture .s-tag{color:rgba(200,255,0,.5)}
 
 .arch-wrap{display:grid;grid-template-columns:1.15fr 1fr;
            border-top:1px solid rgba(255,255,255,.04)}
 .arch-tree{padding:4rem;border-right:1px solid rgba(255,255,255,.04)}
 .arch-h{font-family:var(--ff-m);font-size:.57rem;letter-spacing:4px;color:var(--orange);
         text-transform:uppercase;margin-bottom:2.5rem;display:flex;align-items:center;gap:1rem}
-.arch-h::after{content:'';flex:1;height:1px;background:rgba(255,85,0,.18)}
+.arch-h::after{content:'';flex:1;height:1px;background:rgba(200,255,0,.18)}
 
 pre{font-family:var(--ff-m);font-size:.72rem;line-height:2.05;
     color:rgba(240,237,220,.4);white-space:pre;overflow-x:auto}
 .cr{color:var(--acid)}.cc{color:var(--cyan)}.cm{color:var(--orange)}
-.cu{color:#FF79C6}.cn{color:rgba(255,255,255,.19);font-style:italic}
+.cu{color:var(--violet)}.cn{color:rgba(255,255,255,.19);font-style:italic}
 
 .arch-feats{padding:3rem;display:grid;grid-template-columns:1fr 1fr;
             gap:1px;background:rgba(255,255,255,.03);align-content:start}
@@ -312,39 +313,39 @@ pre{font-family:var(--ff-m);font-size:.72rem;line-height:2.05;
     transition:background .18s}
 .af:hover{background:#0f0f1e}
 .af-l{font-family:var(--ff-m);font-size:.57rem;letter-spacing:3px;text-transform:uppercase;
-      color:var(--orange);margin-bottom:.55rem}
+      color:var(--acid);margin-bottom:.55rem}
 .af-t{font-size:.8rem;line-height:1.65;color:rgba(240,237,220,.4)}
 .af-t code{font-family:var(--ff-m);font-size:.82em;color:var(--acid)}
 
 /* ── API ─────────────────────────────────────────── */
 #api{background:#0A0A18}
-.api-lead{display:grid;grid-template-columns:1.15fr .85fr;border-top:1px solid rgba(0,255,204,.06);border-bottom:1px solid rgba(0,255,204,.06)}
+.api-lead{display:grid;grid-template-columns:1.15fr .85fr;border-top:1px solid rgba(200,255,0,.06);border-bottom:1px solid rgba(200,255,0,.06)}
 .api-lead-main,.api-lead-side{padding:2.5rem 3rem}
-.api-lead-main{border-right:1px solid rgba(0,255,204,.06)}
-.api-over{font-family:var(--ff-m);font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:rgba(0,255,204,.55);margin-bottom:1rem;display:block}
+.api-lead-main{border-right:1px solid rgba(200,255,0,.06)}
+.api-over{font-family:var(--ff-m);font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:rgba(200,255,0,.55);margin-bottom:1rem;display:block}
 .api-copy{font-size:.95rem;line-height:1.78;color:rgba(240,237,220,.56);max-width:62ch}
 .api-copy strong{color:var(--paper);font-weight:600}
 .api-pills{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1.4rem}
-.api-pill{font-family:var(--ff-m);font-size:.58rem;letter-spacing:1.2px;padding:6px 10px;background:rgba(0,255,204,.06);border:1px solid rgba(0,255,204,.14);color:rgba(240,237,220,.72)}
-.api-mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(0,255,204,.06)}
+.api-pill{font-family:var(--ff-m);font-size:.58rem;letter-spacing:1.2px;padding:6px 10px;background:rgba(200,255,0,.06);border:1px solid rgba(200,255,0,.14);color:rgba(240,237,220,.72)}
+.api-mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(200,255,0,.06)}
 .api-mini-item{background:#070713;padding:1.2rem}
 .api-mini-k{font-family:var(--ff-m);font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:.45rem}
 .api-mini-v{font-family:var(--ff-h);font-size:1.65rem;line-height:.95;color:var(--paper)}
 .api-mini-p{font-size:.76rem;line-height:1.55;color:rgba(240,237,220,.4);margin-top:.45rem}
 .api-grid{display:grid;grid-template-columns:1fr 1fr;
-          border-top:1px solid rgba(0,255,204,.06)}
-.api-block{padding:3rem;border-right:1px solid rgba(0,255,204,.06);
-           border-bottom:1px solid rgba(0,255,204,.06)}
+          border-top:1px solid rgba(200,255,0,.06)}
+.api-block{padding:3rem;border-right:1px solid rgba(200,255,0,.06);
+           border-bottom:1px solid rgba(200,255,0,.06)}
 .api-lbl{font-family:var(--ff-m);font-size:.56rem;letter-spacing:3.5px;
          text-transform:uppercase;color:var(--cyan);margin-bottom:1.4rem;
          display:flex;align-items:center;gap:1rem}
-.api-lbl::after{content:'';flex:1;height:1px;background:rgba(0,255,204,.1)}
+.api-lbl::after{content:'';flex:1;height:1px;background:rgba(200,255,0,.1)}
 
-.code-box{background:rgba(0,0,0,.5);border:1px solid rgba(0,255,204,.08);
+.code-box{background:rgba(0,0,0,.5);border:1px solid rgba(200,255,0,.08);
           padding:1.4rem;font-family:var(--ff-m);font-size:.7rem;
           line-height:1.9;color:rgba(240,237,220,.55);overflow-x:auto}
 .kw{color:var(--cyan)}.fn{color:var(--acid)}.st{color:var(--orange)}
-.co{color:rgba(255,255,255,.2);font-style:italic}.tp{color:#FF79C6}.nb{color:#BD93F9}
+.co{color:rgba(255,255,255,.2);font-style:italic}.tp{color:var(--violet)}.nb{color:var(--red)}
 
 .mlist{margin-top:1.65rem}
 .mrow{display:flex;align-items:baseline;gap:1.2rem;padding:.58rem 0;
@@ -489,7 +490,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   .hero-left{padding-top:3rem;padding-bottom:3rem}
   .s-num{left:1rem;font-size:5rem}
   .api-mini{grid-template-columns:1fr}
-  .api-lead-main{border-right:none;border-bottom:1px solid rgba(0,255,204,.06)}
+  .api-lead-main{border-right:none;border-bottom:1px solid rgba(200,255,0,.06)}
   .shot-grid{grid-template-columns:1fr}
   .shot-grid{border-left:none}
   .shot{min-height:260px;aspect-ratio:16/11;border-left:var(--fat)}
@@ -510,6 +511,257 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
   .ft-bot{flex-direction:column;align-items:flex-start;gap:.8rem;padding:1.1rem}
   .ft-cols{overflow:hidden}
   pre,.code-box,.step-c{font-size:.66rem}
+}
+
+/* ── THEME OVERRIDE: PORTFOLIO MONOCHROME ─────────── */
+:root{
+  --paper:#ffffff;
+  --dim:#f1f1f1;
+  --ink:#050505;
+  --steel:#050505;
+  --steel2:#0d0d0d;
+  --acid:#ffffff;
+  --acid2:#d8d8d8;
+  --cyan:#ffffff;
+  --orange:#d8d8d8;
+  --red:#c8c8c8;
+  --violet:#ececec;
+  --muted:#585858;
+  --lite:#8a8a8a;
+  --ff-h:'Archivo Black', sans-serif;
+  --ff-m:'IBM Plex Mono', monospace;
+  --ff-b:'Manrope', sans-serif;
+}
+
+body{
+  background:
+    radial-gradient(circle at 12% 16%, rgba(255,255,255,.06), transparent 0 18%),
+    radial-gradient(circle at 84% 12%, rgba(255,255,255,.04), transparent 0 16%),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0) 24%),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255,255,255,.03) 1px, transparent 1px),
+    #050505;
+  background-size:100% 100%,100% 100%,100% 100%,26px 26px,26px 26px,auto;
+  color:var(--paper);
+}
+
+body::before{
+  background:
+    radial-gradient(circle at 14% 22%, rgba(255,255,255,.05), transparent 0 16%),
+    radial-gradient(circle at 86% 14%, rgba(255,255,255,.04), transparent 0 14%),
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(255,255,255,.03) 59px,rgba(255,255,255,.03) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(255,255,255,.03) 59px,rgba(255,255,255,.03) 60px);
+}
+
+::selection{background:#ffffff;color:#050505}
+a:focus-visible,button:focus-visible{outline:3px solid #ffffff}
+
+nav{
+  background:#050505;
+  border-bottom:3px solid #f5f5f5;
+}
+
+.logo,
+.h-title,
+.h-title-eng,
+.s-title,
+.ph-t,
+.gh-title,
+.api-mini-v{color:#ffffff}
+
+.logo em,
+.nav-pill,
+.nav-links a:hover,
+.nav-links a.on,
+.mval,
+.gh-title em,
+.gh-url-txt,
+.gh-url-icon,
+.ft-wm,
+.gpl{color:#ffffff}
+
+.logo sup,
+.eyebrow,
+.s-tag,
+.dk .s-tag,
+.dk2 .s-tag,
+#showcase .s-tag,
+#architecture .s-tag,
+.api-over,
+.api-mini-k,
+.api-lbl,
+.arch-h,
+.af-l,
+.gh-eyebrow,
+.ft-ct{color:rgba(255,255,255,.58)}
+
+.nav-links a{
+  color:rgba(255,255,255,.58);
+  border-left-color:rgba(255,255,255,.08);
+}
+
+.nav-links a:hover,.nav-links a.on{
+  background:rgba(255,255,255,.08);
+}
+
+.nav-pill,
+.gpl{
+  border-color:rgba(255,255,255,.22);
+}
+
+#hero,.dk,#github,footer{
+  background:#050505;
+}
+
+#showcase,.dk2,#architecture,#api{
+  background:#0d0d0d;
+}
+
+#modules,#themes,#shortcuts{
+  background:
+    linear-gradient(145deg, rgba(255,255,255,1), rgba(238,238,238,.98) 26%, rgba(255,255,255,.94) 52%, rgba(220,220,220,.96) 74%, rgba(255,255,255,1)),
+    linear-gradient(180deg, rgba(255,255,255,.26), rgba(0,0,0,.02)),
+    repeating-linear-gradient(115deg, rgba(0,0,0,.09) 0 1px, transparent 1px 12px),
+    #ffffff;
+  color:#050505;
+}
+
+#install{
+  background:
+    linear-gradient(145deg, rgba(255,255,255,1), rgba(238,238,238,.98) 26%, rgba(255,255,255,.94) 52%, rgba(220,220,220,.96) 74%, rgba(255,255,255,1)),
+    linear-gradient(180deg, rgba(255,255,255,.26), rgba(0,0,0,.02)),
+    repeating-linear-gradient(115deg, rgba(0,0,0,.09) 0 1px, transparent 1px 12px),
+    #ffffff;
+  border-top-color:#050505;
+  border-bottom-color:#050505;
+}
+
+.hero-left,.metrics,.metric,.phil-grid,.phil,.gh-inner,.ft-cols,.ft-col,.ft-bot,.arch-wrap,.arch-tree,.arch-feats,.api-lead,.api-grid,.api-block{
+  border-color:rgba(255,255,255,.08);
+}
+
+.eyebrow::before,
+.eyebrow::after,
+.h-title-eng::after,
+.mod::before,
+.ph-bar,
+.ft-links a::before{
+  background:#ffffff;
+}
+
+.eyebrow{color:#ffffff}
+.eyebrow::after{background:linear-gradient(to right,#ffffff,transparent)}
+
+.btn-a{
+  background:#ffffff;
+  color:#050505;
+  border-color:#f5f5f5;
+  box-shadow:8px 8px 0 rgba(255,255,255,.92);
+}
+
+.btn-a:hover{
+  transform:translate(-2px,-2px);
+  box-shadow:12px 12px 0 rgba(255,255,255,.95);
+}
+
+.btn-g{
+  color:rgba(255,255,255,.76);
+  border-color:rgba(255,255,255,.24);
+  box-shadow:4px 4px 0 rgba(255,255,255,.08);
+}
+
+.btn-g:hover{
+  color:#ffffff;
+  border-color:rgba(255,255,255,.48);
+  box-shadow:8px 8px 0 rgba(255,255,255,.12);
+}
+
+.ticker-wrap,
+.kbd-h{
+  background:#ffffff;
+  color:#050505;
+  border-color:#050505;
+}
+
+.t-item,.kbd-h,.inst-t,.inst-pre,.inst-d,.req,.kact,.grp-l,.s-aside,.s-aside p,.mc-d,.mc-tag,.ft-ti,.ft-tl{
+  color:#050505;
+}
+
+.inst-r{
+  background:#050505;
+}
+
+.step-c,
+.api-pill,
+.api-mini,
+.gh-url-box{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.16);
+}
+
+.step-l,.api-copy,.api-mini-p,.af-t,.md,.gh-meta,.ft-bl,.ft-links a,.ft-copy,pre,.code-box,.dk .s-aside p,.dk2 .s-aside p,#showcase .s-aside p,#architecture .s-aside p{
+  color:rgba(255,255,255,.56);
+}
+
+.mc-1,.mc-2,.mc-3,.mc-4,.mc-5,.mc-6,.mc-7,.mc-8,.mc-9,.mc-10,.mc-11{--mc:#ffffff}
+
+.mc-ico{
+  background:#ffffff;
+  box-shadow:4px 4px 0 #050505;
+}
+
+.mod:hover{
+  background:#050505;
+}
+
+.mod:hover .mc-ico{
+  box-shadow:8px 8px 0 rgba(255,255,255,.92);
+}
+
+.mod:hover .mc-t,
+.mod:hover .mc-d,
+.mod:hover .mc-tag,
+.mod:hover .mc-n{
+  color:#ffffff;
+}
+
+.api-lbl::after,
+.arch-h::after{
+  background:rgba(255,255,255,.14);
+}
+
+.code-box,
+.api-pill,
+.gh-url-box,
+.req,
+kbd{
+  box-shadow:4px 4px 0 rgba(255,255,255,.08);
+}
+
+kbd{
+  background:#050505;
+  color:#ffffff;
+  border-bottom-color:rgba(255,255,255,.24);
+}
+
+.shot img,
+.hero-svg{
+  filter:grayscale(1) contrast(1.06) brightness(.96);
+}
+
+.shot-k,.shot-t,.shot-p{color:#ffffff}
+
+.theme-strip{border-color:#050505}
+.th-tile{background:#050505;color:#ffffff}
+.th-sub{color:rgba(255,255,255,.6)}
+.sw{border-color:rgba(255,255,255,.16)!important}
+
+.t1,.t2,.t3,.t4,.t5,.t6,.t7,.t8,.t9,.t10,.t11,.t12,.t13,.t14{background:#050505;color:#ffffff}
+
+.krow:hover{background:rgba(0,0,0,.06)}
+
+@media(max-width:900px){
+  nav{background:#050505}
 }
 </style>
 </head>
@@ -1037,7 +1289,7 @@ footer{background:var(--ink);color:var(--paper);border-top:4px solid var(--acid)
     <span class="s-num">06</span>
     <h2 class="s-title" style="color:var(--paper)">Referência<br>de API</h2>
     <div class="s-aside">
-      <span class="s-tag" style="color:rgba(0,255,204,.4)">Python 3 + PyQt5</span>
+      <span class="s-tag" style="color:rgba(200,255,0,.4)">Python 3 + PyQt5</span>
       <p>Classes, sinais e interfaces dos módulos principais. Persistência, temas, lazy loading, exportação e contratos de integração descritos a partir do código real do projeto.</p>
     </div>
   </div>

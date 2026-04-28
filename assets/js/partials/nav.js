@@ -1,0 +1,2 @@
+﻿export const nav = "<nav aria-label=\"Principal\">   <a class=\"logo\" href=\"#\">PRO<em>ENG</em><sup>v2.0</sup></a>   <ul class=\"nav-links\">     <li><a href=\"#showcase\">Interface</a></li>     <li><a href=\"#modules\">Módulos</a></li>     <li><a href=\"#philosophy\">Filosofia</a></li>     <li><a href=\"#themes\">Temas</a></li>     <li><a href=\"#architecture\">Arquitetura</a></li>     <li><a href=\"#api\">API</a></li>     <li><a href=\"#install\">Instalação</a></li>     <li><a href=\"#github\">GitHub</a></li>   </ul>   <span class=\"nav-pill\">GNU GPLv3</span> </nav>";
+
